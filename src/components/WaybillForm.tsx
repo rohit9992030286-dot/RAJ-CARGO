@@ -23,9 +23,8 @@ const getInitialValues = (initialData?: Waybill): Waybill => {
     if (initialData) {
         return initialData;
     }
-    // This is a workaround to satisfy Zod's strict parsing when no initial data is present.
-    // We pass an empty object and let Zod populate the default values.
-    // We then override any fields that don't have defaults in the schema.
+    // Create a valid default object for a new waybill.
+    // Use Zod's defaults and override fields that don't have one.
     const defaults = waybillSchema.parse({});
     return {
         ...defaults,

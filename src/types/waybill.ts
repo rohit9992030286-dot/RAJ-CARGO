@@ -40,6 +40,9 @@ export const waybillSchema = z.object({
   shippingTime: z.string().min(1, 'Shipping time is required').default('10:00'),
   
   status: z.enum(['Pending', 'In Transit', 'Delivered', 'Cancelled']).default('Pending'),
+}).superRefine((val, ctx) => {
+    // This is a dummy superRefine to allow waybillSchema.parse({}) to work
+    // by ensuring Zod runs the defaults. It doesn't add any validation logic.
 });
 
 export type Waybill = z.infer<typeof waybillSchema>;
