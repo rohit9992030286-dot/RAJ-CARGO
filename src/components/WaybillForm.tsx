@@ -23,11 +23,14 @@ const getInitialValues = (initialData?: Waybill): Waybill => {
     if (initialData) {
         return initialData;
     }
-    // Create a valid default object for a new waybill.
-    // Use Zod's defaults and override fields that don't have one.
-    const defaults = waybillSchema.parse({});
+    
+    // For a new waybill, create a complete default object that satisfies the schema's types.
+    // The Zod schema will provide defaults for id, waybillNumber, status, etc.
+    // We provide initial empty values for fields the user needs to fill in.
+    const defaults = waybillSchema.partial().parse({});
     return {
-        ...defaults,
+        id: defaults.id || '', // Zod default will override this
+        waybillNumber: defaults.waybillNumber || '', // Zod default will override this
         invoiceNumber: '',
         senderName: '',
         senderAddress: '',
@@ -41,6 +44,9 @@ const getInitialValues = (initialData?: Waybill): Waybill => {
         packageWeight: 0,
         numberOfBoxes: 1,
         shipmentValue: 0,
+        shippingDate: new Date().toISOString().split('T')[0],
+        shippingTime: '10:00',
+        status: 'Pending',
     };
 };
 
