@@ -16,7 +16,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
-import { Pencil, Trash2, User, MapPin, Truck, Package, PlusCircle } from 'lucide-react';
+import { Pencil, Trash2, User, MapPin, Truck, Package, PlusCircle, Hash, Box, DollarSign } from 'lucide-react';
 
 interface WaybillListProps {
   waybills: Waybill[];
@@ -58,29 +58,37 @@ export function WaybillList({ waybills, onEdit, onDelete, onCreateNew }: Waybill
               <div>
                 <CardTitle className="text-lg">Waybill #{waybill.waybillNumber}</CardTitle>
                 <CardDescription>
-                  Created on: {new Date(waybill.shippingDate).toLocaleDateString()}
+                  Invoice #{waybill.invoiceNumber}
                 </CardDescription>
               </div>
               <Badge variant={statusVariantMap[waybill.status] || 'default'}>{waybill.status}</Badge>
             </div>
+             <CardDescription>
+                  Shipped on: {new Date(waybill.shippingDate).toLocaleDateString()} at {waybill.shippingTime}
+            </CardDescription>
           </CardHeader>
           <CardContent className="flex-grow space-y-4 text-sm">
             <div className="space-y-2">
               <h4 className="font-semibold text-primary">From:</h4>
               <p className="flex items-start gap-2"><User className="h-4 w-4 mt-0.5 shrink-0 text-muted-foreground" /> {waybill.senderName}</p>
-              <p className="flex items-start gap-2"><MapPin className="h-4 w-4 mt-0.5 shrink-0 text-muted-foreground" /> {waybill.senderAddress}</p>
+              <p className="flex items-start gap-2"><MapPin className="h-4 w-4 mt-0.5 shrink-0 text-muted-foreground" /> {waybill.senderAddress}, {waybill.senderPincode}</p>
             </div>
              <div className="space-y-2">
               <h4 className="font-semibold text-primary">To:</h4>
               <p className="flex items-start gap-2"><User className="h-4 w-4 mt-0.5 shrink-0 text-muted-foreground" /> {waybill.receiverName}</p>
-              <p className="flex items-start gap-2"><MapPin className="h-4 w-4 mt-0.5 shrink-0 text-muted-foreground" /> {waybill.receiverAddress}</p>
+              <p className="flex items-start gap-2"><MapPin className="h-4 w-4 mt-0.5 shrink-0 text-muted-foreground" /> {waybill.receiverAddress}, {waybill.receiverPincode}</p>
             </div>
              <div className="space-y-2">
-                <h4 className="font-semibold text-primary">Package:</h4>
-                <p className="flex items-start gap-2">
+                <h4 className="font-semibold text-primary">Package Details:</h4>
+                 <p className="flex items-start gap-2">
                   <Package className="h-4 w-4 mt-0.5 shrink-0 text-muted-foreground" />
-                  {waybill.packageDescription} ({waybill.packageWeight} kg)
+                  {waybill.packageDescription}
                 </p>
+                <div className="grid grid-cols-2 gap-x-4 gap-y-1 pl-6">
+                    <p className="flex items-center gap-2"><Box className="h-4 w-4 shrink-0 text-muted-foreground" /> {waybill.numberOfBoxes} {waybill.numberOfBoxes > 1 ? 'boxes' : 'box'}</p>
+                    <p className="flex items-center gap-2"><Truck className="h-4 w-4 shrink-0 text-muted-foreground" /> {waybill.packageWeight} kg</p>
+                    <p className="flex items-center gap-2"><DollarSign className="h-4 w-4 shrink-0 text-muted-foreground" /> ${waybill.shipmentValue.toFixed(2)}</p>
+                </div>
             </div>
           </CardContent>
           <CardFooter className="flex justify-end gap-2">

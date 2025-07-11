@@ -10,7 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { useToast } from '@/hooks/use-toast';
 import { Waybill, waybillSchema } from '@/types/waybill';
 import { AddressAutocompleteInput } from './AddressAutocompleteInput';
-import { User, Phone, Package, Weight, Calendar, ListChecks, Save, XCircle, MapPin } from 'lucide-react';
+import { User, Phone, Package, Weight, Calendar, ListChecks, Save, XCircle, MapPin, Hash, Box, DollarSign, Clock } from 'lucide-react';
 
 interface WaybillFormProps {
   initialData?: Waybill;
@@ -78,6 +78,22 @@ export function WaybillForm({ initialData, onSave, onCancel }: WaybillFormProps)
                   </FormItem>
                 )}
               />
+               <FormField
+                control={form.control}
+                name="senderPincode"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Pincode</FormLabel>
+                    <div className="relative">
+                      <FormControl>
+                        <Input placeholder="e.g., 10001" {...field} className="pl-10" />
+                      </FormControl>
+                      <IconWrapper><MapPin /></IconWrapper>
+                    </div>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
               <FormField
                 control={form.control}
                 name="senderPhone"
@@ -132,6 +148,22 @@ export function WaybillForm({ initialData, onSave, onCancel }: WaybillFormProps)
                   </FormItem>
                 )}
               />
+               <FormField
+                control={form.control}
+                name="receiverPincode"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Pincode</FormLabel>
+                    <div className="relative">
+                      <FormControl>
+                        <Input placeholder="e.g., 90001" {...field} className="pl-10" />
+                      </FormControl>
+                      <IconWrapper><MapPin /></IconWrapper>
+                    </div>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
               <FormField
                 control={form.control}
                 name="receiverPhone"
@@ -155,13 +187,29 @@ export function WaybillForm({ initialData, onSave, onCancel }: WaybillFormProps)
           <CardHeader>
             <CardTitle>Shipment Details</CardTitle>
           </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-4">
+          <CardContent className="space-y-6">
+             <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-4">
+                <FormField
+                control={form.control}
+                name="invoiceNumber"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Invoice Number</FormLabel>
+                    <div className="relative">
+                      <FormControl>
+                        <Input placeholder="e.g., INV-2024-001" {...field} className="pl-10" />
+                      </FormControl>
+                      <IconWrapper><Hash /></IconWrapper>
+                    </div>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
               <FormField
                 control={form.control}
                 name="packageDescription"
                 render={({ field }) => (
-                  <FormItem className="lg:col-span-2">
+                  <FormItem className="lg:col-span-3">
                     <FormLabel>Package Description</FormLabel>
                     <div className="relative">
                       <FormControl>
@@ -173,12 +221,30 @@ export function WaybillForm({ initialData, onSave, onCancel }: WaybillFormProps)
                   </FormItem>
                 )}
               />
+            </div>
+            <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-4">
+               <FormField
+                control={form.control}
+                name="numberOfBoxes"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Number of Boxes</FormLabel>
+                    <div className="relative">
+                      <FormControl>
+                        <Input type="number" placeholder="e.g., 1" {...field} className="pl-10" />
+                      </FormControl>
+                      <IconWrapper><Box /></IconWrapper>
+                    </div>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
                <FormField
                 control={form.control}
                 name="packageWeight"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Weight (kg)</FormLabel>
+                    <FormLabel>Total Weight (kg)</FormLabel>
                     <div className="relative">
                       <FormControl>
                         <Input type="number" step="0.1" placeholder="e.g., 2.5" {...field} className="pl-10" />
@@ -191,26 +257,25 @@ export function WaybillForm({ initialData, onSave, onCancel }: WaybillFormProps)
               />
               <FormField
                 control={form.control}
-                name="shippingDate"
+                name="shipmentValue"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Shipping Date</FormLabel>
+                    <FormLabel>Shipment Value ($)</FormLabel>
                     <div className="relative">
                       <FormControl>
-                        <Input type="date" {...field} className="pl-10" />
+                        <Input type="number" step="0.01" placeholder="e.g., 150.00" {...field} className="pl-10" />
                       </FormControl>
-                       <IconWrapper><Calendar /></IconWrapper>
+                      <IconWrapper><DollarSign /></IconWrapper>
                     </div>
                     <FormMessage />
                   </FormItem>
                 )}
               />
-            </div>
-             <FormField
+              <FormField
                 control={form.control}
                 name="status"
                 render={({ field }) => (
-                  <FormItem className="w-full md:w-1/2 lg:w-1/4">
+                  <FormItem>
                     <FormLabel>Status</FormLabel>
                      <Select onValueChange={field.onChange} defaultValue={field.value}>
                         <FormControl>
@@ -232,6 +297,41 @@ export function WaybillForm({ initialData, onSave, onCancel }: WaybillFormProps)
                   </FormItem>
                 )}
               />
+            </div>
+            <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-4">
+                 <FormField
+                    control={form.control}
+                    name="shippingDate"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Shipping Date</FormLabel>
+                        <div className="relative">
+                          <FormControl>
+                            <Input type="date" {...field} className="pl-10" />
+                          </FormControl>
+                           <IconWrapper><Calendar /></IconWrapper>
+                        </div>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="shippingTime"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Shipping Time</FormLabel>
+                        <div className="relative">
+                          <FormControl>
+                            <Input type="time" {...field} className="pl-10" />
+                          </FormControl>
+                           <IconWrapper><Clock /></IconWrapper>
+                        </div>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+            </div>
           </CardContent>
         </Card>
         <div className="flex justify-end gap-4">
