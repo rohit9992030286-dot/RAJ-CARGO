@@ -44,9 +44,9 @@ const getInitialValues = (initialData?: Waybill): Waybill => {
         packageWeight: 0,
         numberOfBoxes: 1,
         shipmentValue: 0,
-        shippingDate: new Date().toISOString().split('T')[0],
-        shippingTime: '10:00',
-        status: 'Pending',
+        shippingDate: defaults.shippingDate || new Date().toISOString().split('T')[0],
+        shippingTime: defaults.shippingTime || '10:00',
+        status: defaults.status || 'Pending',
     };
 };
 
