@@ -1,0 +1,118 @@
+'use client';
+
+import { useState } from 'react';
+import { Waybill } from '@/types/waybill';
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/components/ui/alert-dialog';
+import { Pencil, Trash2, User, MapPin, Truck, Package, PlusCircle } from 'lucide-react';
+
+interface WaybillListProps {
+  waybills: Waybill[];
+  onEdit: (id: string) => void;
+  onDelete: (id: string) => void;
+  onCreateNew: () => void;
+}
+
+const statusVariantMap: { [key: string]: 'default' | 'secondary' | 'destructive' | 'outline' } = {
+  Delivered: 'default',
+  'In Transit': 'secondary',
+  Pending: 'outline',
+  Cancelled: 'destructive',
+};
+
+export function WaybillList({ waybills, onEdit, onDelete, onCreateNew }: WaybillListProps) {
+  if (waybills.length === 0) {
+    return (
+      <div className="text-center py-16 border-2 border-dashed rounded-lg">
+        <Truck className="mx-auto h-12 w-12 text-muted-foreground" />
+        <h3 className="mt-4 text-lg font-semibold">No Waybills Yet</h3>
+        <p className="mt-1 text-sm text-muted-foreground">Get started by creating your first waybill.</p>
+        <div className="mt-6">
+          <Button onClick={onCreateNew}>
+            <PlusCircle className="mr-2 h-4 w-4" />
+            Create First Waybill
+          </Button>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+      {waybills.map((waybill) => (
+        <Card key={waybill.id} className="flex flex-col">
+          <CardHeader>
+            <div className="flex justify-between items-start">
+              <div>
+                <CardTitle className="text-lg">Waybill #{waybill.waybillNumber}</CardTitle>
+                <CardDescription>
+                  Created on: {new Date(waybill.shippingDate).toLocaleDateString()}
+                </CardDescription>
+              </div>
+              <Badge variant={statusVariantMap[waybill.status] || 'default'}>{waybill.status}</Badge>
+            </div>
+          </CardHeader>
+          <CardContent className="flex-grow space-y-4 text-sm">
+            <div className="space-y-2">
+              <h4 className="font-semibold text-primary">From:</h4>
+              <p className="flex items-start gap-2"><User className="h-4 w-4 mt-0.5 shrink-0 text-muted-foreground" /> {waybill.senderName}</p>
+              <p className="flex items-start gap-2"><MapPin className="h-4 w-4 mt-0.5 shrink-0 text-muted-foreground" /> {waybill.senderAddress}</p>
+            </div>
+             <div className="space-y-2">
+              <h4 className="font-semibold text-primary">To:</h4>
+              <p className="flex items-start gap-2"><User className="h-4 w-4 mt-0.5 shrink-0 text-muted-foreground" /> {waybill.receiverName}</p>
+              <p className="flex items-start gap-2"><MapPin className="h-4 w-4 mt-0.5 shrink-0 text-muted-foreground" /> {waybill.receiverAddress}</p>
+            </div>
+             <div className="space-y-2">
+                <h4 className="font-semibold text-primary">Package:</h4>
+                <p className="flex items-start gap-2">
+                  <Package className="h-4 w-4 mt-0.5 shrink-0 text-muted-foreground" />
+                  {waybill.packageDescription} ({waybill.packageWeight} kg)
+                </p>
+            </div>
+          </CardContent>
+          <CardFooter className="flex justify-end gap-2">
+            <Button variant="outline" size="sm" onClick={() => onEdit(waybill.id)}>
+              <Pencil className="mr-2 h-4 w-4" />
+              Edit
+            </Button>
+            <AlertDialog>
+              <AlertDialogTrigger asChild>
+                <Button variant="destructive" size="sm">
+                  <Trash2 className="mr-2 h-4 w-4" />
+                  Delete
+                </Button>
+              </AlertDialogTrigger>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    This action cannot be undone. This will permanently delete the waybill #{waybill.waybillNumber}.
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel>Cancel</AlertDialogCancel>
+                  <AlertDialogAction onClick={() => onDelete(waybill.id)}>
+                    Continue
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
+          </CardFooter>
+        </Card>
+      ))}
+    </div>
+  );
+}
