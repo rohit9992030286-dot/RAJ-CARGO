@@ -17,9 +17,14 @@ const AddressAutocompleteInput = forwardRef<HTMLInputElement, AddressAutocomplet
     const [suggestions, setSuggestions] = useState<string[]>([]);
     const [isLoading, setIsLoading] = useState(false);
     const [isPopoverOpen, setIsPopoverOpen] = useState(false);
+    const [inputValue, setInputValue] = useState(value);
 
     useEffect(() => {
-      if (value.length < 3) {
+        setInputValue(value);
+    }, [value]);
+
+    useEffect(() => {
+      if (inputValue.length < 3) {
         setSuggestions([]);
         if (isPopoverOpen) setIsPopoverOpen(false);
         return;
@@ -29,7 +34,7 @@ const AddressAutocompleteInput = forwardRef<HTMLInputElement, AddressAutocomplet
       if (!isPopoverOpen) setIsPopoverOpen(true);
 
       const timerId = setTimeout(() => {
-        addressAutocomplete({ partialAddress: value })
+        addressAutocomplete({ partialAddress: inputValue })
           .then((res) => {
             setSuggestions(res.suggestions || []);
           })
@@ -38,20 +43,27 @@ const AddressAutocompleteInput = forwardRef<HTMLInputElement, AddressAutocomplet
       }, 500); // 500ms debounce
 
       return () => clearTimeout(timerId);
-    }, [value, isPopoverOpen]);
+    }, [inputValue, isPopoverOpen]);
 
     const handleSelectSuggestion = (suggestion: string) => {
       onValueChange(suggestion);
+      setInputValue(suggestion);
       setIsPopoverOpen(false);
     };
+
+    const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const newValue = e.target.value;
+        setInputValue(newValue);
+        onValueChange(newValue);
+    }
 
     return (
       <Popover open={isPopoverOpen} onOpenChange={setIsPopoverOpen}>
         <PopoverAnchor>
           <Input
             ref={ref}
-            value={value}
-            onChange={(e) => onValueChange(e.target.value)}
+            value={inputValue}
+            onChange={handleInputChange}
             className={cn("w-full", className)}
             autoComplete="off"
             {...props}
@@ -81,7 +93,7 @@ const AddressAutocompleteInput = forwardRef<HTMLInputElement, AddressAutocomplet
               ))}
             </div>
           ) : (
-            value.length > 2 && (
+            inputValue.length > 2 && (
               <p className="p-2 text-center text-sm text-muted-foreground">
                 No suggestions found.
               </p>

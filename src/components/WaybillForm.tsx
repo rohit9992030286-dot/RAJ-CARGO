@@ -18,11 +18,37 @@ interface WaybillFormProps {
   onCancel: () => void;
 }
 
+const getInitialValues = (initialData?: Waybill): Waybill => {
+    if (initialData) {
+        return initialData;
+    }
+    // This is a workaround to satisfy Zod's strict parsing when no initial data is present.
+    // We pass an empty object and let Zod populate the default values.
+    // We then override any fields that don't have defaults in the schema.
+    const defaults = waybillSchema.parse({});
+    return {
+        ...defaults,
+        invoiceNumber: '',
+        senderName: '',
+        senderAddress: '',
+        senderPincode: '',
+        senderPhone: '',
+        receiverName: '',
+        receiverAddress: '',
+        receiverPincode: '',
+        receiverPhone: '',
+        packageDescription: '',
+        packageWeight: 0,
+        numberOfBoxes: 1,
+        shipmentValue: 0,
+    };
+};
+
 export function WaybillForm({ initialData, onSave, onCancel }: WaybillFormProps) {
   const { toast } = useToast();
   const form = useForm<Waybill>({
     resolver: zodResolver(waybillSchema),
-    defaultValues: initialData || waybillSchema.parse({}),
+    defaultValues: getInitialValues(initialData),
   });
 
   const onSubmit = (data: Waybill) => {
@@ -71,7 +97,7 @@ export function WaybillForm({ initialData, onSave, onCancel }: WaybillFormProps)
                     <FormLabel>Address</FormLabel>
                      <div className="relative">
                         <FormControl>
-                            <AddressAutocompleteInput {...field} placeholder="Start typing an address..."/>
+                            <AddressAutocompleteInput {...field} onValueChange={field.onChange} placeholder="Start typing an address..."/>
                         </FormControl>
                     </div>
                     <FormMessage />
@@ -141,7 +167,7 @@ export function WaybillForm({ initialData, onSave, onCancel }: WaybillFormProps)
                     <FormLabel>Address</FormLabel>
                      <div className="relative">
                         <FormControl>
-                            <AddressAutocompleteInput {...field} placeholder="Start typing an address..."/>
+                            <AddressAutocompleteInput {...field} onValueChange={field.onChange} placeholder="Start typing an address..."/>
                         </FormControl>
                     </div>
                     <FormMessage />
@@ -231,7 +257,7 @@ export function WaybillForm({ initialData, onSave, onCancel }: WaybillFormProps)
                     <FormLabel>Number of Boxes</FormLabel>
                     <div className="relative">
                       <FormControl>
-                        <Input type="number" placeholder="e.g., 1" {...field} className="pl-10" />
+                        <Input type="number" placeholder="e.g., 1" {...field} onChange={e => field.onChange(+e.target.value)} className="pl-10" />
                       </FormControl>
                       <IconWrapper><Box /></IconWrapper>
                     </div>
@@ -247,7 +273,7 @@ export function WaybillForm({ initialData, onSave, onCancel }: WaybillFormProps)
                     <FormLabel>Total Weight (kg)</FormLabel>
                     <div className="relative">
                       <FormControl>
-                        <Input type="number" step="0.1" placeholder="e.g., 2.5" {...field} className="pl-10" />
+                        <Input type="number" step="0.1" placeholder="e.g., 2.5" {...field} onChange={e => field.onChange(+e.target.value)} className="pl-10" />
                       </FormControl>
                       <IconWrapper><Weight /></IconWrapper>
                     </div>
@@ -263,7 +289,7 @@ export function WaybillForm({ initialData, onSave, onCancel }: WaybillFormProps)
                     <FormLabel>Shipment Value ($)</FormLabel>
                     <div className="relative">
                       <FormControl>
-                        <Input type="number" step="0.01" placeholder="e.g., 150.00" {...field} className="pl-10" />
+                        <Input type="number" step="0.01" placeholder="e.g., 150.00" {...field} onChange={e => field.onChange(+e.target.value)} className="pl-10" />
                       </FormControl>
                       <IconWrapper><DollarSign /></IconWrapper>
                     </div>
