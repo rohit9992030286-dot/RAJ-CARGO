@@ -25,7 +25,7 @@ export default function PrintWaybillPage() {
   if (!isLoaded) {
     return (
       <div className="flex justify-center items-center h-screen bg-white">
-        <div className="animate-spin rounded-full h-16 w-16 border-t-2 border-b-2 border-gray-900"></div>
+        <div className="animate-spin rounded-full h-16 w-16 border-t-2 border-b-2 border-primary"></div>
       </div>
     );
   }
@@ -34,5 +34,9 @@ export default function PrintWaybillPage() {
     return <div className="p-8 bg-white text-black">Waybill not found.</div>;
   }
 
-  return <WaybillPrint waybill={waybillToPrint} />;
+  return (
+    <div className="bg-white">
+        <WaybillPrint waybill={waybillToPrint} />
+    </div>
+  );
 }
