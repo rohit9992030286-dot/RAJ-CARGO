@@ -11,6 +11,7 @@ import { useToast } from '@/hooks/use-toast';
 import { Waybill, waybillSchema } from '@/types/waybill';
 import { AddressAutocompleteInput } from './AddressAutocompleteInput';
 import { User, Phone, Package, Weight, Calendar, ListChecks, Save, XCircle, MapPin, Hash, Box, DollarSign, Clock } from 'lucide-react';
+import { Textarea } from './ui/textarea';
 
 interface WaybillFormProps {
   initialData?: Waybill;
@@ -237,12 +238,13 @@ export function WaybillForm({ initialData, onSave, onCancel }: WaybillFormProps)
                 render={({ field }) => (
                   <FormItem className="lg:col-span-3">
                     <FormLabel>Package Description</FormLabel>
-                    <div className="relative">
-                      <FormControl>
-                        <Input placeholder="e.g., Electronics, Documents" {...field} className="pl-10" />
-                      </FormControl>
-                      <IconWrapper><Package /></IconWrapper>
-                    </div>
+                    <FormControl>
+                      <Textarea
+                        placeholder="e.g., Contains books and electronics"
+                        className="resize-y"
+                        {...field}
+                      />
+                    </FormControl>
                     <FormMessage />
                   </FormItem>
                 )}
