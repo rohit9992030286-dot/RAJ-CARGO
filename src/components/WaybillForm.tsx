@@ -395,7 +395,7 @@ export function WaybillForm({ initialData, onSave, onCancel }: WaybillFormProps)
           </Button>
           <Button type="submit">
             <Save className="mr-2 h-4 w-4" />
-            {initialData ? 'Update Waybill' : 'Create Waybill'}
+            Save Waybill
           </Button>
         </div>
       </form>
