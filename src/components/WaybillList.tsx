@@ -16,7 +16,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
-import { Pencil, Trash2, User, MapPin, Truck, Package, PlusCircle, Hash, Box, DollarSign } from 'lucide-react';
+import { Pencil, Trash2, User, MapPin, Truck, Package, PlusCircle, Hash, Box, DollarSign, Printer } from 'lucide-react';
 
 interface WaybillListProps {
   waybills: Waybill[];
@@ -33,6 +33,10 @@ const statusVariantMap: { [key: string]: 'default' | 'secondary' | 'destructive'
 };
 
 export function WaybillList({ waybills, onEdit, onDelete, onCreateNew }: WaybillListProps) {
+  const handlePrint = (id: string) => {
+    window.open(`/dashboard/waybills/${id}/print`, '_blank');
+  };
+
   if (waybills.length === 0) {
     return (
       <div className="text-center py-16 border-2 border-dashed rounded-lg">
@@ -92,6 +96,10 @@ export function WaybillList({ waybills, onEdit, onDelete, onCreateNew }: Waybill
             </div>
           </CardContent>
           <CardFooter className="flex justify-end gap-2">
+             <Button variant="ghost" size="sm" onClick={() => handlePrint(waybill.id)}>
+              <Printer className="mr-2 h-4 w-4" />
+              Print
+            </Button>
             <Button variant="outline" size="sm" onClick={() => onEdit(waybill.id)}>
               <Pencil className="mr-2 h-4 w-4" />
               Edit
