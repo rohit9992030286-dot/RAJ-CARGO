@@ -1,24 +1,8 @@
 import { z } from 'zod';
 
-const generateWaybillNumber = () => {
-    const timestamp = Date.now().toString();
-    const randomPart = Math.random().toString().substring(2, 6);
-    return `SW-${timestamp.slice(-6)}-${randomPart}`;
-};
-
-
-const generateId = () => {
-    if (typeof window !== 'undefined' && window.crypto) {
-        return window.crypto.randomUUID();
-    }
-    // Fallback for non-browser environments (e.g., during SSR pre-hydration)
-    return `uuid-${Date.now()}-${Math.random()}`;
-};
-
-
 export const waybillSchema = z.object({
-  id: z.string().default(generateId),
-  waybillNumber: z.string().min(1, 'Waybill number is required').default(generateWaybillNumber),
+  id: z.string().uuid(),
+  waybillNumber: z.string().min(1, 'Waybill number is required.'),
   invoiceNumber: z.string({ required_error: "Invoice number is required."}).min(1, { message: 'Invoice number is required.' }),
   
   senderName: z.string({ required_error: "Sender name is required."}).min(2, { message: 'Sender name must be at least 2 characters.' }),

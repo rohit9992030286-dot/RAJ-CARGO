@@ -10,8 +10,11 @@ export default function CreateWaybillPage() {
   const { addWaybill } = useWaybills();
 
   const handleSave = (waybill: Waybill) => {
-    addWaybill(waybill);
-    router.push('/dashboard/waybills');
+    const success = addWaybill(waybill);
+    if (success) {
+      router.push('/dashboard/waybills');
+    }
+    return success;
   };
 
   const handleCancel = () => {

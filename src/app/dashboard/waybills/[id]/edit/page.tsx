@@ -16,6 +16,7 @@ export default function EditWaybillPage() {
   const handleSave = (waybill: Waybill) => {
     updateWaybill(waybill);
     router.push('/dashboard/waybills');
+    return true; // Assume update is always successful
   };
 
   const handleCancel = () => {

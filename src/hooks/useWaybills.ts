@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
-import { Waybill } from '@/types/waybill';
+import { Waybill, waybillSchema } from '@/types/waybill';
 import { useToast } from './use-toast';
 
 const STORAGE_KEY = 'swiftway-waybills';
@@ -48,9 +48,26 @@ export function useWaybills() {
     }
   }, [waybills, isLoaded, toast]);
 
-  const addWaybill = useCallback((waybill: Waybill) => {
-    setWaybills((prev) => [waybill, ...prev]);
-  }, []);
+  const addWaybill = useCallback((waybill: Omit<Waybill, 'id'>) => {
+    // Check for uniqueness
+    if (waybills.some(w => w.waybillNumber === waybill.waybillNumber)) {
+        toast({
+            title: 'Error: Duplicate Waybill Number',
+            description: `A waybill with the number #${waybill.waybillNumber} already exists.`,
+            variant: 'destructive',
+        });
+        return false;
+    }
+
+    // Generate a unique ID for the new waybill
+    const newWaybill: Waybill = {
+        ...waybill,
+        id: crypto.randomUUID(),
+    };
+
+    setWaybills((prev) => [newWaybill, ...prev]);
+    return true;
+  }, [waybills, toast]);
 
   const updateWaybill = useCallback((updatedWaybill: Waybill) => {
     setWaybills((prev) => prev.map((w) => (w.id === updatedWaybill.id ? updatedWaybill : w)));

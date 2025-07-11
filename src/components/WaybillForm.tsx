@@ -15,22 +15,21 @@ import { Textarea } from './ui/textarea';
 
 interface WaybillFormProps {
   initialData?: Waybill;
-  onSave: (data: Waybill) => void;
+  onSave: (data: Waybill) => boolean; // Return boolean to indicate success
   onCancel: () => void;
 }
 
-const getInitialValues = (initialData?: Waybill): Waybill => {
+const getInitialValues = (initialData?: Waybill): Omit<Waybill, 'id'> => {
     if (initialData) {
-        return initialData;
+        // For editing, we don't need to generate anything, just use the existing data.
+        // Omit 'id' because it's not part of the form fields.
+        const { id, ...formData } = initialData;
+        return formData;
     }
     
-    // For a new waybill, create a complete default object that satisfies the schema's types.
-    // The Zod schema will provide defaults for id, waybillNumber, status, etc.
-    // We provide initial empty values for fields the user needs to fill in.
-    const defaults = waybillSchema.partial().parse({});
+    // For a new waybill, create a complete default object.
     return {
-        id: defaults.id || '', // Zod default will override this
-        waybillNumber: defaults.waybillNumber || '', // Zod default will override this
+        waybillNumber: '',
         invoiceNumber: '',
         senderName: '',
         senderAddress: '',
@@ -44,26 +43,32 @@ const getInitialValues = (initialData?: Waybill): Waybill => {
         packageWeight: 0,
         numberOfBoxes: 1,
         shipmentValue: 0,
-        shippingDate: defaults.shippingDate || new Date().toISOString().split('T')[0],
-        shippingTime: defaults.shippingTime || '10:00',
-        status: defaults.status || 'Pending',
+        shippingDate: new Date().toISOString().split('T')[0],
+        shippingTime: '10:00',
+        status: 'Pending',
     };
 };
 
 export function WaybillForm({ initialData, onSave, onCancel }: WaybillFormProps) {
   const { toast } = useToast();
-  const form = useForm<Waybill>({
-    resolver: zodResolver(waybillSchema),
+  const form = useForm<Omit<Waybill, 'id'>>({
+    resolver: zodResolver(waybillSchema.omit({ id: true })),
     defaultValues: getInitialValues(initialData),
   });
 
-  const onSubmit = (data: Waybill) => {
-    onSave(data);
-    toast({
-      title: `Waybill ${initialData ? 'Updated' : 'Created'}`,
-      description: `Waybill #${data.waybillNumber} has been saved successfully.`,
-      variant: 'default',
+  const onSubmit = (data: Omit<Waybill, 'id'>) => {
+    const success = onSave({
+        ...data,
+        id: initialData?.id || '', // Add back id for saving
     });
+
+    if (success) {
+        toast({
+            title: `Waybill ${initialData ? 'Updated' : 'Created'}`,
+            description: `Waybill #${data.waybillNumber} has been saved successfully.`,
+            variant: 'default',
+        });
+    }
   };
 
   const IconWrapper = ({ children }: { children: React.ReactNode }) => (
@@ -222,26 +227,42 @@ export function WaybillForm({ initialData, onSave, onCancel }: WaybillFormProps)
           <CardContent className="space-y-6">
              <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-4">
                 <FormField
-                control={form.control}
-                name="invoiceNumber"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Invoice Number</FormLabel>
-                    <div className="relative">
-                      <FormControl>
-                        <Input placeholder="e.g., INV-2024-001" {...field} className="pl-10" />
-                      </FormControl>
-                      <IconWrapper><Hash /></IconWrapper>
-                    </div>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+                    control={form.control}
+                    name="waybillNumber"
+                    render={({ field }) => (
+                    <FormItem>
+                        <FormLabel>Waybill Number</FormLabel>
+                        <div className="relative">
+                        <FormControl>
+                            <Input placeholder="e.g., SW-123456" {...field} className="pl-10" disabled={!!initialData} />
+                        </FormControl>
+                        <IconWrapper><Hash /></IconWrapper>
+                        </div>
+                        <FormMessage />
+                    </FormItem>
+                    )}
+                />
+                <FormField
+                    control={form.control}
+                    name="invoiceNumber"
+                    render={({ field }) => (
+                    <FormItem>
+                        <FormLabel>Invoice Number</FormLabel>
+                        <div className="relative">
+                        <FormControl>
+                            <Input placeholder="e.g., INV-2024-001" {...field} className="pl-10" />
+                        </FormControl>
+                        <IconWrapper><Hash /></IconWrapper>
+                        </div>
+                        <FormMessage />
+                    </FormItem>
+                    )}
+                />
               <FormField
                 control={form.control}
                 name="packageDescription"
                 render={({ field }) => (
-                  <FormItem className="lg:col-span-3">
+                  <FormItem className="lg:col-span-2">
                     <FormLabel>Package Description</FormLabel>
                     <FormControl>
                       <Textarea
