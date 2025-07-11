@@ -2,7 +2,7 @@
 
 import { useWaybills } from '@/hooks/useWaybills';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
-import { Truck, CheckCircle, Clock } from 'lucide-react';
+import { Truck, CheckCircle, BookCopy, Package } from 'lucide-react';
 
 export default function DashboardPage() {
   const { waybills, isLoaded } = useWaybills();
@@ -21,38 +21,46 @@ export default function DashboardPage() {
 
   return (
     <div>
-      <h1 className="text-3xl font-bold mb-8">Dashboard</h1>
+      <h1 className="text-3xl font-bold mb-2">Welcome Back! 👋</h1>
+      <p className="text-muted-foreground mb-8">Here's a summary of your shipping activity.</p>
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-        <Card>
+        <Card className="hover:shadow-lg transition-shadow">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Total Waybills</CardTitle>
-            <BookCopy className="h-4 w-4 text-muted-foreground" />
+            <div className="p-2 bg-blue-100 rounded-full">
+                <BookCopy className="h-5 w-5 text-blue-600" />
+            </div>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{totalWaybills}</div>
+            <div className="text-4xl font-bold">{totalWaybills}</div>
+            <p className="text-xs text-muted-foreground">Total waybills created</p>
           </CardContent>
         </Card>
-        <Card>
+        <Card className="hover:shadow-lg transition-shadow">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">In Transit</CardTitle>
-            <Truck className="h-4 w-4 text-muted-foreground" />
+            <div className="p-2 bg-amber-100 rounded-full">
+                <Truck className="h-5 w-5 text-amber-600" />
+            </div>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{inTransitWaybills}</div>
+            <div className="text-4xl font-bold">{inTransitWaybills}</div>
+            <p className="text-xs text-muted-foreground">Packages on their way</p>
           </CardContent>
         </Card>
-        <Card>
+        <Card className="hover:shadow-lg transition-shadow">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Delivered</CardTitle>
-            <CheckCircle className="h-4 w-4 text-muted-foreground" />
+            <div className="p-2 bg-green-100 rounded-full">
+                <CheckCircle className="h-5 w-5 text-green-600" />
+            </div>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{deliveredWaybills}</div>
+            <div className="text-4xl font-bold">{deliveredWaybills}</div>
+            <p className="text-xs text-muted-foreground">Successfully delivered packages</p>
           </CardContent>
         </Card>
       </div>
     </div>
   );
 }
-
-import { BookCopy } from 'lucide-react';
