@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { Waybill, waybillSchema } from '@/types/waybill';
 import { useToast } from './use-toast';
 
-const STORAGE_KEY = 'swiftway-waybills';
+const STORAGE_KEY = 'ss-cargo-waybills';
 
 export function useWaybills() {
   const [waybills, setWaybills] = useState<Waybill[]>([]);

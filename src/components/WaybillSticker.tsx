@@ -23,7 +23,7 @@ export function WaybillSticker({ waybill }: WaybillStickerProps) {
       <header className="flex justify-between items-center pb-2 border-b-4 border-black">
         <div className="flex items-center gap-2">
             <Truck className="h-10 w-10 text-black" />
-            <h1 className="text-2xl font-bold">SwiftWay</h1>
+            <h1 className="text-2xl font-bold">SS CARGO</h1>
         </div>
         <div className="text-right">
             <p className="font-semibold">{new Date(waybill.shippingDate).toLocaleDateString()}</p>

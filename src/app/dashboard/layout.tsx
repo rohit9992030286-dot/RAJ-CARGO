@@ -11,7 +11,7 @@ export default function DashboardLayout({
       <aside className="w-64 bg-card border-r">
         <div className="flex items-center gap-3 p-6 border-b">
           <Truck className="h-8 w-8 text-primary" />
-          <h1 className="text-2xl font-bold">SwiftWay</h1>
+          <h1 className="text-2xl font-bold">SS CARGO</h1>
         </div>
         <nav className="p-4">
           <ul>
@@ -41,7 +41,7 @@ export default function DashboardLayout({
             {children}
         </main>
         <footer className="text-center p-4 text-sm text-muted-foreground border-t">
-          <p>&copy; {new Date().getFullYear()} SwiftWay. All rights reserved.</p>
+          <p>&copy; {new Date().getFullYear()} SS CARGO. All rights reserved.</p>
         </footer>
       </div>
     </div>

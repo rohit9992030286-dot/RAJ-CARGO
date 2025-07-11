@@ -16,7 +16,7 @@ export function WaybillPrint({ waybill }: WaybillPrintProps) {
         <div className="flex items-center gap-3">
             <Truck className="h-12 w-12 text-primary" />
             <div>
-                <h1 className="text-4xl font-bold text-primary">SwiftWay</h1>
+                <h1 className="text-4xl font-bold text-primary">SS CARGO</h1>
                 <p className="text-muted-foreground">Transport & Courier Service</p>
             </div>
         </div>
@@ -85,7 +85,7 @@ export function WaybillPrint({ waybill }: WaybillPrintProps) {
 
       {/* Footer */}
       <footer className="mt-12 pt-6 border-t-2 border-dashed border-gray-300 text-center">
-        <p className="text-lg font-bold text-primary">Thank you for shipping with SwiftWay! 🚀</p>
+        <p className="text-lg font-bold text-primary">Thank you for shipping with SS CARGO! 🚀</p>
         <p className="text-sm text-gray-500">Generated on: {new Date().toLocaleString()}</p>
       </footer>
     </div>
