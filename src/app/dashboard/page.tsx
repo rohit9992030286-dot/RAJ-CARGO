@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { useWaybills } from '@/hooks/useWaybills';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
-import { Truck, CheckCircle, BookCopy, Package } from 'lucide-react';
+import { Truck, CheckCircle, BookCopy } from 'lucide-react';
 
 export default function DashboardPage() {
   const { waybills, isLoaded } = useWaybills();
@@ -26,44 +26,38 @@ export default function DashboardPage() {
       <p className="text-muted-foreground mb-8">Here's a summary of your shipping activity.</p>
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
         <Link href="/dashboard/waybills">
-          <Card className="hover:shadow-lg transition-shadow h-full">
+          <Card className="hover:shadow-lg transition-shadow h-full bg-blue-50 border-blue-200">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Total Waybills</CardTitle>
-              <div className="p-2 bg-blue-100 rounded-full">
-                  <BookCopy className="h-5 w-5 text-blue-600" />
-              </div>
+              <CardTitle className="text-sm font-medium text-blue-800">Total Waybills</CardTitle>
+              <BookCopy className="h-5 w-5 text-blue-600" />
             </CardHeader>
             <CardContent>
-              <div className="text-4xl font-bold">{totalWaybills}</div>
-              <p className="text-xs text-muted-foreground">Total waybills created</p>
+              <div className="text-4xl font-bold text-blue-900">{totalWaybills}</div>
+              <p className="text-xs text-blue-700">Total waybills created</p>
             </CardContent>
           </Card>
         </Link>
         <Link href="/dashboard/waybills">
-            <Card className="hover:shadow-lg transition-shadow h-full">
+            <Card className="hover:shadow-lg transition-shadow h-full bg-amber-50 border-amber-200">
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                    <CardTitle className="text-sm font-medium">In Transit</CardTitle>
-                    <div className="p-2 bg-amber-100 rounded-full">
-                        <Truck className="h-5 w-5 text-amber-600" />
-                    </div>
+                    <CardTitle className="text-sm font-medium text-amber-800">In Transit</CardTitle>
+                    <Truck className="h-5 w-5 text-amber-600" />
                 </CardHeader>
                 <CardContent>
-                    <div className="text-4xl font-bold">{inTransitWaybills}</div>
-                    <p className="text-xs text-muted-foreground">Packages on their way</p>
+                    <div className="text-4xl font-bold text-amber-900">{inTransitWaybills}</div>
+                    <p className="text-xs text-amber-700">Packages on their way</p>
                 </CardContent>
             </Card>
         </Link>
         <Link href="/dashboard/waybills">
-            <Card className="hover:shadow-lg transition-shadow h-full">
+            <Card className="hover:shadow-lg transition-shadow h-full bg-green-50 border-green-200">
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                    <CardTitle className="text-sm font-medium">Delivered</CardTitle>
-                    <div className="p-2 bg-green-100 rounded-full">
-                        <CheckCircle className="h-5 w-5 text-green-600" />
-                    </div>
+                    <CardTitle className="text-sm font-medium text-green-800">Delivered</CardTitle>
+                    <CheckCircle className="h-5 w-5 text-green-600" />
                 </CardHeader>
                 <CardContent>
-                    <div className="text-4xl font-bold">{deliveredWaybills}</div>
-                    <p className="text-xs text-muted-foreground">Successfully delivered packages</p>
+                    <div className="text-4xl font-bold text-green-900">{deliveredWaybills}</div>
+                    <p className="text-xs text-green-700">Successfully delivered packages</p>
                 </CardContent>
             </Card>
         </Link>
