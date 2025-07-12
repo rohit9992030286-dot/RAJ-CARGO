@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState } from 'react';
@@ -27,10 +26,15 @@ import {
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Pencil, Trash2, User, MapPin, Truck, Package, PlusCircle, Hash, Box, DollarSign, Printer, ScanLine } from 'lucide-react';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Pencil, Trash2, User, MapPin, Truck, Package, PlusCircle, Box, DollarSign, Printer, ScanLine } from 'lucide-react';
+import { cn } from '@/lib/utils';
+
 
 interface WaybillListProps {
   waybills: Waybill[];
+  selectedWaybillIds: string[];
+  onSelectionChange: (id: string, isSelected: boolean) => void;
   onEdit: (id: string) => void;
   onDelete: (id: string) => void;
   onCreateNew: () => void;
@@ -43,8 +47,8 @@ const statusVariantMap: { [key: string]: 'default' | 'secondary' | 'destructive'
   Cancelled: 'destructive',
 };
 
-export function WaybillList({ waybills, onEdit, onDelete, onCreateNew }: WaybillListProps) {
-  const [selectedWaybillId, setSelectedWaybillId] = useState<string | null>(null);
+export function WaybillList({ waybills, selectedWaybillIds, onSelectionChange, onEdit, onDelete, onCreateNew }: WaybillListProps) {
+  const [selectedWaybillIdForSticker, setSelectedWaybillIdForSticker] = useState<string | null>(null);
   const [storeCode, setStoreCode] = useState('');
   const [isStoreCodeDialogOpen, setIsStoreCodeDialogOpen] = useState(false);
 
@@ -53,19 +57,19 @@ export function WaybillList({ waybills, onEdit, onDelete, onCreateNew }: Waybill
   };
 
   const openStoreCodeDialog = (id: string) => {
-    setSelectedWaybillId(id);
+    setSelectedWaybillIdForSticker(id);
     setStoreCode(''); // Reset for next use
     setIsStoreCodeDialogOpen(true);
   };
   
   const handlePrintSticker = () => {
-    if (selectedWaybillId) {
-      const waybill = waybills.find(w => w.id === selectedWaybillId);
+    if (selectedWaybillIdForSticker) {
+      const waybill = waybills.find(w => w.id === selectedWaybillIdForSticker);
       if (!waybill) return;
 
       const totalBoxes = waybill.numberOfBoxes || 1;
       for (let i = 1; i <= totalBoxes; i++) {
-        const url = `/print/sticker/${selectedWaybillId}?storeCode=${encodeURIComponent(storeCode)}&boxNumber=${i}&totalBoxes=${totalBoxes}`;
+        const url = `/print/sticker/${selectedWaybillIdForSticker}?storeCode=${encodeURIComponent(storeCode)}&boxNumber=${i}&totalBoxes=${totalBoxes}`;
         window.open(url, '_blank');
       }
       
@@ -94,18 +98,26 @@ export function WaybillList({ waybills, onEdit, onDelete, onCreateNew }: Waybill
     <>
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
         {waybills.map((waybill) => (
-          <Card key={waybill.id} className="flex flex-col">
+          <Card key={waybill.id} className={cn("flex flex-col transition-all", selectedWaybillIds.includes(waybill.id) && "ring-2 ring-primary")}>
             <CardHeader>
               <div className="flex justify-between items-start">
-                <div>
-                  <CardTitle className="text-lg">Waybill #{waybill.waybillNumber}</CardTitle>
-                  <CardDescription>
-                    Invoice #{waybill.invoiceNumber}
-                  </CardDescription>
+                <div className="flex items-center gap-3">
+                  <Checkbox 
+                    id={`select-${waybill.id}`}
+                    checked={selectedWaybillIds.includes(waybill.id)}
+                    onCheckedChange={(checked) => onSelectionChange(waybill.id, !!checked)}
+                    aria-label={`Select waybill ${waybill.waybillNumber}`}
+                  />
+                  <div>
+                    <CardTitle className="text-lg">Waybill #{waybill.waybillNumber}</CardTitle>
+                    <CardDescription>
+                      Invoice #{waybill.invoiceNumber}
+                    </CardDescription>
+                  </div>
                 </div>
                 <Badge variant={statusVariantMap[waybill.status] || 'default'}>{waybill.status}</Badge>
               </div>
-               <CardDescription>
+               <CardDescription className="pt-2">
                     Shipped on: {new Date(waybill.shippingDate).toLocaleDateString()} at {waybill.shippingTime}
               </CardDescription>
             </CardHeader>
@@ -178,7 +190,7 @@ export function WaybillList({ waybills, onEdit, onDelete, onCreateNew }: Waybill
           <DialogHeader>
             <DialogTitle>Enter Store Code</DialogTitle>
             <DialogDescription>
-              Please enter the store code to include it on the sticker printout.
+              Please enter the store code to include it on the sticker printout. This is optional.
             </DialogDescription>
           </DialogHeader>
           <div className="grid gap-4 py-4">
@@ -191,6 +203,7 @@ export function WaybillList({ waybills, onEdit, onDelete, onCreateNew }: Waybill
                 value={storeCode}
                 onChange={(e) => setStoreCode(e.target.value)}
                 className="col-span-3"
+                placeholder="Optional store code"
                 autoFocus
               />
             </div>

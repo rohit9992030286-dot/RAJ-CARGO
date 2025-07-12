@@ -1,16 +1,18 @@
 'use client';
 
+import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useWaybills } from '@/hooks/useWaybills';
 import { WaybillList } from '@/components/WaybillList';
 import { Button } from '@/components/ui/button';
-import { PlusCircle, FileDown } from 'lucide-react';
+import { PlusCircle, FileDown, Printer } from 'lucide-react';
 import * as XLSX from 'xlsx';
 import { saveAs } from 'file-saver';
 
 
 export default function WaybillsPage() {
   const { waybills, deleteWaybill, isLoaded } = useWaybills();
+  const [selectedWaybillIds, setSelectedWaybillIds] = useState<string[]>([]);
   const router = useRouter();
 
   const handleCreateNew = () => {
@@ -23,6 +25,7 @@ export default function WaybillsPage() {
 
   const handleDelete = (id: string) => {
     deleteWaybill(id);
+    setSelectedWaybillIds(prev => prev.filter(selectedId => selectedId !== id));
   };
   
   const handleDownloadExcel = () => {
@@ -43,6 +46,22 @@ export default function WaybillsPage() {
     saveAs(data, 'waybills.xlsx');
   };
 
+  const handlePrintSelected = () => {
+    if (selectedWaybillIds.length > 0) {
+      const ids = selectedWaybillIds.join(',');
+      window.open(`/print/waybills?ids=${ids}`, '_blank');
+    }
+  };
+
+  const handleSelectionChange = (id: string, isSelected: boolean) => {
+    setSelectedWaybillIds(prev => {
+        if (isSelected) {
+            return [...prev, id];
+        } else {
+            return prev.filter(selectedId => selectedId !== id);
+        }
+    });
+  };
 
   if (!isLoaded) {
     return (
@@ -57,6 +76,11 @@ export default function WaybillsPage() {
         <div className="flex justify-between items-center mb-8">
             <h1 className="text-3xl font-bold">Waybill Book</h1>
             <div className="flex gap-2">
+                {selectedWaybillIds.length > 0 && (
+                  <Button onClick={handlePrintSelected} variant="default">
+                      <Printer className="mr-2 h-4 w-4" /> Print Selected ({selectedWaybillIds.length})
+                  </Button>
+                )}
                 <Button onClick={handleDownloadExcel} variant="outline" disabled={waybills.length === 0}>
                     <FileDown className="mr-2 h-4 w-4" /> Download Excel
                 </Button>
@@ -67,6 +91,8 @@ export default function WaybillsPage() {
         </div>
         <WaybillList
             waybills={waybills}
+            selectedWaybillIds={selectedWaybillIds}
+            onSelectionChange={handleSelectionChange}
             onEdit={handleEdit}
             onDelete={handleDelete}
             onCreateNew={handleCreateNew}
