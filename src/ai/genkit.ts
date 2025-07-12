@@ -1,6 +1,6 @@
 import {genkit, Plugin} from 'genkit';
 import {googleAI} from '@genkit-ai/googleai';
-import {noop} from 'genkit/noop';
+import {noop} from '@genkit-ai/core';
 
 const geminiApiKey = process.env.GEMINI_API_KEY;
 
