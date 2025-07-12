@@ -5,6 +5,7 @@ import { Toaster } from "@/components/ui/toaster"
 export const metadata: Metadata = {
   title: 'SS CARGO',
   description: 'Transport and courier service',
+  manifest: '/manifest.json',
 };
 
 export default function RootLayout({
