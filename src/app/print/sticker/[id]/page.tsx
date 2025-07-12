@@ -45,7 +45,7 @@ function PrintStickerContent() {
     );
   }
 
-  if (waybillToprint === null) {
+  if (waybillToPrint === null) {
       return <div>Waybill not found.</div>
   }
   
