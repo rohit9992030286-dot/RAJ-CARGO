@@ -34,11 +34,11 @@ const statusVariantMap: { [key: string]: 'default' | 'secondary' | 'destructive'
 
 export function WaybillList({ waybills, onEdit, onDelete, onCreateNew }: WaybillListProps) {
   const handlePrint = (id: string) => {
-    window.open(`/dashboard/waybills/${id}/print`, '_blank');
+    window.open(`/print/waybill/${id}`, '_blank');
   };
 
   const handlePrintSticker = (id: string) => {
-    window.open(`/dashboard/waybills/${id}/sticker`, '_blank');
+    window.open(`/print/sticker/${id}`, '_blank');
   };
 
   if (waybills.length === 0) {
