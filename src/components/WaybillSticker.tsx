@@ -7,9 +7,11 @@ import { Truck, Building } from 'lucide-react';
 interface WaybillStickerProps {
   waybill: Waybill;
   storeCode?: string | null;
+  boxNumber?: number;
+  totalBoxes?: number;
 }
 
-export function WaybillSticker({ waybill, storeCode }: WaybillStickerProps) {
+export function WaybillSticker({ waybill, storeCode, boxNumber, totalBoxes }: WaybillStickerProps) {
   // A simple placeholder for a barcode. In a real app, you'd use a library to generate a real one.
   const Barcode = () => (
     <svg xmlns="http://www.w3.org/2000/svg" width="100%" height="60" viewBox="0 0 250 60" preserveAspectRatio="none">
@@ -29,7 +31,9 @@ export function WaybillSticker({ waybill, storeCode }: WaybillStickerProps) {
         </div>
         <div className="text-right">
             <p className="font-semibold">{new Date(waybill.shippingDate).toLocaleDateString()}</p>
-            <p className="text-xs">{waybill.packageWeight} kg, {waybill.numberOfBoxes} {waybill.numberOfBoxes > 1 ? 'boxes' : 'box'}</p>
+            {boxNumber && totalBoxes && (
+              <p className="text-lg font-bold">Box: {boxNumber} of {totalBoxes}</p>
+            )}
         </div>
       </header>
       

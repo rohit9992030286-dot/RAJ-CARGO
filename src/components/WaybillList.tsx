@@ -60,8 +60,15 @@ export function WaybillList({ waybills, onEdit, onDelete, onCreateNew }: Waybill
   
   const handlePrintSticker = () => {
     if (selectedWaybillId) {
-      const url = `/print/sticker/${selectedWaybillId}?storeCode=${encodeURIComponent(storeCode)}`;
-      window.open(url, '_blank');
+      const waybill = waybills.find(w => w.id === selectedWaybillId);
+      if (!waybill) return;
+
+      const totalBoxes = waybill.numberOfBoxes || 1;
+      for (let i = 1; i <= totalBoxes; i++) {
+        const url = `/print/sticker/${selectedWaybillId}?storeCode=${encodeURIComponent(storeCode)}&boxNumber=${i}&totalBoxes=${totalBoxes}`;
+        window.open(url, '_blank');
+      }
+      
       setIsStoreCodeDialogOpen(false);
     }
   };

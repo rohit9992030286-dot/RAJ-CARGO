@@ -16,7 +16,9 @@ function PrintStickerContent() {
   
   const id = Array.isArray(params.id) ? params.id[0] : params.id;
   const storeCode = searchParams.get('storeCode');
-  
+  const boxNumber = searchParams.get('boxNumber');
+  const totalBoxes = searchParams.get('totalBoxes');
+
   useEffect(() => {
     if (isLoaded) {
       const waybill = getWaybillById(id);
@@ -43,13 +45,18 @@ function PrintStickerContent() {
     );
   }
 
-  if (waybillToPrint === null) {
+  if (waybillToprint === null) {
       return <div>Waybill not found.</div>
   }
   
   return (
     <div className="bg-white flex justify-center items-center min-h-screen">
-        <WaybillSticker waybill={waybillToPrint} storeCode={storeCode} />
+        <WaybillSticker 
+          waybill={waybillToPrint} 
+          storeCode={storeCode}
+          boxNumber={boxNumber ? parseInt(boxNumber, 10) : undefined}
+          totalBoxes={totalBoxes ? parseInt(totalBoxes, 10) : undefined}
+        />
     </div>
     );
 }
