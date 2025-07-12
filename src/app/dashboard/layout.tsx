@@ -9,7 +9,7 @@ export default function DashboardLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const [year, setYear] = useState(new Date().getFullYear());
+  const [year, setYear] = useState<number | null>(null);
 
   useEffect(() => {
     setYear(new Date().getFullYear());
@@ -50,7 +50,7 @@ export default function DashboardLayout({
             {children}
         </main>
         <footer className="text-center p-4 text-sm text-muted-foreground border-t">
-          <p>&copy; {year} SS CARGO. All rights reserved.</p>
+          {year && <p>&copy; {year} SS CARGO. All rights reserved.</p>}
         </footer>
       </div>
     </div>
