@@ -1,3 +1,6 @@
+
+'use client';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { Truck, Home, BookCopy, PlusCircle } from 'lucide-react';
 
@@ -6,6 +9,12 @@ export default function DashboardLayout({
 }: {
   children: React.ReactNode;
 }) {
+  const [year, setYear] = useState(new Date().getFullYear());
+
+  useEffect(() => {
+    setYear(new Date().getFullYear());
+  }, []);
+
   return (
     <div className="flex min-h-screen">
       <aside className="w-64 bg-card border-r">
@@ -41,7 +50,7 @@ export default function DashboardLayout({
             {children}
         </main>
         <footer className="text-center p-4 text-sm text-muted-foreground border-t">
-          <p>&copy; {new Date().getFullYear()} SS CARGO. All rights reserved.</p>
+          <p>&copy; {year} SS CARGO. All rights reserved.</p>
         </footer>
       </div>
     </div>
