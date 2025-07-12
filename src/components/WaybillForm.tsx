@@ -10,7 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { useToast } from '@/hooks/use-toast';
 import { Waybill, waybillSchema } from '@/types/waybill';
 import { AddressAutocompleteInput } from './AddressAutocompleteInput';
-import { User, Phone, Package, Weight, Calendar, ListChecks, Save, XCircle, MapPin, Hash, Box, DollarSign, Clock } from 'lucide-react';
+import { User, Phone, Package, Weight, Calendar, ListChecks, Save, XCircle, MapPin, Hash, Box, DollarSign, Clock, Building } from 'lucide-react';
 import { Textarea } from './ui/textarea';
 
 interface WaybillFormProps {
@@ -21,22 +21,21 @@ interface WaybillFormProps {
 
 const getInitialValues = (initialData?: Waybill): Omit<Waybill, 'id'> => {
     if (initialData) {
-        // For editing, we don't need to generate anything, just use the existing data.
-        // Omit 'id' because it's not part of the form fields.
         const { id, ...formData } = initialData;
         return formData;
     }
     
-    // For a new waybill, create a complete default object.
     return {
         waybillNumber: '',
         invoiceNumber: '',
         senderName: '',
         senderAddress: '',
+        senderCity: '',
         senderPincode: '',
         senderPhone: '',
         receiverName: '',
         receiverAddress: '',
+        receiverCity: '',
         receiverPincode: '',
         receiverPhone: '',
         packageDescription: '',
@@ -57,7 +56,6 @@ export function WaybillForm({ initialData, onSave, onCancel }: WaybillFormProps)
   });
 
   const onSubmit = (data: Omit<Waybill, 'id'>) => {
-    // If we're editing, use the existing ID. If we're creating, generate a new one.
     const waybillToSave: Waybill = {
         ...data,
         id: initialData?.id || crypto.randomUUID(),
@@ -113,6 +111,22 @@ export function WaybillForm({ initialData, onSave, onCancel }: WaybillFormProps)
                         <FormControl>
                             <AddressAutocompleteInput {...field} onValueChange={field.onChange} placeholder="Start typing an address..."/>
                         </FormControl>
+                    </div>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+               <FormField
+                control={form.control}
+                name="senderCity"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>City</FormLabel>
+                    <div className="relative">
+                      <FormControl>
+                        <Input placeholder="e.g., New York" {...field} className="pl-10" />
+                      </FormControl>
+                      <IconWrapper><Building /></IconWrapper>
                     </div>
                     <FormMessage />
                   </FormItem>
@@ -183,6 +197,22 @@ export function WaybillForm({ initialData, onSave, onCancel }: WaybillFormProps)
                         <FormControl>
                             <AddressAutocompleteInput {...field} onValueChange={field.onChange} placeholder="Start typing an address..."/>
                         </FormControl>
+                    </div>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+               <FormField
+                control={form.control}
+                name="receiverCity"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>City</FormLabel>
+                    <div className="relative">
+                      <FormControl>
+                        <Input placeholder="e.g., Los Angeles" {...field} className="pl-10" />
+                      </FormControl>
+                      <IconWrapper><Building /></IconWrapper>
                     </div>
                     <FormMessage />
                   </FormItem>

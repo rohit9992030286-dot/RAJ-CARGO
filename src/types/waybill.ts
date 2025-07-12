@@ -7,11 +7,13 @@ export const waybillSchema = z.object({
   
   senderName: z.string({ required_error: "Sender name is required."}).min(2, { message: 'Sender name must be at least 2 characters.' }),
   senderAddress: z.string({ required_error: "Sender address is required."}).min(10, { message: 'Please enter a valid sender address.' }),
+  senderCity: z.string({ required_error: "Sender city is required."}).min(2, { message: 'Sender city must be at least 2 characters.' }),
   senderPincode: z.string({ required_error: "Pincode is required."}).min(5, {message: 'Pincode must be at least 5 digits.'}),
   senderPhone: z.string({ required_error: "Sender phone is required."}).min(10, { message: 'Please enter a valid sender phone number.' }),
   
   receiverName: z.string({ required_error: "Receiver name is required."}).min(2, { message: 'Receiver name must be at least 2 characters.' }),
   receiverAddress: z.string({ required_error: "Receiver address is required."}).min(10, { message: 'Please enter a valid receiver address.' }),
+  receiverCity: z.string({ required_error: "Receiver city is required."}).min(2, { message: 'Receiver city must be at least 2 characters.' }),
   receiverPincode: z.string({ required_error: "Pincode is required."}).min(5, {message: 'Pincode must be at least 5 digits.'}),
   receiverPhone: z.string({ required_error: "Receiver phone is required."}).min(10, { message: 'Please enter a valid receiver phone number.' }),
 

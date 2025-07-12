@@ -42,7 +42,7 @@ export function WaybillSticker({ waybill, storeCode, boxNumber, totalBoxes }: Wa
         <h3 className="text-xs font-bold uppercase tracking-wider mb-1">FROM:</h3>
         <div className="text-sm">
             <p className="font-semibold">{waybill.senderName}</p>
-            <p>{waybill.senderAddress}</p>
+            <p>{waybill.senderCity}</p>
             <p>{waybill.senderPincode}</p>
         </div>
       </section>
@@ -52,7 +52,7 @@ export function WaybillSticker({ waybill, storeCode, boxNumber, totalBoxes }: Wa
         <h3 className="text-sm font-bold uppercase tracking-wider mb-2">TO:</h3>
         <div className="space-y-1 pl-4">
             <p className="text-lg font-bold">{waybill.receiverName}</p>
-            <p className="text-lg">{waybill.receiverAddress}</p>
+            <p className="text-lg">{waybill.receiverCity}</p>
             <p className="text-2xl font-bold">{waybill.receiverPincode}</p>
              {storeCode && (
               <div className="flex items-center gap-2 pt-2">
