@@ -57,10 +57,13 @@ export function WaybillForm({ initialData, onSave, onCancel }: WaybillFormProps)
   });
 
   const onSubmit = (data: Omit<Waybill, 'id'>) => {
-    const success = onSave({
+    // If we're editing, use the existing ID. If we're creating, generate a new one.
+    const waybillToSave: Waybill = {
         ...data,
-        id: initialData?.id || '', // Add back id for saving
-    });
+        id: initialData?.id || crypto.randomUUID(),
+    };
+
+    const success = onSave(waybillToSave);
 
     if (success) {
         toast({

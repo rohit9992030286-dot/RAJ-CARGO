@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
-import { Waybill, waybillSchema } from '@/types/waybill';
+import { Waybill } from '@/types/waybill';
 import { useToast } from './use-toast';
 
 const STORAGE_KEY = 'ss-cargo-waybills';
@@ -12,7 +12,6 @@ export function useWaybills() {
   const { toast } = useToast();
 
   useEffect(() => {
-    // This effect runs only on the client after hydration
     try {
       const items = window.localStorage.getItem(STORAGE_KEY);
       if (items) {
@@ -28,12 +27,12 @@ export function useWaybills() {
         description: 'Could not load data from local storage.',
         variant: 'destructive',
       });
+    } finally {
+      setIsLoaded(true);
     }
-    setIsLoaded(true);
   }, [toast]);
 
   useEffect(() => {
-    // This effect syncs state changes back to local storage
     if (isLoaded) {
       try {
         window.localStorage.setItem(STORAGE_KEY, JSON.stringify(waybills));
@@ -48,8 +47,8 @@ export function useWaybills() {
     }
   }, [waybills, isLoaded, toast]);
 
-  const addWaybill = useCallback((waybill: Omit<Waybill, 'id'>) => {
-    // Check for uniqueness
+  const addWaybill = useCallback((waybill: Waybill) => {
+    // Check for uniqueness of waybillNumber
     if (waybills.some(w => w.waybillNumber === waybill.waybillNumber)) {
         toast({
             title: 'Error: Duplicate Waybill Number',
@@ -59,25 +58,28 @@ export function useWaybills() {
         return false;
     }
 
-    // Generate a unique ID for the new waybill
-    const newWaybill: Waybill = {
-        ...waybill,
-        id: crypto.randomUUID(),
-    };
-
-    setWaybills((prev) => [newWaybill, ...prev]);
+    setWaybills((prev) => [waybill, ...prev]);
     return true;
   }, [waybills, toast]);
 
   const updateWaybill = useCallback((updatedWaybill: Waybill) => {
     setWaybills((prev) => prev.map((w) => (w.id === updatedWaybill.id ? updatedWaybill : w)));
-  }, []);
+    toast({
+        title: 'Waybill Updated',
+        description: `The waybill #${updatedWaybill.waybillNumber} has been successfully updated.`,
+    });
+  }, [toast]);
 
   const deleteWaybill = useCallback((id: string) => {
-    setWaybills((prev) => prev.filter((w) => w.id !== id));
-    toast({
-        title: 'Waybill Deleted',
-        description: 'The waybill has been successfully deleted.',
+    setWaybills((prev) => {
+        const waybillToDelete = prev.find(w => w.id === id);
+        if (waybillToDelete) {
+             toast({
+                title: 'Waybill Deleted',
+                description: `The waybill #${waybillToDelete.waybillNumber} has been successfully deleted.`,
+            });
+        }
+        return prev.filter((w) => w.id !== id);
     });
   }, [toast]);
 
