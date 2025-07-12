@@ -1,18 +1,21 @@
+
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
-import { useParams } from 'next/navigation';
+import { useEffect, useRef, useState, Suspense } from 'react';
+import { useParams, useSearchParams } from 'next/navigation';
 import { useWaybills } from '@/hooks/useWaybills';
 import { WaybillSticker } from '@/components/WaybillSticker';
 import { Waybill } from '@/types/waybill';
 
-export default function PrintStickerPage() {
+function PrintStickerContent() {
   const params = useParams();
+  const searchParams = useSearchParams();
   const { getWaybillById, isLoaded } = useWaybills();
   const [waybillToPrint, setWaybillToPrint] = useState<Waybill | null | undefined>(undefined);
   const printTriggered = useRef(false);
   
   const id = Array.isArray(params.id) ? params.id[0] : params.id;
+  const storeCode = searchParams.get('storeCode');
   
   useEffect(() => {
     if (isLoaded) {
@@ -46,7 +49,15 @@ export default function PrintStickerPage() {
   
   return (
     <div className="bg-white flex justify-center items-center min-h-screen">
-        <WaybillSticker waybill={waybillToPrint} />
+        <WaybillSticker waybill={waybillToPrint} storeCode={storeCode} />
     </div>
     );
+}
+
+export default function PrintStickerPage() {
+    return (
+        <Suspense fallback={<div>Loading...</div>}>
+            <PrintStickerContent />
+        </Suspense>
+    )
 }

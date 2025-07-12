@@ -1,13 +1,15 @@
+
 'use client';
 
 import { Waybill } from '@/types/waybill';
-import { Truck, User, MapPin } from 'lucide-react';
+import { Truck, Building } from 'lucide-react';
 
 interface WaybillStickerProps {
   waybill: Waybill;
+  storeCode?: string | null;
 }
 
-export function WaybillSticker({ waybill }: WaybillStickerProps) {
+export function WaybillSticker({ waybill, storeCode }: WaybillStickerProps) {
   // A simple placeholder for a barcode. In a real app, you'd use a library to generate a real one.
   const Barcode = () => (
     <svg xmlns="http://www.w3.org/2000/svg" width="100%" height="60" viewBox="0 0 250 60" preserveAspectRatio="none">
@@ -48,6 +50,12 @@ export function WaybillSticker({ waybill }: WaybillStickerProps) {
             <p className="text-lg font-bold">{waybill.receiverName}</p>
             <p className="text-lg">{waybill.receiverAddress}</p>
             <p className="text-2xl font-bold">{waybill.receiverPincode}</p>
+             {storeCode && (
+              <div className="flex items-center gap-2 pt-2">
+                <Building className="h-5 w-5" />
+                <p className="text-lg font-semibold">Store Code: {storeCode}</p>
+              </div>
+            )}
         </div>
       </section>
 
