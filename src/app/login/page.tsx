@@ -9,12 +9,14 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Label } from '@/components/ui/label';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Truck, LogIn, AlertCircle } from 'lucide-react';
+import { useRouter } from 'next/navigation';
 
 export default function LoginPage() {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const { login } = useAuth();
+  const router = useRouter();
 
   const handleLogin = () => {
     const success = login(username, password);
@@ -22,6 +24,7 @@ export default function LoginPage() {
       setError('Invalid username or password. Please try again.');
     } else {
         setError('');
+        router.push('/dashboard');
     }
   };
 

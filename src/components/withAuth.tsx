@@ -2,23 +2,22 @@
 'use client';
 
 import { useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, usePathname } from 'next/navigation';
 import { useAuth } from '@/hooks/useAuth';
 
 export function withAuth<P extends object>(Component: React.ComponentType<P>) {
   return function WithAuth(props: P) {
-    const { isAuthenticated } = useAuth();
+    const { isAuthenticated, isLoaded } = useAuth();
     const router = useRouter();
+    const pathname = usePathname();
 
     useEffect(() => {
-      // If auth state is determined and user is not authenticated, redirect to login
-      if (isAuthenticated === false) {
+      if (isLoaded && !isAuthenticated) {
         router.replace('/login');
       }
-    }, [isAuthenticated, router]);
+    }, [isAuthenticated, isLoaded, router]);
 
-    // If auth state is not yet determined, show a loading spinner
-    if (isAuthenticated === null) {
+    if (!isLoaded || !isAuthenticated) {
       return (
         <div className="flex justify-center items-center h-screen">
             <div className="animate-spin rounded-full h-16 w-16 border-t-2 border-b-2 border-primary"></div>
@@ -26,7 +25,6 @@ export function withAuth<P extends object>(Component: React.ComponentType<P>) {
       );
     }
     
-    // If authenticated, render the component
-    return isAuthenticated ? <Component {...props} /> : null;
+    return <Component {...props} />;
   };
 }
