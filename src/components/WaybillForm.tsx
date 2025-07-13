@@ -476,32 +476,34 @@ export function WaybillForm({ initialData, onSave, onCancel }: WaybillFormProps)
                       </FormItem>
                     )}
                   />
-                 <FormField
-                    control={form.control}
-                    name="status"
-                    render={({ field }) => (
-                    <FormItem>
-                        <FormLabel>Status</FormLabel>
-                        <Select onValueChange={field.onChange} defaultValue={field.value}>
-                            <FormControl>
-                            <div className="relative">
-                                <SelectTrigger className="pl-10">
-                                    <SelectValue placeholder="Select status" />
-                                </SelectTrigger>
-                                <IconWrapper><ListChecks /></IconWrapper>
-                            </div>
-                            </FormControl>
-                            <SelectContent>
-                            <SelectItem value="Pending">Pending</SelectItem>
-                            <SelectItem value="In Transit">In Transit</SelectItem>
-                            <SelectItem value="Delivered">Delivered</SelectItem>
-                            <SelectItem value="Cancelled">Cancelled</SelectItem>
-                            </SelectContent>
-                        </Select>
-                        <FormMessage />
-                    </FormItem>
-                    )}
-                />
+                 {initialData && (
+                    <FormField
+                        control={form.control}
+                        name="status"
+                        render={({ field }) => (
+                        <FormItem>
+                            <FormLabel>Status</FormLabel>
+                            <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                <FormControl>
+                                <div className="relative">
+                                    <SelectTrigger className="pl-10">
+                                        <SelectValue placeholder="Select status" />
+                                    </SelectTrigger>
+                                    <IconWrapper><ListChecks /></IconWrapper>
+                                </div>
+                                </FormControl>
+                                <SelectContent>
+                                <SelectItem value="Pending">Pending</SelectItem>
+                                <SelectItem value="In Transit">In Transit</SelectItem>
+                                <SelectItem value="Delivered">Delivered</SelectItem>
+                                <SelectItem value="Cancelled">Cancelled</SelectItem>
+                                </SelectContent>
+                            </Select>
+                            <FormMessage />
+                        </FormItem>
+                        )}
+                    />
+                 )}
             </div>
           </CardContent>
         </Card>
