@@ -22,12 +22,12 @@ export function WaybillSticker({ waybill, storeCode, boxNumber, totalBoxes }: Wa
   );
 
   return (
-    <div className="bg-white text-black font-sans p-4 border-4 border-black border-dashed w-[4in] h-[6in] flex flex-col print:shadow-none print:p-2 print:border-2">
+    <div className="bg-white text-black font-sans p-4 border-2 border-black w-[4in] h-[6in] flex flex-col print:shadow-none print:p-2 print:border-2">
       {/* Header */}
-      <header className="flex justify-between items-center pb-2 border-b-4 border-black">
+      <header className="flex justify-between items-center pb-2 border-b-2 border-black">
         <div className="flex items-center gap-2">
-            <Truck className="h-10 w-10 text-black" />
-            <h1 className="text-2xl font-bold">SS CARGO</h1>
+            <Truck className="h-8 w-8 text-black" />
+            <h1 className="text-xl font-bold">SS CARGO</h1>
         </div>
         <div className="text-right">
             <p className="font-semibold">{new Date(waybill.shippingDate).toLocaleDateString()}</p>
@@ -38,22 +38,21 @@ export function WaybillSticker({ waybill, storeCode, boxNumber, totalBoxes }: Wa
       </header>
       
       {/* Sender Info */}
-      <section className="py-3 border-b-2 border-black border-dashed">
+      <section className="py-2 border-b-2 border-black">
         <h3 className="text-xs font-bold uppercase tracking-wider mb-1">FROM:</h3>
         <div className="text-sm">
             <p className="font-semibold">{waybill.senderName}</p>
-            <p>{waybill.senderCity}</p>
-            <p>{waybill.senderPincode}</p>
+            <p>{waybill.senderCity}, {waybill.senderPincode}</p>
         </div>
       </section>
 
       {/* Receiver Info */}
-      <section className="flex-grow py-4">
-        <h3 className="text-sm font-bold uppercase tracking-wider mb-2">TO:</h3>
+      <section className="flex-grow py-3">
+        <h3 className="text-sm font-bold uppercase tracking-wider mb-1">TO:</h3>
         <div className="space-y-1 pl-4">
-            <p className="text-lg font-bold">{waybill.receiverName}</p>
-            <p className="text-lg">{waybill.receiverCity}</p>
-            <p className="text-2xl font-bold">{waybill.receiverPincode}</p>
+            <p className="text-xl font-bold">{waybill.receiverName}</p>
+            <p className="text-3xl font-bold">{waybill.receiverCity.toUpperCase()}</p>
+            <p className="text-4xl font-bold">{waybill.receiverPincode}</p>
              {storeCode && (
               <div className="flex items-center gap-2 pt-2">
                 <Building className="h-5 w-5" />
