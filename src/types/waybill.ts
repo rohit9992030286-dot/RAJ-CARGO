@@ -1,7 +1,7 @@
 import { z } from 'zod';
 
-// This is the base schema for all form fields
-const waybillFormFields = z.object({
+// This is the base schema for the form fields
+export const waybillFormSchema = z.object({
   waybillNumber: z.string().min(1, 'Waybill number is required.'),
   invoiceNumber: z.string({ required_error: "Invoice number is required."}).min(1, { message: 'Invoice number is required.' }),
   eWayBillNo: z.string().optional(),
@@ -27,10 +27,7 @@ const waybillFormFields = z.object({
   shippingTime: z.string().min(1, 'Shipping time is required').default('10:00'),
   
   status: z.enum(['Pending', 'In Transit', 'Delivered', 'Cancelled']).default('Pending'),
-});
-
-// This is the final schema used for form validation
-export const waybillFormSchema = waybillFormFields.superRefine((data, ctx) => {
+}).superRefine((data, ctx) => {
     if (data.shipmentValue >= 50000) {
         if (!data.eWayBillNo || data.eWayBillNo.trim() === '') {
             ctx.addIssue({
@@ -41,6 +38,7 @@ export const waybillFormSchema = waybillFormFields.superRefine((data, ctx) => {
         }
     }
 });
+
 
 // This is the full schema for the Waybill data model, including the 'id'
 export const waybillSchema = waybillFormSchema.extend({
