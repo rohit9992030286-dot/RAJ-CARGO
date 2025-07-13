@@ -1,25 +1,28 @@
 
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { useWaybills } from '@/hooks/useWaybills';
 import { WaybillList } from '@/components/WaybillList';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardFooter, CardHeader } from '@/components/ui/card';
-import { PlusCircle, FileDown, Printer, CheckSquare, XSquare, ChevronLeft, ChevronRight, Search } from 'lucide-react';
+import { PlusCircle, FileDown, Printer, ChevronLeft, ChevronRight, Search, FileUp } from 'lucide-react';
 import * as XLSX from 'xlsx';
 import { saveAs } from 'file-saver';
-import { Waybill } from '@/types/waybill';
+import { Waybill, waybillSchema } from '@/types/waybill';
+import { useToast } from '@/hooks/use-toast';
 
 
 export default function WaybillsPage() {
-  const { waybills, deleteWaybill, updateWaybill, isLoaded } = useWaybills();
+  const { waybills, deleteWaybill, updateWaybill, isLoaded, addWaybill } = useWaybills();
   const [selectedWaybillIds, setSelectedWaybillIds] = useState<string[]>([]);
   const [currentPage, setCurrentPage] = useState(1);
   const [searchTerm, setSearchTerm] = useState('');
   const router = useRouter();
+  const { toast } = useToast();
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const WAYBILLS_PER_PAGE = 10;
 
@@ -60,15 +63,75 @@ export default function WaybillsPage() {
     const workbook = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(workbook, worksheet, "Waybills");
     
-    // Generate buffer
     const excelBuffer = XLSX.write(workbook, { bookType: 'xlsx', type: 'array' });
     
-    // Create a Blob
     const data = new Blob([excelBuffer], {type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;charset=UTF-8'});
     
-    // Use file-saver to trigger download
     saveAs(data, 'waybills.xlsx');
   };
+
+  const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = (e) => {
+        const data = e.target?.result;
+        if (!data) return;
+
+        try {
+            const workbook = XLSX.read(data, { type: 'binary' });
+            const sheetName = workbook.SheetNames[0];
+            const worksheet = workbook.Sheets[sheetName];
+            const json: any[] = XLSX.utils.sheet_to_json(worksheet);
+
+            let addedCount = 0;
+            let skippedCount = 0;
+
+            json.forEach((row, index) => {
+                try {
+                    const newWaybillData = {
+                      ...row,
+                      id: crypto.randomUUID(),
+                      status: row.status || 'Pending',
+                      shippingDate: row.shippingDate ? new Date(row.shippingDate).toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
+                      shippingTime: row.shippingTime || '10:00',
+                      numberOfBoxes: row.numberOfBoxes || 1,
+                      packageWeight: row.packageWeight || 0,
+                      shipmentValue: row.shipmentValue || 0,
+                    };
+                    
+                    const parsed = waybillSchema.parse(newWaybillData);
+                    if (addWaybill(parsed)) {
+                        addedCount++;
+                    } else {
+                        skippedCount++;
+                    }
+                } catch(error) {
+                    console.error(`Error processing row ${index + 2}:`, error);
+                    skippedCount++;
+                }
+            });
+
+            toast({
+                title: 'Upload Complete',
+                description: `${addedCount} waybills added. ${skippedCount} waybills skipped (duplicates or errors).`,
+            });
+        } catch (error) {
+            console.error("Error parsing Excel file", error);
+            toast({
+                title: 'Upload Failed',
+                description: 'There was an error parsing the Excel file. Please check the format.',
+                variant: 'destructive'
+            });
+        }
+    };
+    reader.readAsBinaryString(file);
+    // Reset file input
+    if(fileInputRef.current) {
+        fileInputRef.current.value = '';
+    }
+  }
 
   const handlePrintSelected = () => {
     if (selectedWaybillIds.length > 0) {
@@ -123,6 +186,10 @@ export default function WaybillsPage() {
               <p className="text-muted-foreground">Manage all your shipments from one place.</p>
             </div>
              <div className="flex gap-2 flex-wrap justify-end">
+                <Button onClick={() => fileInputRef.current?.click()} variant="outline" size="sm">
+                    <FileUp /> Upload Excel
+                </Button>
+                <input type="file" ref={fileInputRef} onChange={handleFileUpload} className="hidden" accept=".xlsx, .xls" />
                 <Button onClick={handleDownloadExcel} variant="outline" size="sm" disabled={waybills.length === 0}>
                     <FileDown /> Download Excel
                 </Button>
@@ -153,9 +220,6 @@ export default function WaybillsPage() {
                      <span className="text-sm text-muted-foreground">{selectedWaybillIds.length} selected</span>
                     <Button onClick={handlePrintSelected} variant="outline" size="sm">
                         <Printer /> Print Selected
-                    </Button>
-                    <Button onClick={() => setSelectedWaybillIds([])} variant="ghost" size="sm">
-                        <XSquare /> Deselect All
                     </Button>
                   </div>
                 )}

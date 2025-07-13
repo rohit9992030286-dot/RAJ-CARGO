@@ -17,7 +17,7 @@ export function useWaybills() {
       if (items) {
         const parsedItems = JSON.parse(items);
         if (Array.isArray(parsedItems)) {
-          setWaybills(parsedItems);
+          setWaybills(parsedItems.sort((a: Waybill, b: Waybill) => new Date(b.shippingDate).getTime() - new Date(a.shippingDate).getTime()));
         }
       }
     } catch (error) {
@@ -35,7 +35,8 @@ export function useWaybills() {
   useEffect(() => {
     if (isLoaded) {
       try {
-        window.localStorage.setItem(STORAGE_KEY, JSON.stringify(waybills));
+        const sortedWaybills = [...waybills].sort((a, b) => new Date(b.shippingDate).getTime() - new Date(a.shippingDate).getTime());
+        window.localStorage.setItem(STORAGE_KEY, JSON.stringify(sortedWaybills));
       } catch (error) {
         console.error('Failed to save waybills to local storage', error);
         toast({
@@ -51,7 +52,7 @@ export function useWaybills() {
     // Check for uniqueness of waybillNumber
     if (waybills.some(w => w.waybillNumber === waybill.waybillNumber)) {
         toast({
-            title: 'Error: Duplicate Waybill Number',
+            title: 'Error: Duplicate Waybill Number ⚠️',
             description: `A waybill with the number #${waybill.waybillNumber} already exists.`,
             variant: 'destructive',
         });
