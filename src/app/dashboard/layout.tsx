@@ -25,7 +25,12 @@ function DashboardLayout({
     setIsSheetOpen(false);
   };
   
-  const NavLinks = ({ onLinkClick }: { onLinkClick?: () => void }) => (
+  const handleLogoutClick = () => {
+    handleLinkClick();
+    logout();
+  }
+
+  const NavLinks = ({ onLinkClick, onLogoutClick }: { onLinkClick?: () => void, onLogoutClick?: () => void }) => (
     <nav className="p-4 flex flex-col h-full">
       <ul className="space-y-2 flex-grow">
         <li>
@@ -70,7 +75,7 @@ function DashboardLayout({
             <Settings className="h-5 w-5" />
             <span>Settings</span>
         </Link>
-        <Button variant="outline" onClick={logout} className="w-full justify-start">
+        <Button variant="outline" onClick={onLogoutClick} className="w-full justify-start">
             <LogOut className="mr-3 h-5 w-5" />
             Logout
         </Button>
@@ -85,7 +90,7 @@ function DashboardLayout({
           <Truck className="h-8 w-8 text-primary" />
           <h1 className="text-2xl font-bold">SS CARGO</h1>
         </div>
-        <NavLinks />
+        <NavLinks onLogoutClick={logout} />
       </aside>
       <div className="flex-1 flex flex-col">
         <header className="flex h-16 items-center gap-4 border-b bg-background px-6 lg:hidden">
@@ -104,7 +109,7 @@ function DashboardLayout({
                         <Truck className="h-8 w-8 text-primary" />
                         <h1 className="text-2xl font-bold">SS CARGO</h1>
                     </div>
-                    <NavLinks onLinkClick={handleLinkClick} />
+                    <NavLinks onLinkClick={handleLinkClick} onLogoutClick={handleLogoutClick} />
                 </SheetContent>
             </Sheet>
             <div className="flex-1">
