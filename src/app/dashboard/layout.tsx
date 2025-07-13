@@ -2,7 +2,7 @@
 'use client';
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { Truck, Home, BookCopy, PlusCircle, ScanLine, Menu } from 'lucide-react';
+import { Truck, Home, BookCopy, PlusCircle, ScanLine, Menu, ClipboardList } from 'lucide-react';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
 import { Button } from '@/components/ui/button';
 
@@ -37,6 +37,12 @@ export default function DashboardLayout({
             <PlusCircle className="h-5 w-5" />
             <span>Create Waybill</span>
           </Link>
+        </li>
+        <li>
+            <Link href="/dashboard/manifest" className="flex items-center gap-3 p-3 rounded-lg hover:bg-accent">
+                <ClipboardList className="h-5 w-5" />
+                <span>Manifest</span>
+            </Link>
         </li>
         <li>
           <Link href="/dashboard/print-sticker" className="flex items-center gap-3 p-3 rounded-lg hover:bg-accent">
