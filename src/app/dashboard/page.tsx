@@ -3,12 +3,15 @@
 import Link from 'next/link';
 import { useWaybills } from '@/hooks/useWaybills';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Legend, ResponsiveContainer } from 'recharts';
 import { Truck, CheckCircle, BookCopy, Loader2, Package, XCircleIcon } from 'lucide-react';
-import { ChartContainer, ChartTooltipContent, ChartTooltip } from '@/components/ui/chart';
+import { ChartContainer, ChartTooltip, ChartTooltipContent } from '@/components/ui/chart';
 
 
 const chartConfig = {
+  count: {
+    label: 'Count',
+  },
   total: {
     label: 'Total',
     color: 'hsl(var(--chart-1))',
@@ -108,10 +111,10 @@ export default function DashboardPage() {
               <CardTitle>Waybill Status Overview</CardTitle>
           </CardHeader>
           <CardContent className="h-[300px] w-full">
-             <ResponsiveContainer width="100%" height="100%">
-                 <BarChart data={chartData} margin={{ top: 20, right: 30, left: 0, bottom: 5 }}>
+             <ChartContainer config={chartConfig} className="w-full h-full">
+                 <BarChart data={chartData} margin={{ top: 20, right: 30, left: 0, bottom: 5 }} accessibilityLayer>
                     <CartesianGrid vertical={false} />
-                    <XAxis dataKey="status" tickLine={false} axisLine={false} />
+                    <XAxis dataKey="status" tickLine={false} axisLine={false} tickMargin={8} />
                     <YAxis tickLine={false} axisLine={false} allowDecimals={false} />
                     <ChartTooltip
                         cursor={false}
@@ -119,7 +122,7 @@ export default function DashboardPage() {
                     />
                     <Bar dataKey="count" radius={[4, 4, 0, 0]} />
                 </BarChart>
-            </ResponsiveContainer>
+            </ChartContainer>
           </CardContent>
       </Card>
       
