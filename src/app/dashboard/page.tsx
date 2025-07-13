@@ -70,7 +70,7 @@ export default function DashboardPage() {
   return (
     <div className="flex flex-col h-full">
       <div className="mb-8">
-        <h1 className="text-3xl font-bold mb-1">Welcome Back, rohit antil! 👋</h1>
+        <h1 className="text-3xl font-bold mb-1">Welcome Back Rohit ANTIL! 👋</h1>
         <p className="text-muted-foreground">Here's a summary of your shipping activity.</p>
       </div>
 
