@@ -102,7 +102,7 @@ export function WaybillForm({ initialData, onSave, onCancel }: WaybillFormProps)
       });
     } finally {
       if (type === 'sender') setIsSenderPincodeLoading(false);
-      else setIsReceiverPincodeLoading(true);
+      else setIsReceiverPincodeLoading(false);
     }
   };
 
@@ -249,7 +249,7 @@ export function WaybillForm({ initialData, onSave, onCancel }: WaybillFormProps)
                     <FormLabel>Address</FormLabel>
                      <div className="relative">
                         <FormControl>
-                            <AddressAutocompleteInput {...field} onValuechange={field.onChange} placeholder="Start typing an address..."/>
+                            <AddressAutocompleteInput {...field} onValueChange={field.onChange} placeholder="Start typing an address..."/>
                         </FormControl>
                     </div>
                     <FormMessage />
@@ -489,3 +489,5 @@ export function WaybillForm({ initialData, onSave, onCancel }: WaybillFormProps)
     </Form>
   );
 }
+
+    
