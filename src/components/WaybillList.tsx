@@ -125,12 +125,12 @@ export function WaybillList({ waybills, selectedWaybillIds, onSelectionChange, o
               <div className="space-y-2">
                 <h4 className="font-semibold text-primary">From:</h4>
                 <p className="flex items-start gap-2"><User className="h-4 w-4 mt-0.5 shrink-0 text-muted-foreground" /> {waybill.senderName}</p>
-                <p className="flex items-start gap-2"><MapPin className="h-4 w-4 mt-0.5 shrink-0 text-muted-foreground" /> {waybill.senderAddress}, {waybill.senderPincode}</p>
+                <p className="flex items-start gap-2"><MapPin className="h-4 w-4 mt-0.5 shrink-0 text-muted-foreground" /> {waybill.senderAddress}, {waybill.senderCity}, {waybill.senderPincode}</p>
               </div>
                <div className="space-y-2">
                 <h4 className="font-semibold text-primary">To:</h4>
                 <p className="flex items-start gap-2"><User className="h-4 w-4 mt-0.5 shrink-0 text-muted-foreground" /> {waybill.receiverName}</p>
-                <p className="flex items-start gap-2"><MapPin className="h-4 w-4 mt-0.5 shrink-0 text-muted-foreground" /> {waybill.receiverAddress}, {waybill.receiverPincode}</p>
+                <p className="flex items-start gap-2"><MapPin className="h-4 w-4 mt-0.5 shrink-0 text-muted-foreground" /> {waybill.receiverAddress}, {waybill.receiverCity}, {waybill.receiverPincode}</p>
               </div>
                <div className="space-y-2">
                   <h4 className="font-semibold text-primary">Package Details:</h4>

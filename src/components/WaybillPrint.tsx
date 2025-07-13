@@ -33,7 +33,7 @@ export function WaybillPrint({ waybill }: WaybillPrintProps) {
           <h3 className="text-lg font-bold uppercase tracking-wider text-primary mb-4">From (Sender)</h3>
           <div className="space-y-3">
             <p className="flex items-center gap-3 text-lg"><User className="h-5 w-5 text-gray-500 shrink-0" /> <span className="font-semibold">{waybill.senderName}</span></p>
-            <p className="flex items-start gap-3"><MapPin className="h-5 w-5 text-gray-500 shrink-0 mt-1" /> {waybill.senderAddress}, {waybill.senderPincode}</p>
+            <p className="flex items-start gap-3"><MapPin className="h-5 w-5 text-gray-500 shrink-0 mt-1" /> {waybill.senderAddress}, {waybill.senderCity}, {waybill.senderPincode}</p>
             <p className="flex items-center gap-3"><Phone className="h-5 w-5 text-gray-500 shrink-0" /> {waybill.senderPhone}</p>
           </div>
         </div>
@@ -41,7 +41,7 @@ export function WaybillPrint({ waybill }: WaybillPrintProps) {
           <h3 className="text-lg font-bold uppercase tracking-wider text-primary mb-4">To (Receiver)</h3>
           <div className="space-y-3">
             <p className="flex items-center gap-3 text-lg"><User className="h-5 w-5 text-gray-500 shrink-0" /> <span className="font-semibold">{waybill.receiverName}</span></p>
-            <p className="flex items-start gap-3"><MapPin className="h-5 w-5 text-gray-500 shrink-0 mt-1" /> {waybill.receiverAddress}, {waybill.receiverPincode}</p>
+            <p className="flex items-start gap-3"><MapPin className="h-5 w-5 text-gray-500 shrink-0 mt-1" /> {waybill.receiverAddress}, {waybill.receiverCity}, {waybill.receiverPincode}</p>
             <p className="flex items-center gap-3"><Phone className="h-5 w-5 text-gray-500 shrink-0" /> {waybill.receiverPhone}</p>
           </div>
         </div>
