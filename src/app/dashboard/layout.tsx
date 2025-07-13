@@ -2,24 +2,27 @@
 'use client';
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { Truck, Home, BookCopy, PlusCircle, ScanLine, Menu, ClipboardList, IndianRupee } from 'lucide-react';
+import { Truck, Home, BookCopy, PlusCircle, ScanLine, Menu, ClipboardList, IndianRupee, LogOut } from 'lucide-react';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
 import { Button } from '@/components/ui/button';
+import { withAuth } from '@/components/withAuth';
+import { useAuth } from '@/hooks/useAuth';
 
-export default function DashboardLayout({
+function DashboardLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
   const [year, setYear] = useState<number | null>(null);
+  const { logout } = useAuth();
 
   useEffect(() => {
     setYear(new Date().getFullYear());
   }, []);
   
   const NavLinks = () => (
-    <nav className="p-4">
-      <ul>
+    <nav className="p-4 flex flex-col h-full">
+      <ul className="space-y-2 flex-grow">
         <li>
           <Link href="/dashboard" className="flex items-center gap-3 p-3 rounded-lg hover:bg-accent">
             <Home className="h-5 w-5" />
@@ -57,12 +60,16 @@ export default function DashboardLayout({
           </Link>
         </li>
       </ul>
+       <Button variant="outline" onClick={logout} className="mt-4">
+          <LogOut className="mr-2 h-4 w-4" />
+          Logout
+        </Button>
     </nav>
   );
 
   return (
     <div className="flex min-h-screen">
-       <aside className="w-64 bg-card border-r hidden lg:block">
+       <aside className="w-64 bg-card border-r hidden lg:flex lg:flex-col">
         <div className="flex items-center gap-3 p-6 border-b">
           <Truck className="h-8 w-8 text-primary" />
           <h1 className="text-2xl font-bold">SS CARGO</h1>
@@ -78,7 +85,7 @@ export default function DashboardLayout({
                         <span className="sr-only">Toggle navigation menu</span>
                     </Button>
                 </SheetTrigger>
-                <SheetContent side="left">
+                <SheetContent side="left" className="flex flex-col p-0">
                     <SheetHeader>
                         <SheetTitle className="sr-only">Navigation Menu</SheetTitle>
                     </SheetHeader>
@@ -92,6 +99,10 @@ export default function DashboardLayout({
             <div className="flex-1">
                  <h1 className="font-semibold text-xl">SS CARGO</h1>
             </div>
+             <Button variant="ghost" size="sm" onClick={logout}>
+                <LogOut className="mr-2 h-4 w-4" />
+                Logout
+            </Button>
         </header>
         <main className="flex-1 p-8 bg-background">
             {children}
@@ -103,3 +114,5 @@ export default function DashboardLayout({
     </div>
   );
 }
+
+export default withAuth(DashboardLayout);
