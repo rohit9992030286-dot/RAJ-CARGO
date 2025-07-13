@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { Truck, Home, BookCopy, PlusCircle, ScanLine, Menu } from 'lucide-react';
-import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
 import { Button } from '@/components/ui/button';
 
 export default function DashboardLayout({
@@ -67,6 +67,9 @@ export default function DashboardLayout({
                     </Button>
                 </SheetTrigger>
                 <SheetContent side="left">
+                    <SheetHeader>
+                        <SheetTitle className="sr-only">Navigation Menu</SheetTitle>
+                    </SheetHeader>
                     <div className="flex items-center gap-3 p-4 border-b">
                         <Truck className="h-8 w-8 text-primary" />
                         <h1 className="text-2xl font-bold">SS CARGO</h1>
