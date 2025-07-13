@@ -10,16 +10,17 @@ import { Input } from '@/components/ui/input';
 import { PlusCircle, FileDown, Printer, CheckSquare, XSquare, ChevronLeft, ChevronRight, Search } from 'lucide-react';
 import * as XLSX from 'xlsx';
 import { saveAs } from 'file-saver';
+import { Waybill } from '@/types/waybill';
 
 
 export default function WaybillsPage() {
-  const { waybills, deleteWaybill, isLoaded } = useWaybills();
+  const { waybills, deleteWaybill, updateWaybill, isLoaded } = useWaybills();
   const [selectedWaybillIds, setSelectedWaybillIds] = useState<string[]>([]);
   const [currentPage, setCurrentPage] = useState(1);
   const [searchTerm, setSearchTerm] = useState('');
   const router = useRouter();
 
-  const WAYBILLS_PER_PAGE = 25;
+  const WAYBILLS_PER_PAGE = 10;
 
   const filteredWaybills = useMemo(() => {
     if (!searchTerm) return waybills;
@@ -27,7 +28,8 @@ export default function WaybillsPage() {
         w.waybillNumber.toLowerCase().includes(searchTerm.toLowerCase()) ||
         w.invoiceNumber.toLowerCase().includes(searchTerm.toLowerCase()) ||
         w.senderName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        w.receiverName.toLowerCase().includes(searchTerm.toLowerCase())
+        w.receiverName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        w.receiverCity.toLowerCase().includes(searchTerm.toLowerCase())
     );
   }, [waybills, searchTerm]);
 
@@ -84,17 +86,25 @@ export default function WaybillsPage() {
     });
   };
 
-  const handleSelectAllOnPage = () => {
+  const handleSelectAllOnPage = (select: boolean) => {
     const currentPageIds = currentWaybills.map(w => w.id);
-    setSelectedWaybillIds(prev => {
-        const newIds = currentPageIds.filter(id => !prev.includes(id));
-        return [...prev, ...newIds];
-    });
+    if (select) {
+        setSelectedWaybillIds(prev => {
+            const newIds = currentPageIds.filter(id => !prev.includes(id));
+            return [...prev, ...newIds];
+        });
+    } else {
+        setSelectedWaybillIds(prev => prev.filter(id => !currentPageIds.includes(id)));
+    }
+  };
+  
+  const handleUpdateStatus = (id: string, status: Waybill['status']) => {
+    const waybill = waybills.find(w => w.id === id);
+    if (waybill) {
+        updateWaybill({...waybill, status});
+    }
   };
 
-  const handleDeselectAll = () => {
-    setSelectedWaybillIds([]);
-  };
 
   if (!isLoaded) {
     return (
@@ -105,75 +115,87 @@ export default function WaybillsPage() {
   }
 
   return (
-    <div>
+    <div className="space-y-6">
         <div className="flex justify-between items-center mb-4 gap-4 flex-wrap">
-            <h1 className="text-3xl font-bold">Waybill Book</h1>
-             <div className="relative flex-grow max-w-sm">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
-                <Input 
-                    type="search"
-                    placeholder="Search waybills..."
-                    value={searchTerm}
-                    onChange={(e) => {
-                      setSearchTerm(e.target.value);
-                      setCurrentPage(1); // Reset to first page on new search
-                    }}
-                    className="pl-10"
-                />
+            <div>
+              <h1 className="text-3xl font-bold">Waybill Book</h1>
+              <p className="text-muted-foreground">Manage all your shipments from one place.</p>
             </div>
-            <div className="flex gap-2 flex-wrap justify-end">
-                <Button onClick={handleSelectAllOnPage} variant="outline" size="sm">
-                    <CheckSquare className="mr-2 h-4 w-4" /> Select All on Page
-                </Button>
-                {selectedWaybillIds.length > 0 && (
-                   <Button onClick={handleDeselectAll} variant="outline" size="sm">
-                    <XSquare className="mr-2 h-4 w-4" /> Deselect All ({selectedWaybillIds.length})
-                  </Button>
-                )}
-                {selectedWaybillIds.length > 0 && (
-                  <Button onClick={handlePrintSelected} variant="default" size="sm">
-                      <Printer className="mr-2 h-4 w-4" /> Print Selected ({selectedWaybillIds.length})
-                  </Button>
-                )}
+             <div className="flex gap-2 flex-wrap justify-end">
                 <Button onClick={handleDownloadExcel} variant="outline" size="sm" disabled={waybills.length === 0}>
-                    <FileDown className="mr-2 h-4 w-4" /> Download Excel
+                    <FileDown /> Download Excel
                 </Button>
                 <Button onClick={handleCreateNew} size="sm">
-                    <PlusCircle className="mr-2 h-4 w-4" /> Create Waybill
+                    <PlusCircle /> Create Waybill
                 </Button>
             </div>
         </div>
 
-        <WaybillList
-            waybills={currentWaybills}
-            selectedWaybillIds={selectedWaybillIds}
-            onSelectionChange={handleSelectionChange}
-            onEdit={handleEdit}
-            onDelete={handleDelete}
-            onCreateNew={handleCreateNew}
-        />
-
-        {totalPages > 1 && (
-            <div className="flex justify-center items-center gap-4 mt-8">
+        <Card>
+            <CardHeader>
+               <div className="flex items-center justify-between gap-4">
+                 <div className="relative flex-grow max-w-md">
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+                    <Input 
+                        type="search"
+                        placeholder="Search by waybill #, name, city..."
+                        value={searchTerm}
+                        onChange={(e) => {
+                          setSearchTerm(e.target.value);
+                          setCurrentPage(1); // Reset to first page on new search
+                        }}
+                        className="pl-10"
+                    />
+                </div>
+                 {selectedWaybillIds.length > 0 && (
+                  <div className="flex items-center gap-2">
+                     <span className="text-sm text-muted-foreground">{selectedWaybillIds.length} selected</span>
+                    <Button onClick={handlePrintSelected} variant="outline" size="sm">
+                        <Printer /> Print Selected
+                    </Button>
+                    <Button onClick={() => setSelectedWaybillIds([])} variant="ghost" size="sm">
+                        <XSquare /> Deselect All
+                    </Button>
+                  </div>
+                )}
+               </div>
+            </CardHeader>
+            <CardContent>
+                <WaybillList
+                    waybills={currentWaybills}
+                    selectedWaybillIds={selectedWaybillIds}
+                    onSelectionChange={handleSelectionChange}
+                    onSelectAllChange={handleSelectAllOnPage}
+                    onEdit={handleEdit}
+                    onDelete={handleDelete}
+                    onUpdateStatus={handleUpdateStatus}
+                    onCreateNew={handleCreateNew}
+                />
+            </CardContent>
+             {totalPages > 1 && (
+            <CardFooter className="flex justify-center items-center gap-4 mt-4">
                 <Button 
                     variant="outline"
+                    size="sm"
                     onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
                     disabled={currentPage === 1}
                 >
-                    <ChevronLeft className="mr-2 h-4 w-4" /> Previous
+                    <ChevronLeft /> Previous
                 </Button>
                 <span className="text-sm font-medium">
                     Page {currentPage} of {totalPages}
                 </span>
                 <Button 
                     variant="outline"
+                    size="sm"
                     onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
                     disabled={currentPage === totalPages}
                 >
-                    Next <ChevronRight className="ml-2 h-4 w-4" />
+                    Next <ChevronRight />
                 </Button>
-            </div>
+            </CardFooter>
         )}
+        </Card>
     </div>
   );
 }
