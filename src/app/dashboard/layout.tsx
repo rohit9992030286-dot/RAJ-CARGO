@@ -2,7 +2,7 @@
 'use client';
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { Truck, Home, BookCopy, PlusCircle, ScanLine, Menu, ClipboardList, IndianRupee, LogOut } from 'lucide-react';
+import { Truck, Home, BookCopy, PlusCircle, ScanLine, Menu, ClipboardList, IndianRupee, LogOut, Settings } from 'lucide-react';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
 import { Button } from '@/components/ui/button';
 import { withAuth } from '@/components/withAuth';
@@ -60,10 +60,16 @@ function DashboardLayout({
           </Link>
         </li>
       </ul>
-       <Button variant="outline" onClick={logout} className="mt-4">
-          <LogOut className="mr-2 h-4 w-4" />
-          Logout
+      <div className="space-y-2">
+        <Link href="/dashboard/settings" className="flex items-center gap-3 p-3 rounded-lg hover:bg-accent">
+            <Settings className="h-5 w-5" />
+            <span>Settings</span>
+        </Link>
+        <Button variant="outline" onClick={logout} className="w-full justify-start">
+            <LogOut className="mr-3 h-5 w-5" />
+            Logout
         </Button>
+      </div>
     </nav>
   );
 
