@@ -1,62 +1,86 @@
-// This is the service worker script, which executes in a separate thread.
+// Define the cache name
+const CACHE_NAME = 'ss-cargo-cache-v1';
 
-// Names of the two caches used in this version of the service worker.
-// Change when you update any of the local resources, which will
-// trigger a new service worker to be installed.
-const PRECACHE = 'precache-v1.1';
-const RUNTIME = 'runtime';
-
-// A list of local resources we always want to be cached.
-const PRECACHE_URLS = [
-  '/', // Alias for index.html
+// List of files to cache
+const urlsToCache = [
+  '/',
+  '/login',
   '/dashboard',
-  '/manifest.json'
+  '/dashboard/waybills',
+  '/dashboard/waybills/create',
+  '/dashboard/manifest',
+  '/dashboard/sales',
+  '/dashboard/print-sticker',
+  '/globals.css',
+  // Add other important assets here. Be mindful of caching too much.
+  // For Next.js, specific JS chunks are harder to predict,
+  // so we'll rely on runtime caching for those.
 ];
 
-// The install handler takes care of precaching the resources we always need.
+// Install a service worker
 self.addEventListener('install', event => {
+  // Perform install steps
   event.waitUntil(
-    caches.open(PRECACHE)
-      .then(cache => cache.addAll(PRECACHE_URLS))
-      .then(self.skipWaiting())
+    caches.open(CACHE_NAME)
+      .then(cache => {
+        console.log('Opened cache');
+        // Add all core assets to the cache
+        return cache.addAll(urlsToCache);
+      })
   );
 });
 
-// The activate handler takes care of cleaning up old caches.
-self.addEventListener('activate', event => {
-  const currentCaches = [PRECACHE, RUNTIME];
-  event.waitUntil(
-    caches.keys().then(cacheNames => {
-      return cacheNames.filter(cacheName => !currentCaches.includes(cacheName));
-    }).then(cachesToDelete => {
-      return Promise.all(cachesToDelete.map(cacheToDelete => {
-        return caches.delete(cacheToDelete);
-      }));
-    }).then(() => self.clients.claim())
-  );
-});
-
-// The fetch handler serves responses for same-origin resources from a cache.
-// If no response is found, it populates the runtime cache with the response
-// from the network before returning it to the page.
+// Cache and return requests
 self.addEventListener('fetch', event => {
-  // Skip cross-origin requests, like those for Google Fonts.
-  if (event.request.url.startsWith(self.location.origin)) {
-    event.respondWith(
-      caches.match(event.request).then(cachedResponse => {
-        if (cachedResponse) {
-          return cachedResponse;
+  event.respondWith(
+    caches.match(event.request)
+      .then(response => {
+        // Cache hit - return response
+        if (response) {
+          return response;
         }
 
-        return caches.open(RUNTIME).then(cache => {
-          return fetch(event.request).then(response => {
-            // Put a copy of the response in the runtime cache.
-            return cache.put(event.request, response.clone()).then(() => {
+        // Clone the request because it's a stream and can only be consumed once.
+        const fetchRequest = event.request.clone();
+
+        return fetch(fetchRequest).then(
+          response => {
+            // Check if we received a valid response
+            if (!response || response.status !== 200 || response.type !== 'basic') {
               return response;
-            });
-          });
-        });
+            }
+
+            // Clone the response because it also is a stream.
+            const responseToCache = response.clone();
+
+            caches.open(CACHE_NAME)
+              .then(cache => {
+                // We don't want to cache print pages or API calls
+                if (event.request.url.includes('/print/') || event.request.url.includes('/api/')) {
+                  return;
+                }
+                cache.put(event.request, responseToCache);
+              });
+
+            return response;
+          }
+        );
       })
-    );
-  }
+  );
+});
+
+// Update a service worker
+self.addEventListener('activate', event => {
+  const cacheWhitelist = [CACHE_NAME];
+  event.waitUntil(
+    caches.keys().then(cacheNames => {
+      return Promise.all(
+        cacheNames.map(cacheName => {
+          if (cacheWhitelist.indexOf(cacheName) === -1) {
+            return caches.delete(cacheName);
+          }
+        })
+      );
+    })
+  );
 });
