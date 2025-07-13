@@ -7,6 +7,7 @@ import { useWaybills } from '@/hooks/useWaybills';
 import { WaybillList } from '@/components/WaybillList';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Card, CardContent, CardFooter, CardHeader } from '@/components/ui/card';
 import { PlusCircle, FileDown, Printer, CheckSquare, XSquare, ChevronLeft, ChevronRight, Search } from 'lucide-react';
 import * as XLSX from 'xlsx';
 import { saveAs } from 'file-saver';
