@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useForm } from 'react-hook-form';
@@ -13,7 +14,7 @@ import { AddressAutocompleteInput } from './AddressAutocompleteInput';
 import { User, Phone, Package, Weight, Calendar, ListChecks, Save, XCircle, MapPin, Hash, Box, IndianRupee, Clock, Building, Loader2 } from 'lucide-react';
 import { Textarea } from './ui/textarea';
 import { pincodeLookup } from '@/ai/flows/pincode-lookup';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 
 interface WaybillFormProps {
   initialData?: Waybill;
@@ -26,6 +27,18 @@ const getInitialValues = (initialData?: Waybill): Omit<Waybill, 'id'> => {
         const { id, ...formData } = initialData;
         return formData;
     }
+
+    let defaultSender = {};
+    if (typeof window !== 'undefined') {
+        try {
+            const storedSender = localStorage.getItem('ss-cargo-defaultSender');
+            if (storedSender) {
+                defaultSender = JSON.parse(storedSender);
+            }
+        } catch (error) {
+            console.error('Could not get default sender from local storage', error);
+        }
+    }
     
     return {
         waybillNumber: '',
@@ -35,6 +48,7 @@ const getInitialValues = (initialData?: Waybill): Omit<Waybill, 'id'> => {
         senderCity: '',
         senderPincode: '',
         senderPhone: '',
+        ...defaultSender,
         receiverName: '',
         receiverAddress: '',
         receiverCity: '',
@@ -60,6 +74,10 @@ export function WaybillForm({ initialData, onSave, onCancel }: WaybillFormProps)
     defaultValues: getInitialValues(initialData),
   });
 
+  useEffect(() => {
+    form.reset(getInitialValues(initialData));
+  }, [initialData, form]);
+
   const handlePincodeBlur = async (pincode: string, type: 'sender' | 'receiver') => {
     if (pincode.length !== 6 || !/^\d{6}$/.test(pincode)) return;
 
@@ -84,7 +102,7 @@ export function WaybillForm({ initialData, onSave, onCancel }: WaybillFormProps)
       });
     } finally {
       if (type === 'sender') setIsSenderPincodeLoading(false);
-      else setIsReceiverPincodeLoading(false);
+      else setIsReceiverPincodeLoading(true);
     }
   };
 
@@ -231,7 +249,7 @@ export function WaybillForm({ initialData, onSave, onCancel }: WaybillFormProps)
                     <FormLabel>Address</FormLabel>
                      <div className="relative">
                         <FormControl>
-                            <AddressAutocompleteInput {...field} onValueChange={field.onChange} placeholder="Start typing an address..."/>
+                            <AddressAutocompleteInput {...field} onValuechange={field.onChange} placeholder="Start typing an address..."/>
                         </FormControl>
                     </div>
                     <FormMessage />

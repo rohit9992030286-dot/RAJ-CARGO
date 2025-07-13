@@ -3,6 +3,10 @@
 
 import { Waybill } from '@/types/waybill';
 import { Truck, Building } from 'lucide-react';
+import { cn } from '@/lib/utils';
+import { useEffect, useState } from 'react';
+
+type StickerSize = '4x6' | '3x2';
 
 interface WaybillStickerProps {
   waybill: Waybill;
@@ -12,7 +16,19 @@ interface WaybillStickerProps {
 }
 
 export function WaybillSticker({ waybill, storeCode, boxNumber, totalBoxes }: WaybillStickerProps) {
-  // A simple placeholder for a barcode. In a real app, you'd use a library to generate a real one.
+  const [size, setSize] = useState<StickerSize>('4x6');
+
+  useEffect(() => {
+    try {
+      const storedSize = localStorage.getItem('ss-cargo-stickerSize') as StickerSize;
+      if (storedSize && ['4x6', '3x2'].includes(storedSize)) {
+        setSize(storedSize);
+      }
+    } catch (error) {
+        console.error('Could not get sticker size from local storage', error);
+    }
+  }, []);
+
   const Barcode = () => (
     <svg xmlns="http://www.w3.org/2000/svg" width="100%" height="60" viewBox="0 0 250 60" preserveAspectRatio="none">
       <g fill="#000">
@@ -22,17 +38,23 @@ export function WaybillSticker({ waybill, storeCode, boxNumber, totalBoxes }: Wa
   );
 
   return (
-    <div className="bg-white text-black font-sans p-4 border-2 border-black w-[4in] h-[6in] flex flex-col print:shadow-none print:p-2 print:border-2">
+    <div className={cn(
+        "bg-white text-black font-sans p-4 border-2 border-black flex flex-col print:shadow-none print:p-2 print:border-2",
+        {
+            'w-[4in] h-[6in]': size === '4x6',
+            'w-[3in] h-[2in]': size === '3x2',
+        }
+    )}>
       {/* Header */}
       <header className="flex justify-between items-center pb-2 border-b-2 border-black">
         <div className="flex items-center gap-2">
-            <Truck className="h-8 w-8 text-black" />
-            <h1 className="text-xl font-bold">SS CARGO</h1>
+            <Truck className={cn('text-black', { 'h-8 w-8': size === '4x6', 'h-6 w-6': size === '3x2' })} />
+            <h1 className={cn('font-bold', { 'text-xl': size === '4x6', 'text-lg': size === '3x2' })}>SS CARGO</h1>
         </div>
         <div className="text-right">
             <p className="font-semibold">{new Date(waybill.shippingDate).toLocaleDateString()}</p>
             {boxNumber && totalBoxes && (
-              <p className="text-lg font-bold">Box: {boxNumber} of {totalBoxes}</p>
+              <p className={cn('font-bold', { 'text-lg': size === '4x6', 'text-base': size === '3x2' })}>Box: {boxNumber} of {totalBoxes}</p>
             )}
         </div>
       </header>
@@ -42,21 +64,21 @@ export function WaybillSticker({ waybill, storeCode, boxNumber, totalBoxes }: Wa
         <h3 className="text-xs font-bold uppercase tracking-wider mb-1">FROM:</h3>
         <div className="text-sm">
             <p className="font-semibold">{waybill.senderName}</p>
-            <p>{waybill.senderCity}, {waybill.senderPincode}</p>
+            {size === '4x6' && <p>{waybill.senderCity}, {waybill.senderPincode}</p>}
         </div>
       </section>
 
       {/* Receiver Info */}
       <section className="flex-grow py-3">
-        <h3 className="text-sm font-bold uppercase tracking-wider mb-1">TO:</h3>
+        <h3 className={cn('font-bold uppercase tracking-wider mb-1', {'text-sm': size === '4x6', 'text-xs': size === '3x2'})}>TO:</h3>
         <div className="space-y-1 pl-4">
-            <p className="text-xl font-bold">{waybill.receiverName}</p>
-            <p className="text-3xl font-bold">{waybill.receiverCity ? waybill.receiverCity.toUpperCase() : ''}</p>
-            <p className="text-4xl font-bold">{waybill.receiverPincode}</p>
+            <p className={cn('font-bold', { 'text-xl': size === '4x6', 'text-lg': size === '3x2' })}>{waybill.receiverName}</p>
+            <p className={cn('font-bold', { 'text-3xl': size === '4x6', 'text-xl': size === '3x2' })}>{waybill.receiverCity ? waybill.receiverCity.toUpperCase() : ''}</p>
+            <p className={cn('font-bold', { 'text-4xl': size === '4x6', 'text-2xl': size === '3x2' })}>{waybill.receiverPincode}</p>
              {storeCode && (
               <div className="flex items-center gap-2 pt-2">
-                <Building className="h-5 w-5" />
-                <p className="text-lg font-semibold">Store Code: {storeCode}</p>
+                <Building className={cn({'h-5 w-5': size === '4x6', 'h-4 w-4': size === '3x2'})} />
+                <p className={cn('font-semibold', {'text-lg': size === '4x6', 'text-base': size === '3x2'})}>Store Code: {storeCode}</p>
               </div>
             )}
         </div>

@@ -2,8 +2,10 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { useForm } from 'react-hook-form';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
+import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import {
   AlertDialog,
@@ -18,20 +20,57 @@ import {
 } from '@/components/ui/alert-dialog';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { useToast } from '@/hooks/use-toast';
-import { Moon, Sun, Trash2 } from 'lucide-react';
+import { useAuth } from '@/hooks/useAuth';
+import { Moon, Sun, Trash2, Save, User, KeyRound, Building, MapPin, Phone } from 'lucide-react';
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 
 type Theme = 'light' | 'dark' | 'system';
+type StickerSize = '4x6' | '3x2';
 
 export default function SettingsPage() {
   const { toast } = useToast();
+  const { updateCredentials } = useAuth();
   const [theme, setTheme] = useState<Theme>('system');
+  const [stickerSize, setStickerSize] = useState<StickerSize>('4x6');
+
+  // Form for credentials
+  const accountForm = useForm({
+    defaultValues: { username: '', password: '' },
+  });
+
+  // Form for default sender
+  const senderForm = useForm({
+    defaultValues: {
+      senderName: '',
+      senderAddress: '',
+      senderCity: '',
+      senderPincode: '',
+      senderPhone: '',
+    },
+  });
 
   useEffect(() => {
+    // Load theme
     const storedTheme = localStorage.getItem('ss-cargo-theme') as Theme | null;
-    if (storedTheme) {
-      setTheme(storedTheme);
-    }
-  }, []);
+    if (storedTheme) setTheme(storedTheme);
+
+    // Load sticker size
+    const storedStickerSize = localStorage.getItem('ss-cargo-stickerSize') as StickerSize | null;
+    if (storedStickerSize) setStickerSize(storedStickerSize);
+
+    // Load credentials placeholder
+    try {
+        const creds = JSON.parse(localStorage.getItem('ss-cargo-credentials') || '{}');
+        accountForm.reset({ username: creds.username || 'admin', password: '' });
+    } catch { /* ignore */ }
+
+    // Load default sender
+    try {
+        const sender = JSON.parse(localStorage.getItem('ss-cargo-defaultSender') || '{}');
+        senderForm.reset(sender);
+    } catch { /* ignore */ }
+
+  }, [accountForm, senderForm]);
 
   const handleThemeChange = (newTheme: Theme) => {
     setTheme(newTheme);
@@ -48,6 +87,34 @@ export default function SettingsPage() {
     });
   };
 
+  const handleStickerSizeChange = (newSize: StickerSize) => {
+    setStickerSize(newSize);
+    localStorage.setItem('ss-cargo-stickerSize', newSize);
+    toast({
+      title: 'Sticker Size Updated',
+      description: `Default print size set to ${newSize} inches.`,
+    });
+  };
+
+  const onAccountSubmit = (data: any) => {
+    if (updateCredentials(data.username, data.password)) {
+        toast({ title: 'Credentials Updated', description: 'Your login details have been changed.'});
+        accountForm.reset({ ...data, password: ''});
+    } else {
+        toast({ title: 'Update Failed', description: 'Please provide both a username and password.', variant: 'destructive' });
+    }
+  };
+
+  const onSenderSubmit = (data: any) => {
+    try {
+        localStorage.setItem('ss-cargo-defaultSender', JSON.stringify(data));
+        toast({ title: 'Default Sender Saved', description: 'This information will be pre-filled in new waybills.'});
+    } catch (error) {
+        toast({ title: 'Save Failed', description: 'Could not save default sender information.', variant: 'destructive'});
+    }
+  };
+
+
   const handleClearData = () => {
     try {
       localStorage.removeItem('ss-cargo-waybills');
@@ -56,8 +123,7 @@ export default function SettingsPage() {
         title: 'Application Data Cleared',
         description: 'All waybills and manifests have been deleted.',
       });
-      // Optional: redirect or reload to reflect changes
-      window.location.href = '/dashboard';
+      setTimeout(() => window.location.reload(), 1000);
     } catch (error) {
       toast({
         title: 'Error Clearing Data',
@@ -68,39 +134,179 @@ export default function SettingsPage() {
   };
 
   return (
-    <div className="space-y-8 max-w-2xl mx-auto">
+    <div className="space-y-8 max-w-4xl mx-auto">
       <div>
         <h1 className="text-3xl font-bold">Settings</h1>
         <p className="text-muted-foreground">Manage your application preferences and data.</p>
       </div>
 
+      <div className="grid md:grid-cols-2 gap-8">
+        <Card>
+            <CardHeader>
+                <CardTitle>Appearance</CardTitle>
+                <CardDescription>Customize the look and feel.</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-6">
+                <div>
+                  <Label className="font-medium">Theme</Label>
+                  <RadioGroup value={theme} onValueChange={(value: Theme) => handleThemeChange(value)} className="grid grid-cols-3 gap-4 mt-2">
+                      <Label htmlFor="theme-light" className="flex flex-col items-center justify-center rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground [&:has([data-state=checked])]:border-primary">
+                          <RadioGroupItem value="light" id="theme-light" className="sr-only" />
+                          <Sun className="h-6 w-6 mb-2" />
+                          <span>Light</span>
+                      </Label>
+                      <Label htmlFor="theme-dark" className="flex flex-col items-center justify-center rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground [&:has([data-state=checked])]:border-primary">
+                          <RadioGroupItem value="dark" id="theme-dark" className="sr-only" />
+                          <Moon className="h-6 w-6 mb-2" />
+                          <span>Dark</span>
+                      </Label>
+                      <Label htmlFor="theme-system" className="flex flex-col items-center justify-center rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground [&:has([data-state=checked])]:border-primary">
+                          <RadioGroupItem value="system" id="theme-system" className="sr-only" />
+                          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-6 w-6 mb-2"><rect width="14" height="20" x="5" y="2" rx="2" ry="2"/><path d="M12 18h.01"/></svg>
+                          <span>System</span>
+                      </Label>
+                  </RadioGroup>
+                </div>
+                <div>
+                   <Label className="font-medium">Sticker Print Size</Label>
+                   <RadioGroup value={stickerSize} onValueChange={(value: StickerSize) => handleStickerSizeChange(value)} className="grid grid-cols-2 gap-4 mt-2">
+                        <Label htmlFor="size-4x6" className="flex flex-col items-center justify-center rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground [&:has([data-state=checked])]:border-primary">
+                           <RadioGroupItem value="4x6" id="size-4x6" className="sr-only" />
+                           <span className="font-bold text-lg">4" x 6"</span>
+                           <span className="text-sm text-muted-foreground">Standard</span>
+                       </Label>
+                       <Label htmlFor="size-3x2" className="flex flex-col items-center justify-center rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground [&:has([data-state=checked])]:border-primary">
+                           <RadioGroupItem value="3x2" id="size-3x2" className="sr-only" />
+                           <span className="font-bold text-lg">3" x 2"</span>
+                            <span className="text-sm text-muted-foreground">Small</span>
+                       </Label>
+                   </RadioGroup>
+                </div>
+            </CardContent>
+        </Card>
+        
+        <Card>
+            <Form {...accountForm}>
+                <form onSubmit={accountForm.handleSubmit(onAccountSubmit)}>
+                    <CardHeader>
+                        <CardTitle>Account</CardTitle>
+                        <CardDescription>Update your login credentials.</CardDescription>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                        <FormField
+                            control={accountForm.control}
+                            name="username"
+                            render={({ field }) => (
+                                <FormItem>
+                                    <FormLabel>Username</FormLabel>
+                                    <div className="relative">
+                                        <FormControl>
+                                            <Input {...field} className="pl-10" />
+                                        </FormControl>
+                                        <User className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+                                    </div>
+                                    <FormMessage />
+                                </FormItem>
+                            )}
+                        />
+                        <FormField
+                            control={accountForm.control}
+                            name="password"
+                            render={({ field }) => (
+                                <FormItem>
+                                    <FormLabel>New Password</FormLabel>
+                                    <div className="relative">
+                                        <FormControl>
+                                            <Input type="password" {...field} className="pl-10" placeholder="Enter new password" />
+                                        </FormControl>
+                                        <KeyRound className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+                                    </div>
+                                    <FormMessage />
+                                </FormItem>
+                            )}
+                        />
+                    </CardContent>
+                    <CardFooter>
+                        <Button type="submit" className="ml-auto">
+                            <Save className="mr-2 h-4 w-4" /> Save Credentials
+                        </Button>
+                    </CardFooter>
+                </form>
+            </Form>
+        </Card>
+      </div>
+
       <Card>
-        <CardHeader>
-          <CardTitle>Appearance</CardTitle>
-          <CardDescription>Customize the look and feel of the application.</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <RadioGroup value={theme} onValueChange={(value: Theme) => handleThemeChange(value)}>
-            <Label className="font-medium">Theme</Label>
-            <div className="grid grid-cols-3 gap-4 mt-2">
-                <Label htmlFor="theme-light" className="flex flex-col items-center justify-center rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground [&:has([data-state=checked])]:border-primary">
-                    <RadioGroupItem value="light" id="theme-light" className="sr-only" />
-                    <Sun className="h-6 w-6 mb-2" />
-                    <span>Light</span>
-                </Label>
-                 <Label htmlFor="theme-dark" className="flex flex-col items-center justify-center rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground [&:has([data-state=checked])]:border-primary">
-                    <RadioGroupItem value="dark" id="theme-dark" className="sr-only" />
-                    <Moon className="h-6 w-6 mb-2" />
-                    <span>Dark</span>
-                </Label>
-                 <Label htmlFor="theme-system" className="flex flex-col items-center justify-center rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground [&:has([data-state=checked])]:border-primary">
-                    <RadioGroupItem value="system" id="theme-system" className="sr-only" />
-                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-6 w-6 mb-2"><rect width="14" height="20" x="5" y="2" rx="2" ry="2"/><path d="M12 18h.01"/></svg>
-                    <span>System</span>
-                </Label>
-            </div>
-          </RadioGroup>
-        </CardContent>
+        <Form {...senderForm}>
+            <form onSubmit={senderForm.handleSubmit(onSenderSubmit)}>
+                <CardHeader>
+                    <CardTitle>Default Sender Information</CardTitle>
+                    <CardDescription>This info will be pre-filled when creating new waybills.</CardDescription>
+                </CardHeader>
+                <CardContent className="grid md:grid-cols-2 gap-x-8 gap-y-4">
+                     <FormField
+                        control={senderForm.control}
+                        name="senderName"
+                        render={({ field }) => (
+                            <FormItem>
+                                <FormLabel>Sender Name</FormLabel>
+                                <FormControl><Input {...field} /></FormControl>
+                                <FormMessage />
+                            </FormItem>
+                        )}
+                    />
+                     <FormField
+                        control={senderForm.control}
+                        name="senderPhone"
+                        render={({ field }) => (
+                            <FormItem>
+                                <FormLabel>Sender Phone</FormLabel>
+                                <FormControl><Input {...field} /></FormControl>
+                                <FormMessage />
+                            </FormItem>
+                        )}
+                    />
+                    <FormField
+                        control={senderForm.control}
+                        name="senderAddress"
+                        render={({ field }) => (
+                            <FormItem className="col-span-2">
+                                <FormLabel>Sender Address</FormLabel>
+                                <FormControl><Input {...field} /></FormControl>
+                                <FormMessage />
+                            </FormItem>
+                        )}
+                    />
+                    <FormField
+                        control={senderForm.control}
+                        name="senderPincode"
+                        render={({ field }) => (
+                            <FormItem>
+                                <FormLabel>Sender Pincode</FormLabel>
+                                <FormControl><Input {...field} /></FormControl>
+                                <FormMessage />
+                            </FormItem>
+                        )}
+                    />
+                    <FormField
+                        control={senderForm.control}
+                        name="senderCity"
+                        render={({ field }) => (
+                            <FormItem>
+                                <FormLabel>Sender City</FormLabel>
+                                <FormControl><Input {...field} /></FormControl>
+                                <FormMessage />
+                            </FormItem>
+                        )}
+                    />
+                </CardContent>
+                <CardFooter>
+                    <Button type="submit" className="ml-auto">
+                        <Save className="mr-2 h-4 w-4" /> Save Default Sender
+                    </Button>
+                </CardFooter>
+            </form>
+        </Form>
       </Card>
       
       <Card>
