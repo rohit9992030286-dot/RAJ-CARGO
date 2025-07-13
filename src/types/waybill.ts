@@ -29,7 +29,7 @@ const baseWaybillSchema = z.object({
   status: z.enum(['Pending', 'In Transit', 'Delivered', 'Cancelled']).default('Pending'),
 });
 
-export const waybillSchema = baseWaybillSchema.superRefine((data, ctx) => {
+const eWayBillRefinement = (data: z.infer<typeof baseWaybillSchema>, ctx: z.RefinementCtx) => {
     if (data.shipmentValue >= 50000) {
         if (!data.eWayBillNo || data.eWayBillNo.trim() === '') {
             ctx.addIssue({
@@ -39,19 +39,11 @@ export const waybillSchema = baseWaybillSchema.superRefine((data, ctx) => {
             });
         }
     }
-});
+};
 
-export const waybillFormSchema = baseWaybillSchema.omit({ id: true }).superRefine((data, ctx) => {
-    if (data.shipmentValue >= 50000) {
-        if (!data.eWayBillNo || data.eWayBillNo.trim() === '') {
-            ctx.addIssue({
-                code: z.ZodIssueCode.custom,
-                path: ['eWayBillNo'],
-                message: 'E-Way Bill number is required for shipment value of ₹50,000 or more.',
-            });
-        }
-    }
-});
+export const waybillSchema = baseWaybillSchema.superRefine(eWayBillRefinement);
+
+export const waybillFormSchema = baseWaybillSchema.omit({ id: true }).superRefine(eWayBillRefinement);
 
 
 export type Waybill = z.infer<typeof waybillSchema>;
