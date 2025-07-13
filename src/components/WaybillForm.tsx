@@ -484,7 +484,7 @@ export function WaybillForm({ initialData, onSave, onCancel }: WaybillFormProps)
                     render={({ field }) => (
                     <FormItem>
                         <FormLabel>Status</FormLabel>
-                        <Select onValueChange={field.onChange} defaultValue={field.value} disabled={!initialData}>
+                        <Select onValueChange={field.onChange} defaultValue={field.value}>
                             <FormControl>
                             <div className="relative">
                                 <SelectTrigger className="pl-10">
