@@ -1,6 +1,6 @@
 import { z } from 'zod';
 
-export const waybillSchema = z.object({
+const baseWaybillSchema = z.object({
   id: z.string().uuid(),
   waybillNumber: z.string().min(1, 'Waybill number is required.'),
   invoiceNumber: z.string({ required_error: "Invoice number is required."}).min(1, { message: 'Invoice number is required.' }),
@@ -27,7 +27,9 @@ export const waybillSchema = z.object({
   shippingTime: z.string().min(1, 'Shipping time is required').default('10:00'),
   
   status: z.enum(['Pending', 'In Transit', 'Delivered', 'Cancelled']).default('Pending'),
-}).superRefine((data, ctx) => {
+});
+
+export const waybillSchema = baseWaybillSchema.superRefine((data, ctx) => {
     if (data.shipmentValue >= 50000) {
         if (!data.eWayBillNo || data.eWayBillNo.trim() === '') {
             ctx.addIssue({
@@ -38,5 +40,18 @@ export const waybillSchema = z.object({
         }
     }
 });
+
+export const waybillFormSchema = baseWaybillSchema.omit({ id: true }).superRefine((data, ctx) => {
+    if (data.shipmentValue >= 50000) {
+        if (!data.eWayBillNo || data.eWayBillNo.trim() === '') {
+            ctx.addIssue({
+                code: z.ZodIssueCode.custom,
+                path: ['eWayBillNo'],
+                message: 'E-Way Bill number is required for shipment value of ₹50,000 or more.',
+            });
+        }
+    }
+});
+
 
 export type Waybill = z.infer<typeof waybillSchema>;

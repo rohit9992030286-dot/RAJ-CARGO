@@ -86,7 +86,7 @@ export default function WaybillsPage() {
   };
 
   const handleDownloadTemplate = () => {
-    const headers = Object.keys(waybillSchema.shape);
+    const headers = Object.keys(waybillSchema.shape).filter(key => key !== 'id');
     const worksheet = XLSX.utils.json_to_sheet([{}], { header: headers });
     const workbook = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(workbook, worksheet, "Waybill Template");
