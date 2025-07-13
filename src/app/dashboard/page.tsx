@@ -4,7 +4,7 @@ import Link from 'next/link';
 import { useWaybills } from '@/hooks/useWaybills';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Legend, ResponsiveContainer } from 'recharts';
-import { Truck, CheckCircle, BookCopy, Loader2, Package, XCircleIcon } from 'lucide-react';
+import { Truck, CheckCircle, BookCopy, Loader2, Package, XCircleIcon, IndianRupee } from 'lucide-react';
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from '@/components/ui/chart';
 
 
@@ -52,6 +52,12 @@ export default function DashboardPage() {
   const pendingWaybills = waybills.filter(w => w.status === 'Pending').length;
   const cancelledWaybills = waybills.filter(w => w.status === 'Cancelled').length;
 
+  const totalSales = waybills.reduce((total, waybill) => {
+    const baseCharge = 150;
+    const weightCharge = waybill.packageWeight * 10;
+    return total + baseCharge + weightCharge;
+  }, 0);
+
   const chartData = [
     { status: 'Total', count: totalWaybills, fill: 'var(--color-total)' },
     { status: 'Pending', count: pendingWaybills, fill: 'var(--color-pending)' },
@@ -79,11 +85,11 @@ export default function DashboardPage() {
           </Card>
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Pending</CardTitle>
-              <Package className="h-5 w-5 text-muted-foreground" />
+              <CardTitle className="text-sm font-medium">Total Sales</CardTitle>
+              <IndianRupee className="h-5 w-5 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{pendingWaybills}</div>
+              <div className="text-2xl font-bold">₹{totalSales.toLocaleString('en-IN')}</div>
             </CardContent>
           </Card>
           <Card>

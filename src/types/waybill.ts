@@ -20,7 +20,7 @@ export const waybillSchema = z.object({
   packageDescription: z.string({ required_error: "Package description is required."}).min(3, { message: 'Description must be at least 3 characters.' }),
   packageWeight: z.coerce.number({ required_error: "Weight is required."}).positive({ message: 'Weight must be a positive number.' }),
   numberOfBoxes: z.coerce.number({ required_error: "Number of boxes is required."}).int().min(1, {message: 'Must have at least one box.'}),
-  shipmentValue: z.coerce.number({ required_error: "Shipment value is required."}).positive({ message: 'Value must be a positive number.' }),
+  shipmentValue: z.coerce.number({ required_error: "Shipment value is required."}).nonnegative({ message: 'Value must be a positive number.' }),
 
   shippingDate: z.string().min(1, 'Shipping date is required').default(() => new Date().toISOString().split('T')[0]),
   shippingTime: z.string().min(1, 'Shipping time is required').default('10:00'),

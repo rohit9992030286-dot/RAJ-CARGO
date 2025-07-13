@@ -2,7 +2,7 @@
 'use client';
 
 import { Waybill } from '@/types/waybill';
-import { Truck, User, MapPin, Phone, Calendar, Hash, Box, Weight, DollarSign, Package } from 'lucide-react';
+import { Truck, User, MapPin, Phone, Calendar, Hash, Box, Weight, IndianRupee, Package } from 'lucide-react';
 
 interface WaybillPrintProps {
   waybill: Waybill;
@@ -67,9 +67,9 @@ export function WaybillPrint({ waybill }: WaybillPrintProps) {
                 <p className="text-2xl font-bold">{waybill.packageWeight} kg</p>
             </div>
              <div className="bg-purple-50 p-4 rounded-lg border border-purple-200 col-span-3">
-                <DollarSign className="h-8 w-8 text-purple-500 mx-auto mb-2" />
+                <IndianRupee className="h-8 w-8 text-purple-500 mx-auto mb-2" />
                 <p className="font-semibold text-purple-800">Declared Value</p>
-                <p className="text-2xl font-bold">${waybill.shipmentValue.toFixed(2)}</p>
+                <p className="text-2xl font-bold">₹{waybill.shipmentValue.toFixed(2)}</p>
             </div>
         </div>
       </section>

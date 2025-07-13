@@ -10,7 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { useToast } from '@/hooks/use-toast';
 import { Waybill, waybillSchema } from '@/types/waybill';
 import { AddressAutocompleteInput } from './AddressAutocompleteInput';
-import { User, Phone, Package, Weight, Calendar, ListChecks, Save, XCircle, MapPin, Hash, Box, DollarSign, Clock, Building, Loader2 } from 'lucide-react';
+import { User, Phone, Package, Weight, Calendar, ListChecks, Save, XCircle, MapPin, Hash, Box, IndianRupee, Clock, Building, Loader2 } from 'lucide-react';
 import { Textarea } from './ui/textarea';
 import { pincodeLookup } from '@/ai/flows/pincode-lookup';
 import { useState } from 'react';
@@ -383,12 +383,12 @@ export function WaybillForm({ initialData, onSave, onCancel }: WaybillFormProps)
                 name="shipmentValue"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Shipment Value ($)</FormLabel>
+                    <FormLabel>Shipment Value (₹)</FormLabel>
                     <div className="relative">
                       <FormControl>
                         <Input type="number" step="0.01" placeholder="e.g., 150.00" {...field} onChange={e => field.onChange(+e.target.value)} className="pl-10" />
                       </FormControl>
-                      <IconWrapper><DollarSign /></IconWrapper>
+                      <IconWrapper><IndianRupee /></IconWrapper>
                     </div>
                     <FormMessage />
                   </FormItem>
