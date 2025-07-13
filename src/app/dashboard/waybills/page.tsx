@@ -8,7 +8,7 @@ import { WaybillList } from '@/components/WaybillList';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardFooter, CardHeader } from '@/components/ui/card';
-import { PlusCircle, FileDown, Printer, ChevronLeft, ChevronRight, Search, FileUp } from 'lucide-react';
+import { PlusCircle, FileDown, Printer, ChevronLeft, ChevronRight, Search, FileUp, FileSpreadsheet } from 'lucide-react';
 import * as XLSX from 'xlsx';
 import { saveAs } from 'file-saver';
 import { Waybill, waybillSchema } from '@/types/waybill';
@@ -68,6 +68,17 @@ export default function WaybillsPage() {
     const data = new Blob([excelBuffer], {type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;charset=UTF-8'});
     
     saveAs(data, 'waybills.xlsx');
+  };
+
+  const handleDownloadTemplate = () => {
+    const headers = Object.keys(waybillSchema.shape);
+    const worksheet = XLSX.utils.json_to_sheet([{}], { header: headers });
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, "Waybill Template");
+
+    const excelBuffer = XLSX.write(workbook, { bookType: 'xlsx', type: 'array' });
+    const data = new Blob([excelBuffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;charset=UTF-8' });
+    saveAs(data, 'waybill_template.xlsx');
   };
 
   const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -200,6 +211,9 @@ export default function WaybillsPage() {
               <p className="text-muted-foreground">Manage all your shipments from one place.</p>
             </div>
              <div className="flex gap-2 flex-wrap justify-end">
+                <Button onClick={handleDownloadTemplate} variant="outline" size="sm">
+                    <FileSpreadsheet /> Download Template
+                </Button>
                 <Button onClick={() => fileInputRef.current?.click()} variant="outline" size="sm">
                     <FileUp /> Upload Excel
                 </Button>
