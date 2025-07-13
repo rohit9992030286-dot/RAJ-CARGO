@@ -6,14 +6,14 @@ export const waybillSchema = z.object({
   invoiceNumber: z.string({ required_error: "Invoice number is required."}).min(1, { message: 'Invoice number is required.' }),
   
   senderName: z.string({ required_error: "Sender name is required."}).min(2, { message: 'Sender name must be at least 2 characters.' }),
-  senderAddress: z.string({ required_error: "Sender address is required."}).min(10, { message: 'Please enter a valid sender address.' }).or(z.literal('')),
-  senderCity: z.string({ required_error: "Sender city is required."}).min(2, { message: 'Sender city must be at least 2 characters.' }).or(z.literal('')),
+  senderAddress: z.union([z.string().min(10, { message: 'Please enter a valid sender address.' }), z.literal('')]),
+  senderCity: z.union([z.string().min(2, { message: 'Sender city must be at least 2 characters.' }), z.literal('')]),
   senderPincode: z.string({ required_error: "Pincode is required."}).min(5, {message: 'Pincode must be at least 5 digits.'}),
   senderPhone: z.string({ required_error: "Sender phone is required."}).min(10, { message: 'Please enter a valid sender phone number.' }),
   
   receiverName: z.string({ required_error: "Receiver name is required."}).min(2, { message: 'Receiver name must be at least 2 characters.' }),
-  receiverAddress: z.string({ required_error: "Receiver address is required."}).min(10, { message: 'Please enter a valid receiver address.' }).or(z.literal('')),
-  receiverCity: z.string({ required_error: "Receiver city is required."}).min(2, { message: 'Receiver city must be at least 2 characters.' }).or(z.literal('')),
+  receiverAddress: z.union([z.string().min(10, { message: 'Please enter a valid receiver address.' }), z.literal('')]),
+  receiverCity: z.union([z.string().min(2, { message: 'Receiver city must be at least 2 characters.' }), z.literal('')]),
   receiverPincode: z.string({ required_error: "Pincode is required."}).min(5, {message: 'Pincode must be at least 5 digits.'}),
   receiverPhone: z.string({ required_error: "Receiver phone is required."}).min(10, { message: 'Please enter a valid receiver phone number.' }),
 
