@@ -4,39 +4,36 @@
 import { useEffect, useRef, useState, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { useWaybills } from '@/hooks/useWaybills';
+import { useManifests } from '@/hooks/useManifests';
 import { Waybill } from '@/types/waybill';
+import { Manifest } from '@/types/manifest';
 import { ManifestPrint } from '@/components/ManifestPrint';
 import { format } from 'date-fns';
 
 function PrintManifestContent() {
   const searchParams = useSearchParams();
-  const { waybills, isLoaded, getWaybillById } = useWaybills();
+  const { getWaybillById, isLoaded: waybillsLoaded } = useWaybills();
+  const { getManifestById, isLoaded: manifestsLoaded } = useManifests();
+
   const [waybillsToPrint, setWaybillsToPrint] = useState<Waybill[]>([]);
-  const [manifestDate, setManifestDate] = useState<string | null>(null);
-  const [vehicleNo, setVehicleNo] = useState<string | null>(null);
+  const [manifestData, setManifestData] = useState<Manifest | null>(null);
+
   const printTriggered = useRef(false);
 
   useEffect(() => {
-    if (isLoaded) {
-      const dateStr = searchParams.get('date');
-      const ids = searchParams.get('ids')?.split(',');
-      const vehicle = searchParams.get('vehicleNo');
+    if (waybillsLoaded && manifestsLoaded) {
+      const manifestId = searchParams.get('id');
 
-      setManifestDate(dateStr);
-      setVehicleNo(vehicle);
-
-      if (ids) {
-        // If IDs are provided, use them to build the manifest
-        const manifestWaybills = ids.map(id => getWaybillById(id)).filter((w): w is Waybill => !!w);
-        setWaybillsToPrint(manifestWaybills);
-      } else if (dateStr) {
-        // Fallback to date-based manifest for backwards compatibility
-        const targetDate = new Date(dateStr);
-        const waybillsForDate = waybills.filter(w => new Date(w.shippingDate).toDateString() === targetDate.toDateString());
-        setWaybillsToPrint(waybillsForDate);
+      if (manifestId) {
+        const manifest = getManifestById(manifestId);
+        if (manifest) {
+          setManifestData(manifest);
+          const manifestWaybills = manifest.waybillIds.map(id => getWaybillById(id)).filter((w): w is Waybill => !!w);
+          setWaybillsToPrint(manifestWaybills);
+        }
       }
     }
-  }, [isLoaded, searchParams, waybills, getWaybillById]);
+  }, [waybillsLoaded, manifestsLoaded, searchParams, getWaybillById, getManifestById]);
 
   useEffect(() => {
     if (waybillsToPrint.length > 0 && !printTriggered.current) {
@@ -48,23 +45,22 @@ function PrintManifestContent() {
     }
   }, [waybillsToPrint]);
 
-  if (!isLoaded) {
+  if (!waybillsLoaded || !manifestsLoaded || !manifestData) {
     return (
       <div className="flex justify-center items-center h-screen bg-white">
         <div className="animate-spin rounded-full h-16 w-16 border-t-2 border-b-2 border-primary"></div>
       </div>
     );
   }
-
-  const formattedDate = manifestDate ? format(new Date(manifestDate), 'MMMM d, yyyy') : format(new Date(), 'MMMM d, yyyy');
+  
+  const formattedDate = format(new Date(manifestData.date), 'MMMM d, yyyy');
 
   return (
     <div className="bg-white">
-      <ManifestPrint waybills={waybillsToPrint} date={formattedDate} vehicleNo={vehicleNo} />
+      <ManifestPrint waybills={waybillsToPrint} date={formattedDate} vehicleNo={manifestData.vehicleNo} />
     </div>
   );
 }
-
 
 export default function PrintManifestPage() {
     return (

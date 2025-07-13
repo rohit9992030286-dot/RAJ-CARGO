@@ -41,7 +41,7 @@ export default function DashboardLayout({
         <li>
             <Link href="/dashboard/manifest" className="flex items-center gap-3 p-3 rounded-lg hover:bg-accent">
                 <ClipboardList className="h-5 w-5" />
-                <span>Manifest</span>
+                <span>Manifests</span>
             </Link>
         </li>
         <li>
