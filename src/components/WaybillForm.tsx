@@ -62,7 +62,7 @@ export function WaybillForm({ initialData, onSave, onCancel }: WaybillFormProps)
   const form = useForm<WaybillFormData>({
     resolver: zodResolver(waybillFormSchema), // Use the correct form schema directly
     defaultValues: getInitialValues(initialData),
-    mode: 'onChange' // To re-validate on value change
+    mode: 'onChange'
   });
   
   const shipmentValue = useWatch({
