@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Printer, Truck, Search, PlusCircle, AlertCircle, Trash2, Box } from 'lucide-react';
 import { Waybill } from '@/types/waybill';
@@ -19,6 +20,7 @@ export default function ManifestPage() {
   const [waybillNumber, setWaybillNumber] = useState('');
   const [manifestWaybills, setManifestWaybills] = useState<Waybill[]>([]);
   const [error, setError] = useState<string | null>(null);
+  const [vehicleNo, setVehicleNo] = useState('');
 
   const handleAddWaybill = () => {
     setError(null);
@@ -59,14 +61,15 @@ export default function ManifestPage() {
 
     toast({ title: "Manifest Dispatched", description: `${manifestWaybills.length} waybills are now in transit.` });
     setManifestWaybills([]);
+    setVehicleNo('');
   };
 
   const handlePrintManifest = () => {
      if (manifestWaybills.length > 0) {
       const ids = manifestWaybills.map(w => w.id).join(',');
       const date = new Date().toISOString().split('T')[0];
-      // Note: We use the waybills in the print page's state, but pass date for display
-      window.open(`/print/manifest?date=${date}&ids=${ids}`, '_blank');
+      const url = `/print/manifest?date=${date}&ids=${ids}&vehicleNo=${encodeURIComponent(vehicleNo)}`;
+      window.open(url, '_blank');
     }
   };
 
@@ -125,6 +128,15 @@ export default function ManifestPage() {
           </CardDescription>
         </CardHeader>
         <CardContent>
+          <div className="mb-4">
+              <Label htmlFor="vehicle-no">Vehicle No.</Label>
+              <Input
+                id="vehicle-no"
+                placeholder="e.g., MH-12-AB-1234"
+                value={vehicleNo}
+                onChange={(e) => setVehicleNo(e.target.value)}
+              />
+            </div>
           <Table>
             <TableHeader>
               <TableRow>

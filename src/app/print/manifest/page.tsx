@@ -13,14 +13,17 @@ function PrintManifestContent() {
   const { waybills, isLoaded, getWaybillById } = useWaybills();
   const [waybillsToPrint, setWaybillsToPrint] = useState<Waybill[]>([]);
   const [manifestDate, setManifestDate] = useState<string | null>(null);
+  const [vehicleNo, setVehicleNo] = useState<string | null>(null);
   const printTriggered = useRef(false);
 
   useEffect(() => {
     if (isLoaded) {
       const dateStr = searchParams.get('date');
       const ids = searchParams.get('ids')?.split(',');
+      const vehicle = searchParams.get('vehicleNo');
 
       setManifestDate(dateStr);
+      setVehicleNo(vehicle);
 
       if (ids) {
         // If IDs are provided, use them to build the manifest
@@ -57,7 +60,7 @@ function PrintManifestContent() {
 
   return (
     <div className="bg-white">
-      <ManifestPrint waybills={waybillsToPrint} date={formattedDate} />
+      <ManifestPrint waybills={waybillsToPrint} date={formattedDate} vehicleNo={vehicleNo} />
     </div>
   );
 }

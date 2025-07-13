@@ -8,15 +8,16 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow, TableCap
 interface ManifestPrintProps {
   waybills: Waybill[];
   date: string;
+  vehicleNo?: string | null;
 }
 
-export function ManifestPrint({ waybills, date }: ManifestPrintProps) {
+export function ManifestPrint({ waybills, date, vehicleNo }: ManifestPrintProps) {
   const totalBoxes = waybills.reduce((acc, w) => acc + w.numberOfBoxes, 0);
   const totalWeight = waybills.reduce((acc, w) => acc + w.packageWeight, 0);
 
   return (
     <div className="p-8 bg-white text-black font-sans max-w-4xl mx-auto print:shadow-none print:p-2">
-      <header className="flex justify-between items-center pb-4 border-b-2 border-black">
+      <header className="flex justify-between items-start pb-4 border-b-2 border-black">
         <div className="flex items-center gap-3">
             <Truck className="h-10 w-10 text-primary" />
             <div>
@@ -27,6 +28,7 @@ export function ManifestPrint({ waybills, date }: ManifestPrintProps) {
         <div className="text-right">
           <h2 className="text-xl font-bold uppercase tracking-wider text-gray-700">Daily Manifest</h2>
           <p className="text-lg font-semibold text-gray-600">{date}</p>
+          {vehicleNo && <p className="text-base font-semibold text-gray-500 mt-1">Vehicle No: {vehicleNo}</p>}
         </div>
       </header>
       
