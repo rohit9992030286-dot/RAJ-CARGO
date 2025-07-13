@@ -2,7 +2,7 @@
 'use client';
 
 import { useState, useEffect, ReactNode } from 'react';
-import { AuthContext } from '@/hooks/useAuth';
+import { AuthContext } from '@/hooks/useAuth.tsx';
 
 export function AuthProvider({ children }: { children: ReactNode }) {
     const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);

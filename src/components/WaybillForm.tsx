@@ -62,17 +62,15 @@ export function WaybillForm({ initialData, onSave, onCancel }: WaybillFormProps)
   });
 
   useEffect(() => {
-    // Only set default sender if it's a new waybill form
     if (!initialData) {
       try {
         const storedSender = localStorage.getItem('ss-cargo-defaultSender');
         if (storedSender) {
           const defaultSender = JSON.parse(storedSender);
-          // Only reset fields that are part of the sender details
           const currentValues = form.getValues();
           form.reset({
-            ...currentValues, // keep existing values
-            ...defaultSender, // override with default sender values
+            ...currentValues, 
+            ...defaultSender, 
           });
         }
       } catch (error) {

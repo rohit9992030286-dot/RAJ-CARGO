@@ -2,10 +2,6 @@
   "name": "SS CARGO",
   "short_name": "SS CARGO",
   "description": "Transport and courier service",
-  "start_url": "/login",
-  "display": "standalone",
-  "background_color": "#FFFFFF",
-  "theme_color": "#3f9c6d",
   "icons": [
     {
       "src": "/icons/icon-192x192.png",
@@ -17,5 +13,9 @@
       "sizes": "512x512",
       "type": "image/png"
     }
-  ]
+  ],
+  "theme_color": "#29ABE2",
+  "background_color": "#ffffff",
+  "start_url": "/",
+  "display": "standalone"
 }

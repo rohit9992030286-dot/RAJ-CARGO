@@ -1,36 +1,29 @@
-// Define the cache name
+// sw.js
 const CACHE_NAME = 'ss-cargo-cache-v1';
-
-// List of files to cache
 const urlsToCache = [
   '/',
-  '/login',
   '/dashboard',
-  '/dashboard/waybills',
-  '/dashboard/waybills/create',
-  '/dashboard/manifest',
-  '/dashboard/sales',
-  '/dashboard/print-sticker',
-  '/globals.css',
-  // Add other important assets here. Be mindful of caching too much.
-  // For Next.js, specific JS chunks are harder to predict,
-  // so we'll rely on runtime caching for those.
+  '/login',
+  '/manifest.json',
+  '/favicon.ico',
+  '/icons/icon-192x192.png',
+  '/icons/icon-512x512.png'
 ];
 
-// Install a service worker
 self.addEventListener('install', event => {
   // Perform install steps
   event.waitUntil(
     caches.open(CACHE_NAME)
       .then(cache => {
         console.log('Opened cache');
-        // Add all core assets to the cache
-        return cache.addAll(urlsToCache);
+        // Add all core assets to cache
+        return cache.addAll(urlsToCache).catch(error => {
+          console.error('Failed to cache during install:', error);
+        });
       })
   );
 });
 
-// Cache and return requests
 self.addEventListener('fetch', event => {
   event.respondWith(
     caches.match(event.request)
@@ -40,25 +33,27 @@ self.addEventListener('fetch', event => {
           return response;
         }
 
-        // Clone the request because it's a stream and can only be consumed once.
+        // IMPORTANT: Clone the request. A request is a stream and
+        // can only be consumed once. Since we are consuming this
+        // once by cache and once by the browser for fetch, we need
+        // to clone the response.
         const fetchRequest = event.request.clone();
 
         return fetch(fetchRequest).then(
           response => {
             // Check if we received a valid response
-            if (!response || response.status !== 200 || response.type !== 'basic') {
+            if(!response || response.status !== 200 || response.type !== 'basic') {
               return response;
             }
 
-            // Clone the response because it also is a stream.
+            // IMPORTANT: Clone the response. A response is a stream
+            // and because we want the browser to consume the response
+            // as well as the cache consuming the response, we need
+            // to clone it so we have two streams.
             const responseToCache = response.clone();
 
             caches.open(CACHE_NAME)
               .then(cache => {
-                // We don't want to cache print pages or API calls
-                if (event.request.url.includes('/print/') || event.request.url.includes('/api/')) {
-                  return;
-                }
                 cache.put(event.request, responseToCache);
               });
 
@@ -66,10 +61,10 @@ self.addEventListener('fetch', event => {
           }
         );
       })
-  );
+    );
 });
 
-// Update a service worker
+
 self.addEventListener('activate', event => {
   const cacheWhitelist = [CACHE_NAME];
   event.waitUntil(

@@ -20,7 +20,7 @@ import {
 } from '@/components/ui/alert-dialog';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { useToast } from '@/hooks/use-toast';
-import { useAuth } from '@/hooks/useAuth';
+import { useAuth } from '@/hooks/useAuth.tsx';
 import { Moon, Sun, Trash2, Save, User, KeyRound, Building, MapPin, Phone } from 'lucide-react';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 

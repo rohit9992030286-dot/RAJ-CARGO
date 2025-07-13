@@ -6,7 +6,7 @@ import { Truck, Home, BookCopy, PlusCircle, ScanLine, Menu, ClipboardList, India
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
 import { Button } from '@/components/ui/button';
 import { withAuth } from '@/components/withAuth';
-import { useAuth } from '@/hooks/useAuth';
+import { useAuth } from '@/hooks/useAuth.tsx';
 
 function DashboardLayout({
   children,

@@ -3,7 +3,7 @@
 
 import { useEffect } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
-import { useAuth } from '@/hooks/useAuth';
+import { useAuth } from '@/hooks/useAuth.tsx';
 
 export function withAuth<P extends object>(Component: React.ComponentType<P>) {
   return function WithAuth(props: P) {
