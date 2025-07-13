@@ -521,5 +521,3 @@ export function WaybillForm({ initialData, onSave, onCancel }: WaybillFormProps)
     </Form>
   );
 }
-
-    

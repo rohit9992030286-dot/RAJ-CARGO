@@ -1,7 +1,7 @@
 import { z } from 'zod';
 
-// This is the base schema for the form fields
-export const waybillFormSchema = z.object({
+// Base object with all fields for a waybill, without the 'id' or complex validation.
+const waybillFields = {
   waybillNumber: z.string().min(1, 'Waybill number is required.'),
   invoiceNumber: z.string({ required_error: "Invoice number is required."}).min(1, { message: 'Invoice number is required.' }),
   eWayBillNo: z.string().optional(),
@@ -27,7 +27,12 @@ export const waybillFormSchema = z.object({
   shippingTime: z.string().min(1, 'Shipping time is required').default('10:00'),
   
   status: z.enum(['Pending', 'In Transit', 'Delivered', 'Cancelled']).default('Pending'),
-}).superRefine((data, ctx) => {
+};
+
+// 1. Schema for the form validation. It includes the refinement for E-Way Bill.
+// This is what the form should use. It does NOT have an `id`.
+export const waybillFormSchema = z.object(waybillFields)
+  .superRefine((data, ctx) => {
     if (data.shipmentValue >= 50000) {
         if (!data.eWayBillNo || data.eWayBillNo.trim() === '') {
             ctx.addIssue({
@@ -37,13 +42,15 @@ export const waybillFormSchema = z.object({
             });
         }
     }
-});
+  });
 
 
-// This is the full schema for the Waybill data model, including the 'id'
-export const waybillSchema = waybillFormSchema.extend({
+// 2. Schema for the data model. It includes the `id` field and is what's stored.
+// It is built from the base fields to avoid re-applying refinement.
+export const waybillSchema = z.object({
+  ...waybillFields,
   id: z.string().uuid(),
 });
 
-// This is the final Waybill type
+// 3. The final Waybill type, derived from the full data model schema.
 export type Waybill = z.infer<typeof waybillSchema>;
