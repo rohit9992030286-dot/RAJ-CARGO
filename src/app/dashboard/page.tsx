@@ -83,15 +83,17 @@ export default function DashboardPage() {
               <div className="text-2xl font-bold">{totalWaybills}</div>
             </CardContent>
           </Card>
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Total Sales</CardTitle>
-              <IndianRupee className="h-5 w-5 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">₹{totalSales.toLocaleString('en-IN')}</div>
-            </CardContent>
-          </Card>
+          <Link href="/dashboard/sales" className="block hover:shadow-lg transition-shadow rounded-lg">
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">Total Sales</CardTitle>
+                <IndianRupee className="h-5 w-5 text-muted-foreground" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">₹{totalSales.toLocaleString('en-IN')}</div>
+              </CardContent>
+            </Card>
+          </Link>
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">In Transit</CardTitle>
