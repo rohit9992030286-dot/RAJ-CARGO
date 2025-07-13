@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState } from 'react';
@@ -14,7 +15,6 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-  AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
 import {
   Dialog,
@@ -27,7 +27,7 @@ import {
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Checkbox } from '@/components/ui/checkbox';
-import { Pencil, Trash2, User, MapPin, Truck, Package, PlusCircle, Box, DollarSign, Printer, ScanLine } from 'lucide-react';
+import { Pencil, Trash2, User, MapPin, Truck, Package, PlusCircle, Box, DollarSign, Printer, ScanLine, Lock } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 
@@ -97,7 +97,9 @@ export function WaybillList({ waybills, selectedWaybillIds, onSelectionChange, o
   return (
     <>
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-        {waybills.map((waybill) => (
+        {waybills.map((waybill) => {
+          const isLocked = waybill.status === 'In Transit' || waybill.status === 'Delivered' || waybill.status === 'Cancelled';
+          return (
           <Card key={waybill.id} className={cn("flex flex-col transition-all", selectedWaybillIds.includes(waybill.id) && "ring-2 ring-primary")}>
             <CardHeader>
               <div className="flex justify-between items-start">
@@ -115,7 +117,10 @@ export function WaybillList({ waybills, selectedWaybillIds, onSelectionChange, o
                     </CardDescription>
                   </div>
                 </div>
-                <Badge variant={statusVariantMap[waybill.status] || 'default'}>{waybill.status}</Badge>
+                <Badge variant={statusVariantMap[waybill.status] || 'default'}>
+                  {isLocked && <Lock className="mr-1 h-3 w-3" />}
+                  {waybill.status}
+                </Badge>
               </div>
                <CardDescription className="pt-2">
                     Shipped on: {new Date(waybill.shippingDate).toLocaleDateString()} at {waybill.shippingTime}
@@ -154,13 +159,13 @@ export function WaybillList({ waybills, selectedWaybillIds, onSelectionChange, o
                 <ScanLine className="mr-2 h-4 w-4" />
                 Sticker
               </Button>
-              <Button variant="outline" size="sm" onClick={() => onEdit(waybill.id)}>
+              <Button variant="outline" size="sm" onClick={() => onEdit(waybill.id)} disabled={isLocked}>
                 <Pencil className="mr-2 h-4 w-4" />
                 Edit
               </Button>
               <AlertDialog>
                 <AlertDialogTrigger asChild>
-                  <Button variant="destructive" size="sm">
+                  <Button variant="destructive" size="sm" disabled={isLocked}>
                     <Trash2 className="mr-2 h-4 w-4" />
                     Delete
                   </Button>
@@ -182,7 +187,7 @@ export function WaybillList({ waybills, selectedWaybillIds, onSelectionChange, o
               </AlertDialog>
             </CardFooter>
           </Card>
-        ))}
+        )})}
       </div>
       
       <Dialog open={isStoreCodeDialogOpen} onOpenChange={setIsStoreCodeDialogOpen}>

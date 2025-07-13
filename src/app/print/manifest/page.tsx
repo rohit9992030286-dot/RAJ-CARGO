@@ -10,7 +10,7 @@ import { format } from 'date-fns';
 
 function PrintManifestContent() {
   const searchParams = useSearchParams();
-  const { waybills, isLoaded } = useWaybills();
+  const { waybills, isLoaded, getWaybillById } = useWaybills();
   const [waybillsToPrint, setWaybillsToPrint] = useState<Waybill[]>([]);
   const [manifestDate, setManifestDate] = useState<string | null>(null);
   const printTriggered = useRef(false);
@@ -18,14 +18,22 @@ function PrintManifestContent() {
   useEffect(() => {
     if (isLoaded) {
       const dateStr = searchParams.get('date');
+      const ids = searchParams.get('ids')?.split(',');
+
       setManifestDate(dateStr);
-      if (dateStr) {
+
+      if (ids) {
+        // If IDs are provided, use them to build the manifest
+        const manifestWaybills = ids.map(id => getWaybillById(id)).filter((w): w is Waybill => !!w);
+        setWaybillsToPrint(manifestWaybills);
+      } else if (dateStr) {
+        // Fallback to date-based manifest for backwards compatibility
         const targetDate = new Date(dateStr);
         const waybillsForDate = waybills.filter(w => new Date(w.shippingDate).toDateString() === targetDate.toDateString());
         setWaybillsToPrint(waybillsForDate);
       }
     }
-  }, [isLoaded, searchParams, waybills]);
+  }, [isLoaded, searchParams, waybills, getWaybillById]);
 
   useEffect(() => {
     if (waybillsToPrint.length > 0 && !printTriggered.current) {
@@ -45,7 +53,7 @@ function PrintManifestContent() {
     );
   }
 
-  const formattedDate = manifestDate ? format(new Date(manifestDate), 'MMMM d, yyyy') : 'N/A';
+  const formattedDate = manifestDate ? format(new Date(manifestDate), 'MMMM d, yyyy') : format(new Date(), 'MMMM d, yyyy');
 
   return (
     <div className="bg-white">

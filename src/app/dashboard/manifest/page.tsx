@@ -1,33 +1,76 @@
 
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState } from 'react';
 import { useWaybills } from '@/hooks/useWaybills';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Calendar } from '@/components/ui/calendar';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { CalendarIcon, Printer } from 'lucide-react';
-import { format } from 'date-fns';
-import { cn } from '@/lib/utils';
+import { Input } from '@/components/ui/input';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { Printer, Truck, Search, PlusCircle, AlertCircle, Trash2, Box } from 'lucide-react';
 import { Waybill } from '@/types/waybill';
+import { useToast } from '@/hooks/use-toast';
+import { format } from 'date-fns';
 
 export default function ManifestPage() {
-  const { waybills, isLoaded } = useWaybills();
-  const [date, setDate] = useState<Date | undefined>(new Date());
+  const { waybills, updateWaybill, isLoaded } = useWaybills();
+  const { toast } = useToast();
+  const [waybillNumber, setWaybillNumber] = useState('');
+  const [manifestWaybills, setManifestWaybills] = useState<Waybill[]>([]);
+  const [error, setError] = useState<string | null>(null);
 
-  const waybillsForDate = useMemo(() => {
-    if (!date) return [];
-    return waybills.filter(w => new Date(w.shippingDate).toDateString() === date.toDateString());
-  }, [waybills, date]);
+  const handleAddWaybill = () => {
+    setError(null);
+    if (!waybillNumber) {
+      setError('Please enter a waybill number.');
+      return;
+    }
+    const waybill = waybills.find(w => w.waybillNumber === waybillNumber);
+    if (!waybill) {
+      setError('Waybill not found.');
+      return;
+    }
+    if (waybill.status !== 'Pending') {
+      setError(`Waybill #${waybill.waybillNumber} cannot be added as it is already ${waybill.status}.`);
+      return;
+    }
+    if (manifestWaybills.some(w => w.id === waybill.id)) {
+      setError(`Waybill #${waybill.waybillNumber} is already in the manifest.`);
+      return;
+    }
+    setManifestWaybills(prev => [...prev, waybill]);
+    setWaybillNumber('');
+  };
+
+  const handleRemoveWaybill = (id: string) => {
+    setManifestWaybills(prev => prev.filter(w => w.id !== id));
+  };
+  
+  const handleDispatchManifest = () => {
+    if (manifestWaybills.length === 0) {
+      toast({ title: "Manifest is empty", description: "Add waybills to the manifest before dispatching.", variant: "destructive" });
+      return;
+    }
+    
+    manifestWaybills.forEach(waybill => {
+      updateWaybill({ ...waybill, status: 'In Transit' });
+    });
+
+    toast({ title: "Manifest Dispatched", description: `${manifestWaybills.length} waybills are now in transit.` });
+    setManifestWaybills([]);
+  };
 
   const handlePrintManifest = () => {
-    if (date) {
-      const formattedDate = format(date, 'yyyy-MM-dd');
-      window.open(`/print/manifest?date=${formattedDate}`, '_blank');
+     if (manifestWaybills.length > 0) {
+      const ids = manifestWaybills.map(w => w.id).join(',');
+      const date = new Date().toISOString().split('T')[0];
+      // Note: We use the waybills in the print page's state, but pass date for display
+      window.open(`/print/manifest?date=${date}&ids=${ids}`, '_blank');
     }
   };
+
+  const totalBoxes = manifestWaybills.reduce((sum, wb) => sum + wb.numberOfBoxes, 0);
 
   if (!isLoaded) {
     return (
@@ -41,43 +84,44 @@ export default function ManifestPage() {
     <div className="space-y-8">
       <div className="flex justify-between items-center gap-4 flex-wrap">
         <div>
-          <h1 className="text-3xl font-bold">Daily Manifest</h1>
-          <p className="text-muted-foreground">Select a date to view and print the manifest for that day.</p>
-        </div>
-        <div className="flex gap-4 items-center">
-          <Popover>
-            <PopoverTrigger asChild>
-              <Button
-                variant={'outline'}
-                className={cn(
-                  'w-[280px] justify-start text-left font-normal',
-                  !date && 'text-muted-foreground'
-                )}
-              >
-                <CalendarIcon className="mr-2 h-4 w-4" />
-                {date ? format(date, 'PPP') : <span>Pick a date</span>}
-              </Button>
-            </PopoverTrigger>
-            <PopoverContent className="w-auto p-0">
-              <Calendar
-                mode="single"
-                selected={date}
-                onSelect={setDate}
-                initialFocus
-              />
-            </PopoverContent>
-          </Popover>
-          <Button onClick={handlePrintManifest} disabled={!date || waybillsForDate.length === 0}>
-            <Printer className="mr-2 h-4 w-4" /> Print Manifest
-          </Button>
+          <h1 className="text-3xl font-bold">Build Dispatch Manifest</h1>
+          <p className="text-muted-foreground">Add waybills to create and dispatch a new manifest.</p>
         </div>
       </div>
       
       <Card>
         <CardHeader>
-          <CardTitle>Manifest for {date ? format(date, 'MMMM d, yyyy') : 'N/A'}</CardTitle>
+          <CardTitle>Add Waybill to Manifest</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+           <div className="flex gap-2">
+            <Input
+              id="waybill-number"
+              placeholder="Enter Waybill Number (e.g., SW-123456)"
+              value={waybillNumber}
+              onChange={(e) => setWaybillNumber(e.target.value)}
+              onKeyDown={(e) => e.key === 'Enter' && handleAddWaybill()}
+              className="flex-grow"
+            />
+            <Button onClick={handleAddWaybill}>
+              <PlusCircle className="mr-2 h-4 w-4" /> Add to Manifest
+            </Button>
+          </div>
+          {error && (
+            <Alert variant="destructive">
+                <AlertCircle className="h-4 w-4" />
+                <AlertTitle>Error</AlertTitle>
+                <AlertDescription>{error}</AlertDescription>
+            </Alert>
+          )}
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Current Manifest</CardTitle>
           <CardDescription>
-            Found {waybillsForDate.length} waybill(s) for the selected date.
+            {manifestWaybills.length} waybill(s) added, totalling {totalBoxes} box(es).
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -85,37 +129,51 @@ export default function ManifestPage() {
             <TableHeader>
               <TableRow>
                 <TableHead>Waybill #</TableHead>
-                <TableHead>Sender</TableHead>
                 <TableHead>Receiver</TableHead>
                 <TableHead>Receiver City</TableHead>
-                <TableHead>Boxes</TableHead>
-                <TableHead>Weight (kg)</TableHead>
-                <TableHead>Status</TableHead>
+                <TableHead className="text-center">Boxes</TableHead>
+                <TableHead className="text-right">Action</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
-              {waybillsForDate.length > 0 ? (
-                waybillsForDate.map((waybill: Waybill) => (
+              {manifestWaybills.length > 0 ? (
+                manifestWaybills.map((waybill: Waybill) => (
                   <TableRow key={waybill.id}>
                     <TableCell className="font-medium">{waybill.waybillNumber}</TableCell>
-                    <TableCell>{waybill.senderName}</TableCell>
                     <TableCell>{waybill.receiverName}</TableCell>
                     <TableCell>{waybill.receiverCity}</TableCell>
-                    <TableCell>{waybill.numberOfBoxes}</TableCell>
-                    <TableCell>{waybill.packageWeight}</TableCell>
-                    <TableCell>{waybill.status}</TableCell>
+                    <TableCell className="text-center">
+                      <div className="flex items-center justify-center gap-2">
+                         <Box className="h-4 w-4 text-muted-foreground" />
+                         {waybill.numberOfBoxes}
+                      </div>
+                    </TableCell>
+                    <TableCell className="text-right">
+                       <Button variant="ghost" size="icon" onClick={() => handleRemoveWaybill(waybill.id)}>
+                         <Trash2 className="h-4 w-4 text-destructive" />
+                         <span className="sr-only">Remove</span>
+                       </Button>
+                    </TableCell>
                   </TableRow>
                 ))
               ) : (
                 <TableRow>
-                  <TableCell colSpan={7} className="h-24 text-center">
-                    No waybills for this date.
+                  <TableCell colSpan={5} className="h-24 text-center">
+                    No waybills added to the manifest yet.
                   </TableCell>
                 </TableRow>
               )}
             </TableBody>
           </Table>
         </CardContent>
+        <CardFooter className="flex justify-end gap-4">
+             <Button onClick={handlePrintManifest} variant="outline" disabled={manifestWaybills.length === 0}>
+                <Printer className="mr-2 h-4 w-4" /> Print Manifest
+              </Button>
+             <Button onClick={handleDispatchManifest} disabled={manifestWaybills.length === 0}>
+                <Truck className="mr-2 h-4 w-4" /> Dispatch Manifest
+            </Button>
+        </CardFooter>
       </Card>
     </div>
   );
