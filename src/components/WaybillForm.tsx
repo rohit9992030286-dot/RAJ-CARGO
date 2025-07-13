@@ -60,7 +60,7 @@ export function WaybillForm({ initialData, onSave, onCancel }: WaybillFormProps)
   const [isReceiverPincodeLoading, setIsReceiverPincodeLoading] = useState(false);
 
   const form = useForm<WaybillFormData>({
-    resolver: zodResolver(waybillFormSchema),
+    resolver: zodResolver(waybillFormSchema), // Use the correct form schema directly
     defaultValues: getInitialValues(initialData),
     mode: 'onChange' // To re-validate on value change
   });
