@@ -2,7 +2,7 @@
 'use client';
 
 import { Waybill } from '@/types/waybill';
-import { Truck, Building } from 'lucide-react';
+import { Truck, Building, Phone, Box, Weight } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useEffect, useState } from 'react';
 
@@ -30,67 +30,84 @@ export function WaybillSticker({ waybill, storeCode, boxNumber, totalBoxes }: Wa
   }, []);
 
   const Barcode = () => (
-    <svg xmlns="http://www.w3.org/2000/svg" width="100%" height="60" viewBox="0 0 250 60" preserveAspectRatio="none">
+    <svg xmlns="http://www.w3.org/2000/svg" width="100%" height="100%" viewBox="0 0 320 60" preserveAspectRatio="none">
       <g fill="#000">
-        <path d="M0 0h2v60H0zM4 0h4v60H4zM10 0h2v60h-2zM14 0h2v60h-2zM18 0h6v60h-6zM26 0h2v60h-2zM32 0h2v60h-2zM36 0h4v60h-4zM42 0h2v60h-2zM48 0h2v60h-2zM52 0h4v60h-4zM60 0h2v60h-2zM64 0h6v60h-6zM74 0h4v60h-4zM80 0h2v60h-2zM86 0h2v60h-2zM90 0h2v60h-2zM96 0h4v60h-4zM102 0h2v60h-2zM106 0h6v60h-6zM114 0h2v60h-2zM118 0h4v60h-4zM124 0h2v60h-2zM130 0h4v60h-4zM136 0h2v60h-2zM140 0h6v60h-6zM148 0h4v60h-4zM154 0h2v60h-2zM160 0h2v60h-2zM164 0h6v60h-6zM172 0h2v60h-2zM178 0h4v60h-4zM184 0h2v60h-2zM190 0h4v60h-4zM198 0h2v60h-2zM202 0h2v60h-2zM208 0h4v60h-4zM214 0h6v60h-6zM222 0h2v60h-2zM226 0h4v60h-4zM232 0h2v60h-2zM238 0h6v60h-6zM246 0h4v60h-4z" />
+        <path d="M0 0h3v60H0z M5 0h5v60H5z M12 0h3v60h-3z M17 0h3v60h-3z M22 0h7v60h-7z M31 0h3v60h-3z M38 0h3v60h-3z M43 0h5v60h-5z M50 0h3v60h-3z M57 0h3v60h-3z M62 0h5v60h-5z M71 0h3v60h-3z M76 0h7v60h-7z M87 0h5v60h-5z M94 0h3v60h-3z M101 0h3v60h-3z M106 0h3v60h-3z M113 0h5v60h-5z M120 0h3v60h-3z M125 0h7v60h-7z M134 0h3v60h-3z M139 0h5v60h-5z M146 0h3v60h-3z M153 0h5v60h-5z M160 0h3v60h-3z M165 0h7v60h-7z M174 0h5v60h-5z M181 0h3v60h-3z M188 0h3v60h-3z M193 0h7v60h-7z M202 0h3v60h-3z M209 0h5v60h-5z M216 0h3v60h-3z M221 0h5v60h-5z M230 0h3v60h-3z M235 0h3v60h-3z M242 0h5v60h-5z M249 0h7v60h-7z M258 0h3v60h-3z M263 0h5v60h-5z M270 0h3v60h-3z M277 0h7v60h-7z M286 0h5v60h-5z M292 0h3v60h-3z M297 0h7v60h-7z M306 0h5v60h-5z M313 0h7v60h-7z" />
       </g>
     </svg>
   );
 
+  const destinationTextSize = size === '4x6' ? 'text-7xl' : 'text-5xl';
+  const pincodeTextSize = size === '4x6' ? 'text-6xl' : 'text-4xl';
+  const receiverNameSize = size === '4x6' ? 'text-2xl' : 'text-xl';
+  const addressTextSize = size === '4x6' ? 'text-base' : 'text-sm';
+
   return (
     <div className={cn(
-        "bg-white text-black font-sans p-4 border-2 border-black flex flex-col print:shadow-none print:p-2 print:border-2",
+        "bg-white text-black font-sans border-2 border-black flex flex-col print:shadow-none print:p-0",
         {
             'w-[4in] h-[6in]': size === '4x6',
             'w-[3in] h-[2in]': size === '3x2',
         }
     )}>
-      {/* Header */}
-      <header className="flex justify-between items-center pb-2 border-b-2 border-black">
-        <div className="flex items-center gap-2">
-            <Truck className={cn('text-black', { 'h-8 w-8': size === '4x6', 'h-6 w-6': size === '3x2' })} />
-            <h1 className={cn('font-bold', { 'text-xl': size === '4x6', 'text-lg': size === '3x2' })}>SS CARGO</h1>
-        </div>
-        <div className="text-right">
-            <p className="font-semibold">{new Date(waybill.shippingDate).toLocaleDateString()}</p>
-            {boxNumber && totalBoxes && (
-              <p className={cn('font-bold', { 'text-lg': size === '4x6', 'text-base': size === '3x2' })}>Box: {boxNumber} of {totalBoxes}</p>
-            )}
-        </div>
-      </header>
-      
-      {/* Sender Info */}
-      <section className="py-2 border-b-2 border-black">
-        <h3 className="text-xs font-bold uppercase tracking-wider mb-1">FROM:</h3>
-        <div className="text-sm">
-            <p className="font-semibold">{waybill.senderName}</p>
-            {size === '4x6' && <p>{waybill.senderCity}, {waybill.senderPincode}</p>}
-        </div>
-      </section>
+        {/* Header */}
+        <header className="flex justify-between items-center p-2 border-b-2 border-black">
+            <div className="flex items-center gap-2">
+                <Truck className={cn('text-black', { 'h-6 w-6': size === '4x6', 'h-5 w-5': size === '3x2' })} />
+                <h1 className={cn('font-bold', { 'text-lg': size === '4x6', 'text-base': size === '3x2' })}>SS CARGO</h1>
+            </div>
+            <p className="text-sm font-semibold">{new Date(waybill.shippingDate).toLocaleDateString()}</p>
+        </header>
 
-      {/* Receiver Info */}
-      <section className="flex-grow py-3">
-        <h3 className={cn('font-bold uppercase tracking-wider mb-1', {'text-sm': size === '4x6', 'text-xs': size === '3x2'})}>TO:</h3>
-        <div className="space-y-1 pl-4">
-            <p className={cn('font-bold', { 'text-xl': size === '4x6', 'text-lg': size === '3x2' })}>{waybill.receiverName}</p>
-            <p className={cn('font-bold', { 'text-3xl': size === '4x6', 'text-xl': size === '3x2' })}>{waybill.receiverCity ? waybill.receiverCity.toUpperCase() : ''}</p>
-            <p className={cn('font-bold', { 'text-4xl': size === '4x6', 'text-2xl': size === '3x2' })}>{waybill.receiverPincode}</p>
+        {/* Receiver Info */}
+        <section className="flex-grow flex flex-col p-2 border-b-2 border-black">
+            <div className="flex-grow">
+                <p className="text-xs font-bold uppercase tracking-wider">TO:</p>
+                <p className={cn('font-bold leading-tight', receiverNameSize)}>{waybill.receiverName}</p>
+                <p className={cn('leading-tight', addressTextSize)}>{waybill.receiverAddress}</p>
+                {size === '4x6' && <p className="flex items-center gap-1.5 pt-1"><Phone className="h-4 w-4" />{waybill.receiverPhone}</p>}
+            </div>
              {storeCode && (
-              <div className="flex items-center gap-2 pt-2">
+              <div className="flex items-center gap-2 mt-auto">
                 <Building className={cn({'h-5 w-5': size === '4x6', 'h-4 w-4': size === '3x2'})} />
                 <p className={cn('font-semibold', {'text-lg': size === '4x6', 'text-base': size === '3x2'})}>Store Code: {storeCode}</p>
               </div>
             )}
-        </div>
-      </section>
+        </section>
 
-      {/* Footer with Barcode */}
-      <footer className="mt-auto pt-2 border-t-4 border-black">
-        <div className="w-full h-[60px] mb-1">
-            <Barcode />
-        </div>
-        <p className="text-center font-mono tracking-widest text-lg">{waybill.waybillNumber}</p>
-      </footer>
+        {/* Destination & Details */}
+        <section className="grid grid-cols-2">
+            <div className="flex flex-col items-center justify-center p-2 border-r-2 border-black">
+                <p className={cn('font-black leading-none tracking-tighter', destinationTextSize)}>{waybill.receiverCity.toUpperCase()}</p>
+                <p className={cn('font-black leading-none', pincodeTextSize)}>{waybill.receiverPincode}</p>
+            </div>
+            <div className="p-2 space-y-2 text-sm">
+                <div className="flex items-center justify-between">
+                    <span className="font-bold">FROM:</span>
+                    <span>{waybill.senderCity}, {waybill.senderPincode}</span>
+                </div>
+                 <div className="flex items-center justify-between">
+                    <span className="font-bold">WEIGHT:</span>
+                    <span>{waybill.packageWeight} kg</span>
+                </div>
+                 {boxNumber && totalBoxes && (
+                    <div className="flex items-center justify-between">
+                        <span className="font-bold">BOX:</span>
+                        <span className="text-lg font-black">{boxNumber} of {totalBoxes}</span>
+                    </div>
+                )}
+            </div>
+        </section>
+
+        {/* Footer with Barcode */}
+        <footer className="mt-auto p-2 border-t-4 border-black">
+            <div className={cn("w-full mx-auto", { 'h-[50px]': size === '4x6', 'h-[40px]': size === '3x2' })}>
+                <Barcode />
+            </div>
+            <p className="text-center font-mono tracking-[0.2em]">{waybill.waybillNumber}</p>
+        </footer>
     </div>
   );
 }
+
+    
