@@ -8,7 +8,7 @@ import { WaybillList } from '@/components/WaybillList';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardFooter, CardHeader } from '@/components/ui/card';
-import { PlusCircle, FileDown, Printer, ChevronLeft, ChevronRight, Search, FileUp, FileSpreadsheet } from 'lucide-react';
+import { PlusCircle, FileDown, Printer, ChevronLeft, ChevronRight, Search, FileUp, FileSpreadsheet, Copy } from 'lucide-react';
 import * as XLSX from 'xlsx';
 import { saveAs } from 'file-saver';
 import { Waybill, waybillSchema } from '@/types/waybill';
@@ -165,6 +165,13 @@ export default function WaybillsPage() {
     }
   };
 
+  const handlePrintSelectedStickers = () => {
+    if (selectedWaybillIds.length > 0) {
+      const ids = selectedWaybillIds.join(',');
+      window.open(`/print/stickers?ids=${ids}`, '_blank');
+    }
+  };
+
   const handleSelectionChange = (id: string, isSelected: boolean) => {
     setSelectedWaybillIds(prev => {
         if (isSelected) {
@@ -247,7 +254,10 @@ export default function WaybillsPage() {
                   <div className="flex items-center gap-2">
                      <span className="text-sm text-muted-foreground">{selectedWaybillIds.length} selected</span>
                     <Button onClick={handlePrintSelected} variant="outline" size="sm">
-                        <Printer /> Print Selected
+                        <Printer /> Print Waybills
+                    </Button>
+                    <Button onClick={handlePrintSelectedStickers} variant="outline" size="sm">
+                        <Copy /> Print Stickers
                     </Button>
                   </div>
                 )}
