@@ -10,8 +10,10 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { useToast } from '@/hooks/use-toast';
 import { Waybill, waybillSchema } from '@/types/waybill';
 import { AddressAutocompleteInput } from './AddressAutocompleteInput';
-import { User, Phone, Package, Weight, Calendar, ListChecks, Save, XCircle, MapPin, Hash, Box, DollarSign, Clock, Building } from 'lucide-react';
+import { User, Phone, Package, Weight, Calendar, ListChecks, Save, XCircle, MapPin, Hash, Box, DollarSign, Clock, Building, Loader2 } from 'lucide-react';
 import { Textarea } from './ui/textarea';
+import { pincodeLookup } from '@/ai/flows/pincode-lookup';
+import { useState } from 'react';
 
 interface WaybillFormProps {
   initialData?: Waybill;
@@ -50,10 +52,42 @@ const getInitialValues = (initialData?: Waybill): Omit<Waybill, 'id'> => {
 
 export function WaybillForm({ initialData, onSave, onCancel }: WaybillFormProps) {
   const { toast } = useToast();
+  const [isSenderPincodeLoading, setIsSenderPincodeLoading] = useState(false);
+  const [isReceiverPincodeLoading, setIsReceiverPincodeLoading] = useState(false);
+
   const form = useForm<Omit<Waybill, 'id'>>({
     resolver: zodResolver(waybillSchema.omit({ id: true })),
     defaultValues: getInitialValues(initialData),
   });
+
+  const handlePincodeBlur = async (pincode: string, type: 'sender' | 'receiver') => {
+    if (pincode.length !== 6 || !/^\d{6}$/.test(pincode)) return;
+
+    if (type === 'sender') setIsSenderPincodeLoading(true);
+    else setIsReceiverPincodeLoading(true);
+
+    try {
+      const result = await pincodeLookup({ pincode });
+      if (result && result.city) {
+        if (type === 'sender') {
+          form.setValue('senderCity', result.city);
+        } else {
+          form.setValue('receiverCity', result.city);
+        }
+      }
+    } catch (error) {
+      console.error("Pincode lookup failed", error);
+      toast({
+        title: "Pincode lookup failed",
+        description: "Could not fetch city for the entered pincode.",
+        variant: "destructive"
+      });
+    } finally {
+      if (type === 'sender') setIsSenderPincodeLoading(false);
+      else setIsReceiverPincodeLoading(false);
+    }
+  };
+
 
   const onSubmit = (data: Omit<Waybill, 'id'>) => {
     const waybillToSave: Waybill = {
@@ -72,8 +106,10 @@ export function WaybillForm({ initialData, onSave, onCancel }: WaybillFormProps)
     }
   };
 
-  const IconWrapper = ({ children }: { children: React.ReactNode }) => (
-    <div className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground">{children}</div>
+  const IconWrapper = ({ children, isLoading }: { children: React.ReactNode, isLoading?: boolean }) => (
+    <div className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground">
+      {isLoading ? <Loader2 className="animate-spin" /> : children}
+    </div>
   );
 
   return (
@@ -118,6 +154,22 @@ export function WaybillForm({ initialData, onSave, onCancel }: WaybillFormProps)
               />
                <FormField
                 control={form.control}
+                name="senderPincode"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Pincode</FormLabel>
+                    <div className="relative">
+                      <FormControl>
+                        <Input placeholder="e.g., 10001" {...field} className="pl-10" onBlur={(e) => handlePincodeBlur(e.target.value, 'sender')} />
+                      </FormControl>
+                      <IconWrapper isLoading={isSenderPincodeLoading}><MapPin /></IconWrapper>
+                    </div>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
                 name="senderCity"
                 render={({ field }) => (
                   <FormItem>
@@ -127,22 +179,6 @@ export function WaybillForm({ initialData, onSave, onCancel }: WaybillFormProps)
                         <Input placeholder="e.g., New York" {...field} className="pl-10" />
                       </FormControl>
                       <IconWrapper><Building /></IconWrapper>
-                    </div>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-               <FormField
-                control={form.control}
-                name="senderPincode"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Pincode</FormLabel>
-                    <div className="relative">
-                      <FormControl>
-                        <Input placeholder="e.g., 10001" {...field} className="pl-10" />
-                      </FormControl>
-                      <IconWrapper><MapPin /></IconWrapper>
                     </div>
                     <FormMessage />
                   </FormItem>
@@ -204,6 +240,22 @@ export function WaybillForm({ initialData, onSave, onCancel }: WaybillFormProps)
               />
                <FormField
                 control={form.control}
+                name="receiverPincode"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Pincode</FormLabel>
+                    <div className="relative">
+                      <FormControl>
+                        <Input placeholder="e.g., 90001" {...field} className="pl-10" onBlur={(e) => handlePincodeBlur(e.target.value, 'receiver')} />
+                      </FormControl>
+                      <IconWrapper isLoading={isReceiverPincodeLoading}><MapPin /></IconWrapper>
+                    </div>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
                 name="receiverCity"
                 render={({ field }) => (
                   <FormItem>
@@ -213,22 +265,6 @@ export function WaybillForm({ initialData, onSave, onCancel }: WaybillFormProps)
                         <Input placeholder="e.g., Los Angeles" {...field} className="pl-10" />
                       </FormControl>
                       <IconWrapper><Building /></IconWrapper>
-                    </div>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-               <FormField
-                control={form.control}
-                name="receiverPincode"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Pincode</FormLabel>
-                    <div className="relative">
-                      <FormControl>
-                        <Input placeholder="e.g., 90001" {...field} className="pl-10" />
-                      </FormControl>
-                      <IconWrapper><MapPin /></IconWrapper>
                     </div>
                     <FormMessage />
                   </FormItem>
