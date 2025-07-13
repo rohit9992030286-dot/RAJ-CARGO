@@ -51,7 +51,7 @@ export function WaybillSticker({ waybill, storeCode, boxNumber, totalBoxes }: Wa
         <h3 className="text-sm font-bold uppercase tracking-wider mb-1">TO:</h3>
         <div className="space-y-1 pl-4">
             <p className="text-xl font-bold">{waybill.receiverName}</p>
-            <p className="text-3xl font-bold">{waybill.receiverCity.toUpperCase()}</p>
+            <p className="text-3xl font-bold">{waybill.receiverCity ? waybill.receiverCity.toUpperCase() : ''}</p>
             <p className="text-4xl font-bold">{waybill.receiverPincode}</p>
              {storeCode && (
               <div className="flex items-center gap-2 pt-2">
