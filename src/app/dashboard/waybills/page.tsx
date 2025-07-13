@@ -1,12 +1,13 @@
 
 'use client';
 
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import { useWaybills } from '@/hooks/useWaybills';
 import { WaybillList } from '@/components/WaybillList';
 import { Button } from '@/components/ui/button';
-import { PlusCircle, FileDown, Printer, CheckSquare, XSquare, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Input } from '@/components/ui/input';
+import { PlusCircle, FileDown, Printer, CheckSquare, XSquare, ChevronLeft, ChevronRight, Search } from 'lucide-react';
 import * as XLSX from 'xlsx';
 import { saveAs } from 'file-saver';
 
@@ -15,14 +16,25 @@ export default function WaybillsPage() {
   const { waybills, deleteWaybill, isLoaded } = useWaybills();
   const [selectedWaybillIds, setSelectedWaybillIds] = useState<string[]>([]);
   const [currentPage, setCurrentPage] = useState(1);
+  const [searchTerm, setSearchTerm] = useState('');
   const router = useRouter();
 
   const WAYBILLS_PER_PAGE = 25;
 
+  const filteredWaybills = useMemo(() => {
+    if (!searchTerm) return waybills;
+    return waybills.filter(w => 
+        w.waybillNumber.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        w.invoiceNumber.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        w.senderName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        w.receiverName.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+  }, [waybills, searchTerm]);
+
   const indexOfLastWaybill = currentPage * WAYBILLS_PER_PAGE;
   const indexOfFirstWaybill = indexOfLastWaybill - WAYBILLS_PER_PAGE;
-  const currentWaybills = waybills.slice(indexOfFirstWaybill, indexOfLastWaybill);
-  const totalPages = Math.ceil(waybills.length / WAYBILLS_PER_PAGE);
+  const currentWaybills = filteredWaybills.slice(indexOfFirstWaybill, indexOfLastWaybill);
+  const totalPages = Math.ceil(filteredWaybills.length / WAYBILLS_PER_PAGE);
 
   const handleCreateNew = () => {
     router.push('/dashboard/waybills/create');
@@ -94,8 +106,21 @@ export default function WaybillsPage() {
 
   return (
     <div>
-        <div className="flex justify-between items-center mb-4">
+        <div className="flex justify-between items-center mb-4 gap-4 flex-wrap">
             <h1 className="text-3xl font-bold">Waybill Book</h1>
+             <div className="relative flex-grow max-w-sm">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+                <Input 
+                    type="search"
+                    placeholder="Search waybills..."
+                    value={searchTerm}
+                    onChange={(e) => {
+                      setSearchTerm(e.target.value);
+                      setCurrentPage(1); // Reset to first page on new search
+                    }}
+                    className="pl-10"
+                />
+            </div>
             <div className="flex gap-2 flex-wrap justify-end">
                 <Button onClick={handleSelectAllOnPage} variant="outline" size="sm">
                     <CheckSquare className="mr-2 h-4 w-4" /> Select All on Page

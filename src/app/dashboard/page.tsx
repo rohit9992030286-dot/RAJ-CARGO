@@ -3,15 +3,42 @@
 import Link from 'next/link';
 import { useWaybills } from '@/hooks/useWaybills';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
-import { Truck, CheckCircle, BookCopy } from 'lucide-react';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts';
+import { Truck, CheckCircle, BookCopy, Loader2, Package, XCircleIcon } from 'lucide-react';
+import { ChartContainer, ChartTooltipContent, ChartTooltip } from '@/components/ui/chart';
+
+
+const chartConfig = {
+  total: {
+    label: 'Total',
+    color: 'hsl(var(--chart-1))',
+  },
+  delivered: {
+    label: 'Delivered',
+    color: 'hsl(var(--chart-2))',
+  },
+  inTransit: {
+    label: 'In Transit',
+    color: 'hsl(var(--chart-3))',
+  },
+   pending: {
+    label: 'Pending',
+    color: 'hsl(var(--chart-4))',
+  },
+  cancelled: {
+    label: 'Cancelled',
+    color: 'hsl(var(--chart-5))',
+  },
+} satisfies import('@/components/ui/chart').ChartConfig;
+
 
 export default function DashboardPage() {
   const { waybills, isLoaded } = useWaybills();
 
   if (!isLoaded) {
     return (
-      <div className="flex justify-center items-center h-64">
-        <div className="animate-spin rounded-full h-16 w-16 border-t-2 border-b-2 border-primary"></div>
+      <div className="flex justify-center items-center h-full">
+        <Loader2 className="h-16 w-16 animate-spin text-primary" />
       </div>
     );
   }
@@ -19,49 +46,83 @@ export default function DashboardPage() {
   const totalWaybills = waybills.length;
   const deliveredWaybills = waybills.filter(w => w.status === 'Delivered').length;
   const inTransitWaybills = waybills.filter(w => w.status === 'In Transit').length;
+  const pendingWaybills = waybills.filter(w => w.status === 'Pending').length;
+  const cancelledWaybills = waybills.filter(w => w.status === 'Cancelled').length;
+
+  const chartData = [
+    { status: 'Total', count: totalWaybills, fill: 'var(--color-total)' },
+    { status: 'Pending', count: pendingWaybills, fill: 'var(--color-pending)' },
+    { status: 'In Transit', count: inTransitWaybills, fill: 'var(--color-inTransit)' },
+    { status: 'Delivered', count: deliveredWaybills, fill: 'var(--color-delivered)' },
+    { status: 'Cancelled', count: cancelledWaybills, fill: 'var(--color-cancelled)' },
+  ];
 
   return (
-    <div>
-      <h1 className="text-3xl font-bold mb-2">Welcome Back! 👋</h1>
-      <p className="text-muted-foreground mb-8">Here's a summary of your shipping activity.</p>
-      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-        <Link href="/dashboard/waybills">
-          <Card className="hover:shadow-lg transition-shadow h-full bg-blue-50 border-blue-200">
+    <div className="flex flex-col h-full">
+      <div className="mb-8">
+        <h1 className="text-3xl font-bold mb-1">Welcome Back! 👋</h1>
+        <p className="text-muted-foreground">Here's a summary of your shipping activity.</p>
+      </div>
+
+      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4 mb-8">
+          <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium text-blue-800">Total Waybills</CardTitle>
-              <BookCopy className="h-5 w-5 text-blue-600" />
+              <CardTitle className="text-sm font-medium">Total Waybills</CardTitle>
+              <BookCopy className="h-5 w-5 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-4xl font-bold text-blue-900">{totalWaybills}</div>
-              <p className="text-xs text-blue-700">Total waybills created</p>
+              <div className="text-2xl font-bold">{totalWaybills}</div>
             </CardContent>
           </Card>
-        </Link>
-        <Link href="/dashboard/waybills">
-            <Card className="hover:shadow-lg transition-shadow h-full bg-amber-50 border-amber-200">
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                    <CardTitle className="text-sm font-medium text-amber-800">In Transit</CardTitle>
-                    <Truck className="h-5 w-5 text-amber-600" />
-                </CardHeader>
-                <CardContent>
-                    <div className="text-4xl font-bold text-amber-900">{inTransitWaybills}</div>
-                    <p className="text-xs text-amber-700">Packages on their way</p>
-                </CardContent>
-            </Card>
-        </Link>
-        <Link href="/dashboard/waybills">
-            <Card className="hover:shadow-lg transition-shadow h-full bg-green-50 border-green-200">
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                    <CardTitle className="text-sm font-medium text-green-800">Delivered</CardTitle>
-                    <CheckCircle className="h-5 w-5 text-green-600" />
-                </CardHeader>
-                <CardContent>
-                    <div className="text-4xl font-bold text-green-900">{deliveredWaybills}</div>
-                    <p className="text-xs text-green-700">Successfully delivered packages</p>
-                </CardContent>
-            </Card>
-        </Link>
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Pending</CardTitle>
+              <Package className="h-5 w-5 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{pendingWaybills}</div>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">In Transit</CardTitle>
+              <Truck className="h-5 w-5 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{inTransitWaybills}</div>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Delivered</CardTitle>
+              <CheckCircle className="h-5 w-5 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{deliveredWaybills}</div>
+            </CardContent>
+          </Card>
       </div>
+
+      <Card className="flex-grow">
+          <CardHeader>
+              <CardTitle>Waybill Status Overview</CardTitle>
+          </CardHeader>
+          <CardContent className="h-[300px] w-full">
+             <ResponsiveContainer width="100%" height="100%">
+                 <BarChart data={chartData} margin={{ top: 20, right: 30, left: 0, bottom: 5 }}>
+                    <CartesianGrid vertical={false} />
+                    <XAxis dataKey="status" tickLine={false} axisLine={false} />
+                    <YAxis tickLine={false} axisLine={false} allowDecimals={false} />
+                    <ChartTooltip
+                        cursor={false}
+                        content={<ChartTooltipContent indicator="dot" />}
+                    />
+                    <Bar dataKey="count" radius={[4, 4, 0, 0]} />
+                </BarChart>
+            </ResponsiveContainer>
+          </CardContent>
+      </Card>
+      
     </div>
   );
 }
