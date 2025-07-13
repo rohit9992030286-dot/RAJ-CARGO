@@ -1,6 +1,6 @@
 import { z } from 'zod';
 
-// This is the schema for the form data, without the 'id'
+// Base schema for form fields
 const waybillFormFields = z.object({
   waybillNumber: z.string().min(1, 'Waybill number is required.'),
   invoiceNumber: z.string({ required_error: "Invoice number is required."}).min(1, { message: 'Invoice number is required.' }),
@@ -29,7 +29,7 @@ const waybillFormFields = z.object({
   status: z.enum(['Pending', 'In Transit', 'Delivered', 'Cancelled']).default('Pending'),
 });
 
-// The refinement logic for the E-Way Bill
+// Refinement logic for E-Way Bill
 const eWayBillRefinement = (data: z.infer<typeof waybillFormFields>, ctx: z.RefinementCtx) => {
     if (data.shipmentValue >= 50000) {
         if (!data.eWayBillNo || data.eWayBillNo.trim() === '') {
