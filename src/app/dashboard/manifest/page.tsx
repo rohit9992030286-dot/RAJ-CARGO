@@ -15,7 +15,7 @@ import { format } from 'date-fns';
 export default function ManifestListPage() {
   const router = useRouter();
   const { manifests, deleteManifest, isLoaded: manifestsLoaded } = useManifests();
-  const { waybills, isLoaded: waybillsLoaded } = useWaybills();
+  const { waybills, getWaybillById, isLoaded: waybillsLoaded } = useWaybills();
   
   const handleCreateManifest = () => {
     router.push('/dashboard/manifest/create');
@@ -45,6 +45,13 @@ export default function ManifestListPage() {
         return total + (waybill?.numberOfBoxes || 0);
     }, 0);
   }
+  const getDestinations = (manifest: Manifest) => {
+    const cities = manifest.waybillIds
+      .map(id => getWaybillById(id)?.receiverCity)
+      .filter((city): city is string => !!city);
+    const uniqueCities = [...new Set(cities)];
+    return uniqueCities.join(', ') || 'N/A';
+  }
 
   return (
     <div className="space-y-8">
@@ -71,6 +78,7 @@ export default function ManifestListPage() {
               <TableRow>
                 <TableHead>Manifest ID</TableHead>
                 <TableHead>Date</TableHead>
+                <TableHead>Destinations</TableHead>
                 <TableHead>Vehicle No.</TableHead>
                 <TableHead>Status</TableHead>
                 <TableHead className="text-center">Waybills</TableHead>
@@ -84,6 +92,7 @@ export default function ManifestListPage() {
                   <TableRow key={manifest.id}>
                     <TableCell className="font-medium truncate" style={{maxWidth: '100px'}}>M-{manifest.id.substring(0, 8)}</TableCell>
                     <TableCell>{format(new Date(manifest.date), 'PPP')}</TableCell>
+                    <TableCell className="truncate" style={{maxWidth: '150px'}}>{getDestinations(manifest)}</TableCell>
                     <TableCell>{manifest.vehicleNo || 'N/A'}</TableCell>
                     <TableCell>
                       <Badge variant={manifest.status === 'Dispatched' ? 'default' : 'outline'}>
@@ -106,7 +115,7 @@ export default function ManifestListPage() {
                 ))
               ) : (
                 <TableRow>
-                  <TableCell colSpan={7} className="h-24 text-center">
+                  <TableCell colSpan={8} className="h-24 text-center">
                     <div className="text-center py-8">
                         <Truck className="mx-auto h-12 w-12 text-muted-foreground" />
                         <h3 className="mt-4 text-lg font-semibold">No Manifests Yet</h3>
