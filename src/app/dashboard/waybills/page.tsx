@@ -8,11 +8,15 @@ import { WaybillList } from '@/components/WaybillList';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardFooter, CardHeader } from '@/components/ui/card';
-import { PlusCircle, FileDown, Printer, ChevronLeft, ChevronRight, Search, FileUp, FileSpreadsheet, Copy } from 'lucide-react';
+import { PlusCircle, FileDown, Printer, ChevronLeft, ChevronRight, Search, FileUp, FileSpreadsheet, Copy, Calendar as CalendarIcon } from 'lucide-react';
 import * as XLSX from 'xlsx';
 import { saveAs } from 'file-saver';
 import { Waybill, waybillSchema } from '@/types/waybill';
 import { useToast } from '@/hooks/use-toast';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Calendar } from '@/components/ui/calendar';
+import { format } from 'date-fns';
+import { cn } from '@/lib/utils';
 
 
 export default function WaybillsPage() {
@@ -20,6 +24,7 @@ export default function WaybillsPage() {
   const [selectedWaybillIds, setSelectedWaybillIds] = useState<string[]>([]);
   const [currentPage, setCurrentPage] = useState(1);
   const [searchTerm, setSearchTerm] = useState('');
+  const [date, setDate] = useState<Date | undefined>(undefined);
   const router = useRouter();
   const { toast } = useToast();
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -27,15 +32,25 @@ export default function WaybillsPage() {
   const WAYBILLS_PER_PAGE = 10;
 
   const filteredWaybills = useMemo(() => {
-    if (!searchTerm) return waybills;
-    return waybills.filter(w => 
-        w.waybillNumber.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        w.invoiceNumber.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        w.senderName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        w.receiverName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        w.receiverCity.toLowerCase().includes(searchTerm.toLowerCase())
-    );
-  }, [waybills, searchTerm]);
+    let filtered = waybills;
+
+    if (searchTerm) {
+      filtered = filtered.filter(w => 
+          w.waybillNumber.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          w.invoiceNumber.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          w.senderName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          w.receiverName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          w.receiverCity.toLowerCase().includes(searchTerm.toLowerCase())
+      );
+    }
+
+    if (date) {
+        const selectedDate = format(date, 'yyyy-MM-dd');
+        filtered = filtered.filter(w => w.shippingDate === selectedDate);
+    }
+    
+    return filtered;
+  }, [waybills, searchTerm, date]);
 
   const indexOfLastWaybill = currentPage * WAYBILLS_PER_PAGE;
   const indexOfFirstWaybill = indexOfLastWaybill - WAYBILLS_PER_PAGE;
@@ -236,20 +251,48 @@ export default function WaybillsPage() {
 
         <Card>
             <CardHeader>
-               <div className="flex items-center justify-between gap-4">
-                 <div className="relative flex-grow max-w-md">
-                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
-                    <Input 
-                        type="search"
-                        placeholder="Search by waybill #, name, city..."
-                        value={searchTerm}
-                        onChange={(e) => {
-                          setSearchTerm(e.target.value);
-                          setCurrentPage(1); // Reset to first page on new search
-                        }}
-                        className="pl-10"
-                    />
-                </div>
+               <div className="flex items-center justify-between gap-4 flex-wrap">
+                 <div className="flex items-center gap-2">
+                    <div className="relative flex-grow max-w-sm">
+                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+                        <Input 
+                            type="search"
+                            placeholder="Search by waybill #, name, city..."
+                            value={searchTerm}
+                            onChange={(e) => {
+                              setSearchTerm(e.target.value);
+                              setCurrentPage(1); // Reset to first page on new search
+                            }}
+                            className="pl-10"
+                        />
+                    </div>
+                     <Popover>
+                        <PopoverTrigger asChild>
+                            <Button
+                            variant={"outline"}
+                            className={cn(
+                                "w-[240px] justify-start text-left font-normal",
+                                !date && "text-muted-foreground"
+                            )}
+                            >
+                            <CalendarIcon className="mr-2 h-4 w-4" />
+                            {date ? format(date, "PPP") : <span>Pick a date</span>}
+                            </Button>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-auto p-0" align="start">
+                            <Calendar
+                            mode="single"
+                            selected={date}
+                            onSelect={(newDate) => {
+                                setDate(newDate);
+                                setCurrentPage(1);
+                            }}
+                            initialFocus
+                            />
+                        </PopoverContent>
+                    </Popover>
+                    {date && <Button variant="ghost" onClick={() => setDate(undefined)}>Clear</Button>}
+                 </div>
                  {selectedWaybillIds.length > 0 && (
                   <div className="flex items-center gap-2">
                      <span className="text-sm text-muted-foreground">{selectedWaybillIds.length} selected</span>
