@@ -1,7 +1,7 @@
 import { z } from 'zod';
 
-const baseWaybillSchema = z.object({
-  id: z.string().uuid(),
+// This is the schema for the form data, without the 'id'
+const waybillFormFields = z.object({
   waybillNumber: z.string().min(1, 'Waybill number is required.'),
   invoiceNumber: z.string({ required_error: "Invoice number is required."}).min(1, { message: 'Invoice number is required.' }),
   eWayBillNo: z.string().optional(),
@@ -29,7 +29,8 @@ const baseWaybillSchema = z.object({
   status: z.enum(['Pending', 'In Transit', 'Delivered', 'Cancelled']).default('Pending'),
 });
 
-const eWayBillRefinement = (data: z.infer<typeof baseWaybillSchema>, ctx: z.RefinementCtx) => {
+// The refinement logic for the E-Way Bill
+const eWayBillRefinement = (data: z.infer<typeof waybillFormFields>, ctx: z.RefinementCtx) => {
     if (data.shipmentValue >= 50000) {
         if (!data.eWayBillNo || data.eWayBillNo.trim() === '') {
             ctx.addIssue({
@@ -41,9 +42,13 @@ const eWayBillRefinement = (data: z.infer<typeof baseWaybillSchema>, ctx: z.Refi
     }
 };
 
-export const waybillSchema = baseWaybillSchema.superRefine(eWayBillRefinement);
+// This is the final schema used for form validation
+export const waybillFormSchema = waybillFormFields.superRefine(eWayBillRefinement);
 
-export const waybillFormSchema = baseWaybillSchema.omit({ id: true }).superRefine(eWayBillRefinement);
+// This is the full schema for the Waybill data model, including the 'id'
+export const waybillSchema = waybillFormSchema.extend({
+  id: z.string().uuid(),
+});
 
-
+// This is the final Waybill type
 export type Waybill = z.infer<typeof waybillSchema>;
