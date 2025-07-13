@@ -90,9 +90,23 @@ export default function WaybillsPage() {
 
             json.forEach((row, index) => {
                 try {
+                    // Sanitize and coerce data types before validation
                     const newWaybillData = {
                       ...row,
                       id: crypto.randomUUID(),
+                      waybillNumber: String(row.waybillNumber || ''),
+                      invoiceNumber: String(row.invoiceNumber || ''),
+                      senderName: String(row.senderName || ''),
+                      senderAddress: String(row.senderAddress || ''),
+                      senderCity: String(row.senderCity || ''),
+                      senderPincode: String(row.senderPincode || ''),
+                      senderPhone: String(row.senderPhone || ''),
+                      receiverName: String(row.receiverName || ''),
+                      receiverAddress: String(row.receiverAddress || ''),
+                      receiverCity: String(row.receiverCity || ''),
+                      receiverPincode: String(row.receiverPincode || ''),
+                      receiverPhone: String(row.receiverPhone || ''),
+                      packageDescription: String(row.packageDescription || ''),
                       status: row.status || 'Pending',
                       shippingDate: row.shippingDate ? new Date(row.shippingDate).toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
                       shippingTime: row.shippingTime || '10:00',
