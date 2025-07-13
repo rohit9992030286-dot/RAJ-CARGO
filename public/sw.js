@@ -1,76 +1,62 @@
-// A basic service worker for offline functionality
+// This is the service worker script, which executes in a separate thread.
 
-const CACHE_NAME = 'ss-cargo-cache-v1';
-const urlsToCache = [
-  '/',
+// Names of the two caches used in this version of the service worker.
+// Change when you update any of the local resources, which will
+// trigger a new service worker to be installed.
+const PRECACHE = 'precache-v1.1';
+const RUNTIME = 'runtime';
+
+// A list of local resources we always want to be cached.
+const PRECACHE_URLS = [
+  '/', // Alias for index.html
   '/dashboard',
-  '/dashboard/waybills',
-  '/dashboard/waybills/create',
-  '/dashboard/print-sticker',
-  '/manifest.json',
-  '/icons/icon-192x192.png',
-  '/icons/icon-512x512.png',
-  // Add other static assets that need caching, e.g., CSS, JS files.
-  // Next.js automatically chunks these, so it's hard to list them manually.
-  // The fetch event handler below will cache them dynamically.
+  '/manifest.json'
 ];
 
-self.addEventListener('install', (event) => {
-  // Perform install steps
+// The install handler takes care of precaching the resources we always need.
+self.addEventListener('install', event => {
   event.waitUntil(
-    caches.open(CACHE_NAME)
-      .then((cache) => {
-        console.log('Opened cache');
-        return cache.addAll(urlsToCache);
-      })
+    caches.open(PRECACHE)
+      .then(cache => cache.addAll(PRECACHE_URLS))
+      .then(self.skipWaiting())
   );
 });
 
-self.addEventListener('fetch', (event) => {
-  event.respondWith(
-    caches.match(event.request)
-      .then((response) => {
-        // Cache hit - return response
-        if (response) {
-          return response;
+// The activate handler takes care of cleaning up old caches.
+self.addEventListener('activate', event => {
+  const currentCaches = [PRECACHE, RUNTIME];
+  event.waitUntil(
+    caches.keys().then(cacheNames => {
+      return cacheNames.filter(cacheName => !currentCaches.includes(cacheName));
+    }).then(cachesToDelete => {
+      return Promise.all(cachesToDelete.map(cacheToDelete => {
+        return caches.delete(cacheToDelete);
+      }));
+    }).then(() => self.clients.claim())
+  );
+});
+
+// The fetch handler serves responses for same-origin resources from a cache.
+// If no response is found, it populates the runtime cache with the response
+// from the network before returning it to the page.
+self.addEventListener('fetch', event => {
+  // Skip cross-origin requests, like those for Google Fonts.
+  if (event.request.url.startsWith(self.location.origin)) {
+    event.respondWith(
+      caches.match(event.request).then(cachedResponse => {
+        if (cachedResponse) {
+          return cachedResponse;
         }
 
-        // Clone the request to use it in the cache and for the network request
-        const fetchRequest = event.request.clone();
-
-        return fetch(fetchRequest).then(
-          (response) => {
-            // Check if we received a valid response
-            if (!response || response.status !== 200 || response.type !== 'basic') {
+        return caches.open(RUNTIME).then(cache => {
+          return fetch(event.request).then(response => {
+            // Put a copy of the response in the runtime cache.
+            return cache.put(event.request, response.clone()).then(() => {
               return response;
-            }
-
-            // Clone the response to use it in the cache and to return to the browser
-            const responseToCache = response.clone();
-
-            caches.open(CACHE_NAME)
-              .then((cache) => {
-                cache.put(event.request, responseToCache);
-              });
-
-            return response;
-          }
-        );
+            });
+          });
+        });
       })
-  );
-});
-
-self.addEventListener('activate', (event) => {
-  const cacheWhitelist = [CACHE_NAME];
-  event.waitUntil(
-    caches.keys().then((cacheNames) => {
-      return Promise.all(
-        cacheNames.map((cacheName) => {
-          if (cacheWhitelist.indexOf(cacheName) === -1) {
-            return caches.delete(cacheName);
-          }
-        })
-      );
-    })
-  );
+    );
+  }
 });
