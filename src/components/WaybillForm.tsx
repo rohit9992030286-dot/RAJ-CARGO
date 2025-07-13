@@ -22,7 +22,9 @@ interface WaybillFormProps {
   onCancel: () => void;
 }
 
-const getInitialValues = (initialData?: Waybill): Omit<Waybill, 'id'> => {
+type WaybillFormData = z.infer<typeof waybillFormSchema>;
+
+const getInitialValues = (initialData?: Waybill): WaybillFormData => {
     if (initialData) {
         const { id, ...formData } = initialData;
         return formData;
@@ -57,7 +59,7 @@ export function WaybillForm({ initialData, onSave, onCancel }: WaybillFormProps)
   const [isSenderPincodeLoading, setIsSenderPincodeLoading] = useState(false);
   const [isReceiverPincodeLoading, setIsReceiverPincodeLoading] = useState(false);
 
-  const form = useForm<Omit<Waybill, 'id'>>({
+  const form = useForm<WaybillFormData>({
     resolver: zodResolver(waybillFormSchema),
     defaultValues: getInitialValues(initialData),
     mode: 'onChange' // To re-validate on value change
@@ -118,7 +120,7 @@ export function WaybillForm({ initialData, onSave, onCancel }: WaybillFormProps)
   };
 
 
-  const onSubmit = (data: Omit<Waybill, 'id'>) => {
+  const onSubmit = (data: WaybillFormData) => {
     const waybillToSave: Waybill = {
         ...data,
         id: initialData?.id || crypto.randomUUID(),
