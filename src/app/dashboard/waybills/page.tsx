@@ -122,6 +122,7 @@ export default function WaybillsPage() {
                       id: crypto.randomUUID(),
                       waybillNumber: String(row.waybillNumber || ''),
                       invoiceNumber: String(row.invoiceNumber || ''),
+                      eWayBillNo: String(row.eWayBillNo || ''),
                       senderName: String(row.senderName || ''),
                       senderAddress: String(row.senderAddress || ''),
                       senderCity: String(row.senderCity || ''),
