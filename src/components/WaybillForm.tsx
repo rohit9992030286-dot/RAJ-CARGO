@@ -15,6 +15,7 @@ import { User, Phone, Package, Weight, Calendar, ListChecks, Save, XCircle, MapP
 import { Textarea } from './ui/textarea';
 import { pincodeLookup } from '@/ai/flows/pincode-lookup';
 import { useState, useEffect } from 'react';
+import type { z } from 'zod';
 
 interface WaybillFormProps {
   initialData?: Waybill;
