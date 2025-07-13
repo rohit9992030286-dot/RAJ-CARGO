@@ -14,54 +14,59 @@ function DashboardLayout({
   children: React.ReactNode;
 }) {
   const [year, setYear] = useState<number | null>(null);
+  const [isSheetOpen, setIsSheetOpen] = useState(false);
   const { logout } = useAuth();
 
   useEffect(() => {
     setYear(new Date().getFullYear());
   }, []);
   
-  const NavLinks = () => (
+  const handleLinkClick = () => {
+    setIsSheetOpen(false);
+  };
+  
+  const NavLinks = ({ onLinkClick }: { onLinkClick?: () => void }) => (
     <nav className="p-4 flex flex-col h-full">
       <ul className="space-y-2 flex-grow">
         <li>
-          <Link href="/dashboard" className="flex items-center gap-3 p-3 rounded-lg hover:bg-accent">
+          <Link href="/dashboard" onClick={onLinkClick} className="flex items-center gap-3 p-3 rounded-lg hover:bg-accent">
             <Home className="h-5 w-5" />
             <span>Dashboard</span>
           </Link>
         </li>
         <li>
-          <Link href="/dashboard/waybills" className="flex items-center gap-3 p-3 rounded-lg hover:bg-accent">
+          <Link href="/dashboard/waybills" onClick={onLinkClick} className="flex items-center gap-3 p-3 rounded-lg hover:bg-accent">
             <BookCopy className="h-5 w-5" />
             <span>Waybill Book</span>
           </Link>
         </li>
         <li>
-          <Link href="/dashboard/waybills/create" className="flex items-center gap-3 p-3 rounded-lg hover:bg-accent">
+          <Link href="/dashboard/waybills/create" onClick={onLinkClick} className="flex items-center gap-3 p-3 rounded-lg hover:bg-accent">
             <PlusCircle className="h-5 w-5" />
             <span>Create Waybill</span>
           </Link>
         </li>
         <li>
-            <Link href="/dashboard/manifest" className="flex items-center gap-3 p-3 rounded-lg hover:bg-accent">
+            <Link href="/dashboard/manifest" onClick={onLinkClick} className="flex items-center gap-3 p-3 rounded-lg hover:bg-accent">
                 <ClipboardList className="h-5 w-5" />
                 <span>Manifests</span>
             </Link>
         </li>
         <li>
-            <Link href="/dashboard/sales" className="flex items-center gap-3 p-3 rounded-lg hover:bg-accent">
+            <Link href="/dashboard/sales" onClick={onLinkClick} className="flex items-center gap-3 p-3 rounded-lg hover:bg-accent">
                 <IndianRupee className="h-5 w-5" />
                 <span>Sales</span>
             </Link>
         </li>
         <li>
-          <Link href="/dashboard/print-sticker" className="flex items-center gap-3 p-3 rounded-lg hover:bg-accent">
+          <Link href="/dashboard/print-sticker" onClick={onLinkClick} className="flex items-center gap-3 p-3 rounded-lg hover:bg-accent">
             <ScanLine className="h-5 w-5" />
             <span>Print Sticker</span>
           </Link>
         </li>
       </ul>
       <div className="space-y-2">
-        <Link href="/dashboard/settings" className="flex items-center gap-3 p-3 rounded-lg hover:bg-accent">
+        <Link href="/dashboard/settings" onClick={onLinkClick} className="flex items-center gap-3 p-3 rounded-lg hover:bg-accent">
             <Settings className="h-5 w-5" />
             <span>Settings</span>
         </Link>
@@ -84,7 +89,7 @@ function DashboardLayout({
       </aside>
       <div className="flex-1 flex flex-col">
         <header className="flex h-16 items-center gap-4 border-b bg-background px-6 lg:hidden">
-            <Sheet>
+            <Sheet open={isSheetOpen} onOpenChange={setIsSheetOpen}>
                 <SheetTrigger asChild>
                     <Button variant="outline" size="icon">
                         <Menu className="h-6 w-6" />
@@ -99,7 +104,7 @@ function DashboardLayout({
                         <Truck className="h-8 w-8 text-primary" />
                         <h1 className="text-2xl font-bold">SS CARGO</h1>
                     </div>
-                    <NavLinks />
+                    <NavLinks onLinkClick={handleLinkClick} />
                 </SheetContent>
             </Sheet>
             <div className="flex-1">
