@@ -1,15 +1,30 @@
 
 'use client';
 
+import { useState, useMemo } from 'react';
 import { useWaybills } from '@/hooks/useWaybills';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow, TableFooter } from '@/components/ui/table';
-import { IndianRupee, Loader2 } from 'lucide-react';
+import { IndianRupee, Loader2, Calendar as CalendarIcon } from 'lucide-react';
 import { Waybill } from '@/types/waybill';
 import { format } from 'date-fns';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Calendar } from '@/components/ui/calendar';
+import { Button } from '@/components/ui/button';
+import { cn } from '@/lib/utils';
 
 export default function SalesReportPage() {
   const { waybills, isLoaded } = useWaybills();
+  const [date, setDate] = useState<Date | undefined>(undefined);
+
+  const filteredWaybills = useMemo(() => {
+    if (!date) {
+      return waybills;
+    }
+    const selectedDate = format(date, 'yyyy-MM-dd');
+    return waybills.filter(w => w.shippingDate === selectedDate);
+  }, [waybills, date]);
+
 
   if (!isLoaded) {
     return (
@@ -25,7 +40,7 @@ export default function SalesReportPage() {
     return baseCharge + weightCharge;
   };
 
-  const totalSales = waybills.reduce((total, waybill) => total + calculateCharge(waybill), 0);
+  const totalSales = filteredWaybills.reduce((total, waybill) => total + calculateCharge(waybill), 0);
 
   return (
     <div className="space-y-8">
@@ -36,10 +51,39 @@ export default function SalesReportPage() {
       
       <Card>
         <CardHeader>
-          <CardTitle>All Transactions</CardTitle>
-          <CardDescription>
-            Showing {waybills.length} waybill(s).
-          </CardDescription>
+          <div className="flex justify-between items-center gap-4 flex-wrap">
+            <div>
+              <CardTitle>All Transactions</CardTitle>
+              <CardDescription>
+                Showing {filteredWaybills.length} of {waybills.length} waybill(s).
+              </CardDescription>
+            </div>
+            <div className="flex items-center gap-2">
+              <Popover>
+                  <PopoverTrigger asChild>
+                      <Button
+                      variant={"outline"}
+                      className={cn(
+                          "w-[240px] justify-start text-left font-normal",
+                          !date && "text-muted-foreground"
+                      )}
+                      >
+                      <CalendarIcon className="mr-2 h-4 w-4" />
+                      {date ? format(date, "PPP") : <span>Pick a date</span>}
+                      </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0" align="end">
+                      <Calendar
+                      mode="single"
+                      selected={date}
+                      onSelect={setDate}
+                      initialFocus
+                      />
+                  </PopoverContent>
+              </Popover>
+              {date && <Button variant="ghost" size="sm" onClick={() => setDate(undefined)}>Clear</Button>}
+            </div>
+          </div>
         </CardHeader>
         <CardContent>
           <Table>
@@ -53,8 +97,8 @@ export default function SalesReportPage() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {waybills.length > 0 ? (
-                waybills.map((waybill) => (
+              {filteredWaybills.length > 0 ? (
+                filteredWaybills.map((waybill) => (
                   <TableRow key={waybill.id}>
                     <TableCell className="font-medium">{waybill.waybillNumber}</TableCell>
                     <TableCell>{format(new Date(waybill.shippingDate), 'PP')}</TableCell>
@@ -66,14 +110,14 @@ export default function SalesReportPage() {
               ) : (
                 <TableRow>
                   <TableCell colSpan={5} className="h-24 text-center">
-                    No sales data available. Create a waybill to get started.
+                    No sales data available for the selected date.
                   </TableCell>
                 </TableRow>
               )}
             </TableBody>
             <TableFooter>
                 <TableRow className="font-bold text-lg">
-                    <TableCell colSpan={4}>Total Sales</TableCell>
+                    <TableCell colSpan={4}>{date ? 'Total for selected date' : 'Total Sales'}</TableCell>
                     <TableCell className="text-right font-mono flex items-center justify-end gap-2">
                         <IndianRupee className="h-5 w-5" />
                         {totalSales.toLocaleString('en-IN')}
