@@ -1,7 +1,7 @@
 import { z } from 'zod';
 
 // This is the base schema for the form fields.
-// It does NOT include an 'id'.
+// It does NOT include an 'id' or the refinement logic.
 export const waybillFormSchema = z.object({
   waybillNumber: z.string().min(1, 'Waybill number is required.'),
   invoiceNumber: z.string({ required_error: "Invoice number is required."}).min(1, { message: 'Invoice number is required.' }),
