@@ -27,18 +27,6 @@ const getInitialValues = (initialData?: Waybill): Omit<Waybill, 'id'> => {
         const { id, ...formData } = initialData;
         return formData;
     }
-
-    let defaultSender = {};
-    if (typeof window !== 'undefined') {
-        try {
-            const storedSender = localStorage.getItem('ss-cargo-defaultSender');
-            if (storedSender) {
-                defaultSender = JSON.parse(storedSender);
-            }
-        } catch (error) {
-            console.error('Could not get default sender from local storage', error);
-        }
-    }
     
     return {
         waybillNumber: '',
@@ -48,7 +36,6 @@ const getInitialValues = (initialData?: Waybill): Omit<Waybill, 'id'> => {
         senderCity: '',
         senderPincode: '',
         senderPhone: '',
-        ...defaultSender,
         receiverName: '',
         receiverAddress: '',
         receiverCity: '',
@@ -75,7 +62,25 @@ export function WaybillForm({ initialData, onSave, onCancel }: WaybillFormProps)
   });
 
   useEffect(() => {
-    form.reset(getInitialValues(initialData));
+    // Only set default sender if it's a new waybill form
+    if (!initialData) {
+      try {
+        const storedSender = localStorage.getItem('ss-cargo-defaultSender');
+        if (storedSender) {
+          const defaultSender = JSON.parse(storedSender);
+          // Only reset fields that are part of the sender details
+          const currentValues = form.getValues();
+          form.reset({
+            ...currentValues, // keep existing values
+            ...defaultSender, // override with default sender values
+          });
+        }
+      } catch (error) {
+        console.error('Could not get default sender from local storage', error);
+      }
+    } else {
+        form.reset(getInitialValues(initialData));
+    }
   }, [initialData, form]);
 
   const handlePincodeBlur = async (pincode: string, type: 'sender' | 'receiver') => {
@@ -489,5 +494,3 @@ export function WaybillForm({ initialData, onSave, onCancel }: WaybillFormProps)
     </Form>
   );
 }
-
-    
