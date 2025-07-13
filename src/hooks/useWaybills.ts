@@ -1,13 +1,14 @@
+
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import { Waybill } from '@/types/waybill';
 import { useToast } from './use-toast';
 
 const STORAGE_KEY = 'ss-cargo-waybills';
 
 export function useWaybills() {
-  const [waybills, setWaybills] = useState<Waybill[]>([]);
+  const [waybillsData, setWaybillsData] = useState<Waybill[]>([]);
   const [isLoaded, setIsLoaded] = useState(false);
   const { toast } = useToast();
 
@@ -17,7 +18,7 @@ export function useWaybills() {
       if (items) {
         const parsedItems = JSON.parse(items);
         if (Array.isArray(parsedItems)) {
-          setWaybills(parsedItems.sort((a: Waybill, b: Waybill) => new Date(b.shippingDate).getTime() - new Date(a.shippingDate).getTime()));
+          setWaybillsData(parsedItems);
         }
       }
     } catch (error) {
@@ -35,9 +36,9 @@ export function useWaybills() {
   useEffect(() => {
     if (isLoaded) {
       try {
-        const sortedWaybills = [...waybills].sort((a, b) => new Date(b.shippingDate).getTime() - new Date(a.shippingDate).getTime());
-        window.localStorage.setItem(STORAGE_KEY, JSON.stringify(sortedWaybills));
-      } catch (error) {
+        window.localStorage.setItem(STORAGE_KEY, JSON.stringify(waybillsData));
+      } catch (error)
+      {
         console.error('Failed to save waybills to local storage', error);
         toast({
           title: 'Error',
@@ -46,11 +47,15 @@ export function useWaybills() {
         });
       }
     }
-  }, [waybills, isLoaded, toast]);
+  }, [waybillsData, isLoaded, toast]);
+  
+  const waybills = useMemo(() => {
+    return [...waybillsData].sort((a,b) => new Date(b.shippingDate).getTime() - new Date(a.shippingDate).getTime())
+  }, [waybillsData]);
+
 
   const addWaybill = useCallback((waybill: Waybill) => {
-    // Check for uniqueness of waybillNumber
-    if (waybills.some(w => w.waybillNumber === waybill.waybillNumber)) {
+    if (waybillsData.some(w => w.waybillNumber === waybill.waybillNumber)) {
         toast({
             title: 'Error: Duplicate Waybill Number ⚠️',
             description: `A waybill with the number #${waybill.waybillNumber} already exists.`,
@@ -59,12 +64,12 @@ export function useWaybills() {
         return false;
     }
 
-    setWaybills((prev) => [waybill, ...prev]);
+    setWaybillsData((prev) => [waybill, ...prev]);
     return true;
-  }, [waybills, toast]);
+  }, [waybillsData, toast]);
 
   const updateWaybill = useCallback((updatedWaybill: Waybill) => {
-    setWaybills((prev) => prev.map((w) => (w.id === updatedWaybill.id ? updatedWaybill : w)));
+    setWaybillsData((prev) => prev.map((w) => (w.id === updatedWaybill.id ? updatedWaybill : w)));
     toast({
         title: 'Waybill Updated',
         description: `The waybill #${updatedWaybill.waybillNumber} has been successfully updated.`,
@@ -72,7 +77,7 @@ export function useWaybills() {
   }, [toast]);
 
   const deleteWaybill = useCallback((id: string) => {
-    setWaybills((prev) => {
+    setWaybillsData((prev) => {
         const waybillToDelete = prev.find(w => w.id === id);
         if (waybillToDelete) {
              toast({
@@ -85,8 +90,8 @@ export function useWaybills() {
   }, [toast]);
 
   const getWaybillById = useCallback((id: string) => {
-    return waybills.find((w) => w.id === id);
-  }, [waybills]);
+    return waybillsData.find((w) => w.id === id);
+  }, [waybillsData]);
 
   return { waybills, isLoaded, addWaybill, updateWaybill, deleteWaybill, getWaybillById };
 }

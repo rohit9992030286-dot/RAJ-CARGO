@@ -11,6 +11,7 @@ import { Badge } from '@/components/ui/badge';
 import { PlusCircle, Eye, Pencil, Trash2, Truck } from 'lucide-react';
 import { Manifest } from '@/types/manifest';
 import { format } from 'date-fns';
+import { useMemo } from 'react';
 
 export default function ManifestListPage() {
   const router = useRouter();
@@ -38,20 +39,24 @@ export default function ManifestListPage() {
     );
   }
 
-  const getWaybillCount = (manifest: Manifest) => manifest.waybillIds.length;
-  const getBoxCount = (manifest: Manifest) => {
-    return manifest.waybillIds.reduce((total, id) => {
-        const waybill = waybills.find(w => w.id === id);
-        return total + (waybill?.numberOfBoxes || 0);
-    }, 0);
-  }
-  const getDestinations = (manifest: Manifest) => {
-    const cities = manifest.waybillIds
-      .map(id => getWaybillById(id)?.receiverCity)
-      .filter((city): city is string => !!city);
-    const uniqueCities = [...new Set(cities)];
-    return uniqueCities.join(', ') || 'N/A';
-  }
+  const getManifestDetails = useMemo(() => {
+    const waybillMap = new Map(waybills.map(w => [w.id, w]));
+
+    return (manifest: Manifest) => {
+        const manifestWaybills = manifest.waybillIds.map(id => waybillMap.get(id)).filter(w => w);
+        const boxCount = manifestWaybills.reduce((total, wb) => total + (wb?.numberOfBoxes || 0), 0);
+        
+        const uniqueCities = [...new Set(manifestWaybills.map(wb => wb?.receiverCity).filter(Boolean))];
+        const destinations = uniqueCities.join(', ') || 'N/A';
+        
+        return {
+            waybillCount: manifestWaybills.length,
+            boxCount,
+            destinations,
+        };
+    };
+  }, [waybills]);
+
 
   return (
     <div className="space-y-8">
@@ -88,31 +93,34 @@ export default function ManifestListPage() {
             </TableHeader>
             <TableBody>
               {manifests.length > 0 ? (
-                manifests.map((manifest) => (
-                  <TableRow key={manifest.id}>
-                    <TableCell className="font-medium truncate" style={{maxWidth: '100px'}}>M-{manifest.id.substring(0, 8)}</TableCell>
-                    <TableCell>{format(new Date(manifest.date), 'PPP')}</TableCell>
-                    <TableCell className="truncate" style={{maxWidth: '150px'}}>{getDestinations(manifest)}</TableCell>
-                    <TableCell>{manifest.vehicleNo || 'N/A'}</TableCell>
-                    <TableCell>
-                      <Badge variant={manifest.status === 'Dispatched' ? 'default' : 'outline'}>
-                        {manifest.status}
-                      </Badge>
-                    </TableCell>
-                    <TableCell className="text-center">{getWaybillCount(manifest)}</TableCell>
-                    <TableCell className="text-center">{getBoxCount(manifest)}</TableCell>
-                    <TableCell className="text-right">
-                       <Button variant="ghost" size="icon" onClick={() => handleViewManifest(manifest.id)}>
-                         {manifest.status === 'Draft' ? <Pencil className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                         <span className="sr-only">{manifest.status === 'Draft' ? 'Edit' : 'View'}</span>
-                       </Button>
-                       <Button variant="ghost" size="icon" onClick={() => handleDelete(manifest.id)} disabled={manifest.status === 'Dispatched'}>
-                         <Trash2 className="h-4 w-4 text-destructive" />
-                         <span className="sr-only">Delete</span>
-                       </Button>
-                    </TableCell>
-                  </TableRow>
-                ))
+                manifests.map((manifest) => {
+                  const details = getManifestDetails(manifest);
+                  return (
+                    <TableRow key={manifest.id}>
+                      <TableCell className="font-medium truncate" style={{maxWidth: '100px'}}>M-{manifest.id.substring(0, 8)}</TableCell>
+                      <TableCell>{format(new Date(manifest.date), 'PPP')}</TableCell>
+                      <TableCell className="truncate" style={{maxWidth: '150px'}}>{details.destinations}</TableCell>
+                      <TableCell>{manifest.vehicleNo || 'N/A'}</TableCell>
+                      <TableCell>
+                        <Badge variant={manifest.status === 'Dispatched' ? 'default' : 'outline'}>
+                          {manifest.status}
+                        </Badge>
+                      </TableCell>
+                      <TableCell className="text-center">{details.waybillCount}</TableCell>
+                      <TableCell className="text-center">{details.boxCount}</TableCell>
+                      <TableCell className="text-right">
+                        <Button variant="ghost" size="icon" onClick={() => handleViewManifest(manifest.id)}>
+                          {manifest.status === 'Draft' ? <Pencil className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                          <span className="sr-only">{manifest.status === 'Draft' ? 'Edit' : 'View'}</span>
+                        </Button>
+                        <Button variant="ghost" size="icon" onClick={() => handleDelete(manifest.id)} disabled={manifest.status === 'Dispatched'}>
+                          <Trash2 className="h-4 w-4 text-destructive" />
+                          <span className="sr-only">Delete</span>
+                        </Button>
+                      </TableCell>
+                    </TableRow>
+                  )
+                })
               ) : (
                 <TableRow>
                   <TableCell colSpan={8} className="h-24 text-center">

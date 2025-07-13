@@ -8,6 +8,7 @@ import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Legend, ResponsiveContainer
 import { Truck, CheckCircle, BookCopy, Loader2, Package, XCircleIcon, IndianRupee } from 'lucide-react';
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from '@/components/ui/chart';
 import { format } from 'date-fns';
+import { useMemo } from 'react';
 
 
 const chartConfig = {
@@ -40,6 +41,39 @@ const chartConfig = {
 export default function DashboardPage() {
   const { waybills, isLoaded } = useWaybills();
 
+  const todaysStats = useMemo(() => {
+    const todaysWaybills = waybills.filter(w => w.shippingDate === format(new Date(), 'yyyy-MM-dd'));
+
+    const totalWaybills = todaysWaybills.length;
+    const deliveredWaybills = todaysWaybills.filter(w => w.status === 'Delivered').length;
+    const inTransitWaybills = todaysWaybills.filter(w => w.status === 'In Transit').length;
+    const pendingWaybills = todaysWaybills.filter(w => w.status === 'Pending').length;
+    const cancelledWaybills = todaysWaybills.filter(w => w.status === 'Cancelled').length;
+
+    const totalSales = todaysWaybills.reduce((total, waybill) => {
+        const baseCharge = 150;
+        const weightCharge = waybill.packageWeight * 10;
+        return total + baseCharge + weightCharge;
+    }, 0);
+
+    const chartData = [
+        { status: 'Total', count: totalWaybills, fill: 'var(--color-total)' },
+        { status: 'Pending', count: pendingWaybills, fill: 'var(--color-pending)' },
+        { status: 'In Transit', count: inTransitWaybills, fill: 'var(--color-inTransit)' },
+        { status: 'Delivered', count: deliveredWaybills, fill: 'var(--color-delivered)' },
+        { status: 'Cancelled', count: cancelledWaybills, fill: 'var(--color-cancelled)' },
+    ];
+    
+    return {
+        totalWaybills,
+        deliveredWaybills,
+        inTransitWaybills,
+        totalSales,
+        chartData
+    };
+  }, [waybills]);
+
+
   if (!isLoaded) {
     return (
       <div className="flex justify-center items-center h-full">
@@ -47,28 +81,6 @@ export default function DashboardPage() {
       </div>
     );
   }
-
-  const todaysWaybills = waybills.filter(w => w.shippingDate === format(new Date(), 'yyyy-MM-dd'));
-
-  const totalWaybills = todaysWaybills.length;
-  const deliveredWaybills = todaysWaybills.filter(w => w.status === 'Delivered').length;
-  const inTransitWaybills = todaysWaybills.filter(w => w.status === 'In Transit').length;
-  const pendingWaybills = todaysWaybills.filter(w => w.status === 'Pending').length;
-  const cancelledWaybills = todaysWaybills.filter(w => w.status === 'Cancelled').length;
-
-  const totalSales = todaysWaybills.reduce((total, waybill) => {
-    const baseCharge = 150;
-    const weightCharge = waybill.packageWeight * 10;
-    return total + baseCharge + weightCharge;
-  }, 0);
-
-  const chartData = [
-    { status: 'Total', count: totalWaybills, fill: 'var(--color-total)' },
-    { status: 'Pending', count: pendingWaybills, fill: 'var(--color-pending)' },
-    { status: 'In Transit', count: inTransitWaybills, fill: 'var(--color-inTransit)' },
-    { status: 'Delivered', count: deliveredWaybills, fill: 'var(--color-delivered)' },
-    { status: 'Cancelled', count: cancelledWaybills, fill: 'var(--color-cancelled)' },
-  ];
 
   return (
     <div className="flex flex-col h-full">
@@ -84,7 +96,7 @@ export default function DashboardPage() {
               <BookCopy className="h-5 w-5 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{totalWaybills}</div>
+              <div className="text-2xl font-bold">{todaysStats.totalWaybills}</div>
             </CardContent>
           </Card>
           <Link href="/dashboard/sales" className="block hover:shadow-lg transition-shadow rounded-lg">
@@ -94,7 +106,7 @@ export default function DashboardPage() {
                 <IndianRupee className="h-5 w-5 text-muted-foreground" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">₹{totalSales.toLocaleString('en-IN')}</div>
+                <div className="text-2xl font-bold">₹{todaysStats.totalSales.toLocaleString('en-IN')}</div>
               </CardContent>
             </Card>
           </Link>
@@ -104,7 +116,7 @@ export default function DashboardPage() {
               <Truck className="h-5 w-5 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{inTransitWaybills}</div>
+              <div className="text-2xl font-bold">{todaysStats.inTransitWaybills}</div>
             </CardContent>
           </Card>
           <Card>
@@ -113,7 +125,7 @@ export default function DashboardPage() {
               <CheckCircle className="h-5 w-5 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{deliveredWaybills}</div>
+              <div className="text-2xl font-bold">{todaysStats.deliveredWaybills}</div>
             </CardContent>
           </Card>
       </div>
@@ -124,7 +136,7 @@ export default function DashboardPage() {
           </CardHeader>
           <CardContent className="h-[300px] w-full">
              <ChartContainer config={chartConfig} className="w-full h-full">
-                 <BarChart data={chartData} margin={{ top: 20, right: 30, left: 0, bottom: 5 }} accessibilityLayer>
+                 <BarChart data={todaysStats.chartData} margin={{ top: 20, right: 30, left: 0, bottom: 5 }} accessibilityLayer>
                     <CartesianGrid vertical={false} />
                     <XAxis dataKey="status" tickLine={false} axisLine={false} tickMargin={8} />
                     <YAxis tickLine={false} axisLine={false} allowDecimals={false} />

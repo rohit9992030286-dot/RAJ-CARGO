@@ -1,14 +1,14 @@
 
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import { Manifest } from '@/types/manifest';
 import { useToast } from './use-toast';
 
 const STORAGE_KEY = 'ss-cargo-manifests';
 
 export function useManifests() {
-  const [manifests, setManifests] = useState<Manifest[]>([]);
+  const [manifestsData, setManifestsData] = useState<Manifest[]>([]);
   const [isLoaded, setIsLoaded] = useState(false);
   const { toast } = useToast();
 
@@ -18,7 +18,7 @@ export function useManifests() {
       if (items) {
         const parsedItems = JSON.parse(items);
         if (Array.isArray(parsedItems)) {
-          setManifests(parsedItems);
+          setManifestsData(parsedItems);
         }
       }
     } catch (error) {
@@ -36,7 +36,7 @@ export function useManifests() {
   useEffect(() => {
     if (isLoaded) {
       try {
-        window.localStorage.setItem(STORAGE_KEY, JSON.stringify(manifests));
+        window.localStorage.setItem(STORAGE_KEY, JSON.stringify(manifestsData));
       } catch (error) {
         console.error('Failed to save manifests to local storage', error);
         toast({
@@ -46,10 +46,14 @@ export function useManifests() {
         });
       }
     }
-  }, [manifests, isLoaded, toast]);
+  }, [manifestsData, isLoaded, toast]);
+  
+  const manifests = useMemo(() => {
+    return [...manifestsData].sort((a,b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+  }, [manifestsData]);
 
   const addManifest = useCallback((manifest: Manifest) => {
-    setManifests((prev) => [manifest, ...prev].sort((a,b) => new Date(b.date).getTime() - new Date(a.date).getTime()));
+    setManifestsData((prev) => [manifest, ...prev]);
     toast({
         title: 'Manifest Created',
         description: `Manifest M-${manifest.id.substring(0,8)} has been created.`,
@@ -58,7 +62,7 @@ export function useManifests() {
   }, [toast]);
 
   const updateManifest = useCallback((updatedManifest: Manifest) => {
-    setManifests((prev) => prev.map((m) => (m.id === updatedManifest.id ? updatedManifest : m)));
+    setManifestsData((prev) => prev.map((m) => (m.id === updatedManifest.id ? updatedManifest : m)));
     toast({
         title: 'Manifest Updated',
         description: `Manifest M-${updatedManifest.id.substring(0,8)} has been saved.`,
@@ -66,7 +70,7 @@ export function useManifests() {
   }, [toast]);
 
   const deleteManifest = useCallback((id: string) => {
-    setManifests((prev) => {
+    setManifestsData((prev) => {
         const manifestToDelete = prev.find(m => m.id === id);
         if (manifestToDelete) {
              toast({
@@ -79,8 +83,9 @@ export function useManifests() {
   }, [toast]);
 
   const getManifestById = useCallback((id: string) => {
-    return manifests.find((m) => m.id === id);
-  }, [manifests]);
+    // manifestsData is used here as it doesn't need to be sorted for a lookup
+    return manifestsData.find((m) => m.id === id);
+  }, [manifestsData]);
 
   return { manifests, isLoaded, addManifest, updateManifest, deleteManifest, getManifestById };
 }
