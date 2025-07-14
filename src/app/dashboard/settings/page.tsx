@@ -170,49 +170,22 @@ function WaybillInventorySettings({ waybillInventory, addWaybillToInventory, rem
   )
 }
 
-interface SettingsPageContentProps extends WaybillInventorySettingsProps {}
+function getBackupData() {
+    const waybills = localStorage.getItem('ss-cargo-waybills') || '[]';
+    const manifests = localStorage.getItem('ss-cargo-manifests') || '[]';
+    const inventory = localStorage.getItem('ss-cargo-waybill-inventory') || '[]';
+    const allData = {
+      waybills: JSON.parse(waybills),
+      manifests: JSON.parse(manifests),
+      waybillInventory: JSON.parse(inventory),
+      exportDate: new Date().toISOString(),
+    };
+    return JSON.stringify(allData, null, 2);
+}
 
-function SettingsPageContent({ waybillInventory, addWaybillToInventory, removeWaybillFromInventory }: SettingsPageContentProps) {
+function GoogleDriveBackup() {
   const { toast } = useToast();
-  const { updateCredentials } = useAuth();
-  const [theme, setTheme] = useState<Theme>('system');
-  const [stickerSize, setStickerSize] = useState<StickerSize>('4x6');
   const [isDriveSaving, setIsDriveSaving] = useState(false);
-  
-  const [isGoogleDriveConfigured, setIsGoogleDriveConfigured] = useState(false);
-
-  useEffect(() => {
-    // This effect runs on the client and can safely access process.env
-    setIsGoogleDriveConfigured(!!process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID);
-  }, []);
-
-
-  const accountForm = useForm({
-    defaultValues: { username: '', password: '' },
-  });
-
-  const senderForm = useForm({
-    defaultValues: {
-      senderName: '',
-      senderAddress: '',
-      senderCity: '',
-      senderPincode: '',
-      senderPhone: '',
-    },
-  });
-
-  const getBackupData = () => {
-      const waybills = localStorage.getItem('ss-cargo-waybills') || '[]';
-      const manifests = localStorage.getItem('ss-cargo-manifests') || '[]';
-      const inventory = localStorage.getItem('ss-cargo-waybill-inventory') || '[]';
-      const allData = {
-        waybills: JSON.parse(waybills),
-        manifests: JSON.parse(manifests),
-        waybillInventory: JSON.parse(inventory),
-        exportDate: new Date().toISOString(),
-      };
-      return JSON.stringify(allData, null, 2);
-  }
 
   const login = useGoogleLogin({
     onSuccess: async (tokenResponse) => {
@@ -237,14 +210,46 @@ function SettingsPageContent({ waybillInventory, addWaybillToInventory, removeWa
     scope: 'https://www.googleapis.com/auth/drive.file',
   });
 
-  const handleSaveToDrive = () => {
-    if (!isGoogleDriveConfigured) {
-        toast({ title: "Google Drive Not Configured", description: "Administrator must provide a Google Client ID in the .env file.", variant: "destructive" });
-        return;
-    }
-    login();
-  }
+  return (
+    <div className="flex items-center justify-between pt-4 border-t">
+      <div>
+          <Label className="font-medium">Save to Google Drive</Label>
+          <p className="text-sm text-muted-foreground">Save an encrypted backup to your Google Drive.</p>
+      </div>
+      <Button variant="outline" onClick={() => login()} disabled={isDriveSaving}>
+        {isDriveSaving ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Save className="mr-2 h-4 w-4" />}
+        {isDriveSaving ? 'Saving...' : 'Save to Drive'}
+      </Button>
+    </div>
+  );
+}
 
+interface SettingsPageContentProps extends WaybillInventorySettingsProps {}
+
+function SettingsPageContent({ waybillInventory, addWaybillToInventory, removeWaybillFromInventory }: SettingsPageContentProps) {
+  const { toast } = useToast();
+  const { updateCredentials } = useAuth();
+  const [theme, setTheme] = useState<Theme>('system');
+  const [stickerSize, setStickerSize] = useState<StickerSize>('4x6');
+  const [isGoogleDriveConfigured, setIsGoogleDriveConfigured] = useState(false);
+
+  useEffect(() => {
+    setIsGoogleDriveConfigured(!!process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID);
+  }, []);
+
+  const accountForm = useForm({
+    defaultValues: { username: '', password: '' },
+  });
+
+  const senderForm = useForm({
+    defaultValues: {
+      senderName: '',
+      senderAddress: '',
+      senderCity: '',
+      senderPincode: '',
+      senderPhone: '',
+    },
+  });
 
   useEffect(() => {
     const storedTheme = localStorage.getItem('ss-cargo-theme') as Theme | null;
@@ -564,16 +569,7 @@ function SettingsPageContent({ waybillInventory, addWaybillToInventory, removeWa
               Export
             </Button>
           </div>
-          <div className="flex items-center justify-between pt-4 border-t">
-            <div>
-                <Label className="font-medium">Save to Google Drive</Label>
-                <p className="text-sm text-muted-foreground">Save an encrypted backup to your Google Drive.</p>
-            </div>
-            <Button variant="outline" onClick={handleSaveToDrive} disabled={isDriveSaving || !isGoogleDriveConfigured}>
-              {isDriveSaving ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Save className="mr-2 h-4 w-4" />}
-              {isDriveSaving ? 'Saving...' : 'Save to Drive'}
-            </Button>
-          </div>
+          {isGoogleDriveConfigured && <GoogleDriveBackup />}
           <div className="flex items-center justify-between pt-4 border-t">
             <div>
                 <Label className="font-medium">Clear All Local Data</Label>
@@ -626,5 +622,3 @@ export default function SettingsPage() {
     removeWaybillFromInventory={removeWaybillFromInventory}
   />;
 }
-
-    
