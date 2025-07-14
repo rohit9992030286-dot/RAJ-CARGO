@@ -15,7 +15,6 @@ import { User, Phone, Package, Weight, Calendar, ListChecks, Save, XCircle, MapP
 import { Textarea } from './ui/textarea';
 import { pincodeLookup } from '@/ai/flows/pincode-lookup';
 import { useState, useEffect } from 'react';
-import type { z } from 'zod';
 
 interface WaybillFormProps {
   initialData?: Waybill;
@@ -88,7 +87,7 @@ export function WaybillForm({ initialData, onSave, onCancel }: WaybillFormProps)
         form.reset(getInitialValues(initialData));
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [initialData, form]);
+  }, [initialData]);
 
   const handlePincodeBlur = async (pincode: string, type: 'sender' | 'receiver') => {
     if (pincode.length !== 6 || !/^\d{6}$/.test(pincode)) return;

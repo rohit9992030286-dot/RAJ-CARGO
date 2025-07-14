@@ -1,27 +1,27 @@
 import { z } from 'zod';
 
-// Base schema for the form, without the 'id'
+// Schema for the form data, without the 'id'
 export const waybillFormSchema = z.object({
   waybillNumber: z.string().min(1, 'Waybill number is required.'),
-  invoiceNumber: z.string({ required_error: "Invoice number is required."}).min(1, { message: 'Invoice number is required.' }),
+  invoiceNumber: z.string().min(1, 'Invoice number is required.'),
   eWayBillNo: z.string().optional(),
   
-  senderName: z.string({ required_error: "Sender name is required."}).min(2, { message: 'Sender name must be at least 2 characters.' }),
-  senderAddress: z.union([z.string().min(10, { message: 'Please enter a valid sender address.' }), z.literal('')]),
-  senderCity: z.union([z.string().min(2, { message: 'Sender city must be at least 2 characters.' }), z.literal('')]),
-  senderPincode: z.string({ required_error: "Pincode is required."}).min(5, {message: 'Pincode must be at least 5 digits.'}),
-  senderPhone: z.string({ required_error: "Sender phone is required."}).min(10, { message: 'Please enter a valid sender phone number.' }),
+  senderName: z.string().min(2, 'Sender name must be at least 2 characters.'),
+  senderAddress: z.string().min(10, 'Please enter a valid sender address.'),
+  senderCity: z.string().min(2, 'Sender city must be at least 2 characters.'),
+  senderPincode: z.string().min(5, 'Pincode must be at least 5 digits.'),
+  senderPhone: z.string().min(10, 'Please enter a valid sender phone number.'),
   
-  receiverName: z.string({ required_error: "Receiver name is required."}).min(2, { message: 'Receiver name must be at least 2 characters.' }),
-  receiverAddress: z.union([z.string().min(10, { message: 'Please enter a valid receiver address.' }), z.literal('')]),
-  receiverCity: z.union([z.string().min(2, { message: 'Receiver city must be at least 2 characters.' }), z.literal('')]),
-  receiverPincode: z.string({ required_error: "Pincode is required."}).min(5, {message: 'Pincode must be at least 5 digits.'}),
-  receiverPhone: z.string({ required_error: "Receiver phone is required."}).min(10, { message: 'Please enter a valid receiver phone number.' }),
+  receiverName: z.string().min(2, 'Receiver name must be at least 2 characters.'),
+  receiverAddress: z.string().min(10, 'Please enter a valid receiver address.'),
+  receiverCity: z.string().min(2, 'Receiver city must be at least 2 characters.'),
+  receiverPincode: z.string().min(5, 'Pincode must be at least 5 digits.'),
+  receiverPhone: z.string().min(10, 'Please enter a valid receiver phone number.'),
 
-  packageDescription: z.string({ required_error: "Package description is required."}).min(3, { message: 'Description must be at least 3 characters.' }),
-  packageWeight: z.coerce.number({ required_error: "Weight is required."}).positive({ message: 'Weight must be a positive number.' }),
-  numberOfBoxes: z.coerce.number({ required_error: "Number of boxes is required."}).int().min(1, {message: 'Must have at least one box.'}),
-  shipmentValue: z.coerce.number({ required_error: "Shipment value is required."}).nonnegative({ message: 'Value must be a positive number.' }),
+  packageDescription: z.string().min(3, 'Description must be at least 3 characters.'),
+  packageWeight: z.coerce.number().positive('Weight must be a positive number.'),
+  numberOfBoxes: z.coerce.number().int().min(1, 'Must have at least one box.'),
+  shipmentValue: z.coerce.number().nonnegative('Value must be a positive number.'),
 
   shippingDate: z.string().min(1, 'Shipping date is required'),
   shippingTime: z.string().min(1, 'Shipping time is required'),
@@ -44,6 +44,5 @@ export const waybillSchema = waybillFormSchema.extend({
   id: z.string().uuid(),
 });
 
-
-export type Waybill = z.infer<typeof waybillSchema>;
 export type WaybillFormData = z.infer<typeof waybillFormSchema>;
+export type Waybill = z.infer<typeof waybillSchema>;
