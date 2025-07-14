@@ -78,13 +78,13 @@ export function WaybillSticker({ waybill, storeCode, boxNumber, totalBoxes }: Wa
         {/* Destination & Details */}
         <section className="grid grid-cols-2">
             <div className="flex flex-col items-center justify-center p-2 border-r-2 border-black">
-                <p className={cn('font-black leading-none tracking-tighter', destinationTextSize)}>{waybill.receiverCity.toUpperCase()}</p>
+                <p className={cn('font-black leading-none tracking-tighter', destinationTextSize)}>{(waybill.receiverCity || '').toUpperCase()}</p>
                 <p className={cn('font-black leading-none', pincodeTextSize)}>{waybill.receiverPincode}</p>
             </div>
             <div className="p-2 space-y-2 text-sm">
                 <div className="flex items-center justify-between">
                     <span className="font-bold">FROM:</span>
-                    <span>{waybill.senderCity}, {waybill.senderPincode}</span>
+                    <span>{(waybill.senderCity || '')}, {waybill.senderPincode}</span>
                 </div>
                  <div className="flex items-center justify-between">
                     <span className="font-bold">WEIGHT:</span>
@@ -109,5 +109,3 @@ export function WaybillSticker({ waybill, storeCode, boxNumber, totalBoxes }: Wa
     </div>
   );
 }
-
-    
