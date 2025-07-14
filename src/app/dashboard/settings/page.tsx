@@ -40,17 +40,73 @@ function WaybillInventorySettings({ waybillInventory, addWaybillToInventory, rem
   const [newWaybillNumber, setNewWaybillNumber] = useState('');
   const { toast } = useToast();
 
-  const handleAddWaybill = () => {
-    if (!newWaybillNumber.trim()) {
-      toast({ title: "Waybill number cannot be empty", variant: "destructive" });
+  const handleAddRange = () => {
+    const input = newWaybillNumber.trim();
+    if (!input) {
+      toast({ title: "Input cannot be empty", variant: "destructive" });
       return;
     }
-    const success = addWaybillToInventory(newWaybillNumber);
-    if (success) {
-      toast({ title: "Waybill number added to inventory" });
-      setNewWaybillNumber('');
+
+    const rangeMatch = input.match(/^(\d+)-(\d+)$/);
+    const prefixMatch = input.match(/^([a-zA-Z-]+)(\d+)-(\d+)$/);
+    
+    let addedCount = 0;
+    let skippedCount = 0;
+
+    const addSingle = (num: string) => {
+        if (addWaybillToInventory(num)) {
+            addedCount++;
+        } else {
+            skippedCount++;
+        }
     }
+
+    if (rangeMatch || prefixMatch) {
+      let prefix = '';
+      let start, end;
+
+      if(prefixMatch) {
+        prefix = prefixMatch[1];
+        start = parseInt(prefixMatch[2], 10);
+        end = parseInt(prefixMatch[3], 10);
+      } else if (rangeMatch) {
+        start = parseInt(rangeMatch[1], 10);
+        end = parseInt(rangeMatch[2], 10);
+      } else {
+          toast({ title: "Invalid format", description: "Please use '101-200' or 'SW-101-200'.", variant: "destructive" });
+          return;
+      }
+
+      if (isNaN(start) || isNaN(end) || start > end) {
+        toast({ title: "Invalid Range", description: "Start number must be less than or equal to the end number.", variant: "destructive" });
+        return;
+      }
+      
+      const rangeSize = end - start + 1;
+      if (rangeSize > 500) {
+        toast({ title: "Range Too Large", description: "Please add a maximum of 500 numbers at a time.", variant: "destructive"});
+        return;
+      }
+
+      for (let i = start; i <= end; i++) {
+        addSingle(`${prefix}${i}`);
+      }
+    } else if (/^[a-zA-Z-]*\d+$/.test(input)) {
+        addSingle(input);
+    } else {
+      toast({ title: "Invalid Format", description: "Please enter a single number (e.g., SW-101) or a range (e.g., SW-101-200).", variant: "destructive" });
+      return;
+    }
+
+    if (addedCount > 0) {
+        toast({ title: "Inventory Updated", description: `${addedCount} number(s) added. ${skippedCount} skipped (duplicates).` });
+    } else if (skippedCount > 0) {
+        toast({ title: "No Numbers Added", description: `All ${skippedCount} number(s) were duplicates.`, variant: "default" });
+    }
+    
+    setNewWaybillNumber('');
   };
+
 
   const handleDeleteWaybill = (waybillNumber: string) => {
     removeWaybillFromInventory(waybillNumber);
@@ -61,18 +117,18 @@ function WaybillInventorySettings({ waybillInventory, addWaybillToInventory, rem
     <Card>
       <CardHeader>
         <CardTitle>Waybill Inventory</CardTitle>
-        <CardDescription>Manage your pre-allocated waybill numbers. Numbers added here will be available when creating a new waybill.</CardDescription>
+        <CardDescription>Manage your pre-allocated waybill numbers. Enter a single number (e.g., SW-101) or a range (e.g., SW-101-200).</CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
         <div className="flex gap-2">
           <Input
-            placeholder="Enter new waybill number"
+            placeholder="Enter number or range (e.g., 101-200)"
             value={newWaybillNumber}
             onChange={(e) => setNewWaybillNumber(e.target.value)}
-            onKeyDown={(e) => e.key === 'Enter' && handleAddWaybill()}
+            onKeyDown={(e) => e.key === 'Enter' && handleAddRange()}
           />
-          <Button onClick={handleAddWaybill}>
-            <PlusCircle className="mr-2 h-4 w-4" /> Add
+          <Button onClick={handleAddRange}>
+            <PlusCircle className="mr-2 h-4 w-4" /> Add to Inventory
           </Button>
         </div>
         <div className="border rounded-md max-h-60 overflow-y-auto">
@@ -489,5 +545,7 @@ export default function SettingsPage() {
 
   return <SettingsPageContent />;
 }
+
+    
 
     
