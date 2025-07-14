@@ -21,11 +21,12 @@ import {
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/hooks/useAuth.tsx';
-import { Moon, Sun, Trash2, Save, User, KeyRound, PlusCircle, Hash, Download, Loader2 } from 'lucide-react';
+import { Moon, Sun, Trash2, Save, User, KeyRound, PlusCircle, Hash, Download, Loader2, AlertCircle } from 'lucide-react';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { useWaybillInventory } from '@/hooks/useWaybillInventory';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { saveAs } from 'file-saver';
+import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert';
 
 type Theme = 'light' | 'dark' | 'system';
 type StickerSize = '4x6' | '3x2' | 'compact' | '75mm';
@@ -180,9 +181,8 @@ function getBackupData() {
     return JSON.stringify(allData, null, 2);
 }
 
-interface SettingsPageContentProps extends WaybillInventorySettingsProps {}
 
-function SettingsPageContent({ waybillInventory, addWaybillToInventory, removeWaybillFromInventory }: SettingsPageContentProps) {
+function SettingsPageContent({ waybillInventory, addWaybillToInventory, removeWaybillFromInventory }: WaybillInventorySettingsProps) {
   const { toast } = useToast();
   const { updateCredentials } = useAuth();
   const [theme, setTheme] = useState<Theme>('system');
@@ -563,3 +563,5 @@ export default function SettingsPage() {
     removeWaybillFromInventory={removeWaybillFromInventory}
   />;
 }
+
+    
