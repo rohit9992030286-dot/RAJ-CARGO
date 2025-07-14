@@ -29,8 +29,13 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 type Theme = 'light' | 'dark' | 'system';
 type StickerSize = '4x6' | '3x2';
 
-function WaybillInventorySettings() {
-  const { waybillInventory, addWaybillToInventory, removeWaybillFromInventory } = useWaybillInventory();
+interface WaybillInventorySettingsProps {
+    waybillInventory: string[];
+    addWaybillToInventory: (waybillNumber: string) => boolean;
+    removeWaybillFromInventory: (waybillNumber: string) => void;
+}
+
+function WaybillInventorySettings({ waybillInventory, addWaybillToInventory, removeWaybillFromInventory }: WaybillInventorySettingsProps) {
   const [newWaybillNumber, setNewWaybillNumber] = useState('');
   const { toast } = useToast();
 
@@ -110,6 +115,7 @@ export default function SettingsPage() {
   const { updateCredentials } = useAuth();
   const [theme, setTheme] = useState<Theme>('system');
   const [stickerSize, setStickerSize] = useState<StickerSize>('4x6');
+  const { waybillInventory, addWaybillToInventory, removeWaybillFromInventory } = useWaybillInventory();
 
   // Form for credentials
   const accountForm = useForm({
@@ -315,7 +321,11 @@ export default function SettingsPage() {
         </Card>
       </div>
 
-      <WaybillInventorySettings />
+      <WaybillInventorySettings 
+        waybillInventory={waybillInventory}
+        addWaybillToInventory={addWaybillToInventory}
+        removeWaybillFromInventory={removeWaybillFromInventory}
+      />
 
       <Card>
         <Form {...senderForm}>
