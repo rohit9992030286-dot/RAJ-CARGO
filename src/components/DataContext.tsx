@@ -129,7 +129,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
   }, [manifestsData]);
   
   const sortedInventory = useMemo(() => {
-    return [...waybillInventoryData].sort();
+    return [...waybillInventoryData].sort((a, b) => a.localeCompare(b, undefined, { numeric: true }));
   }, [waybillInventoryData]);
 
   const addWaybill = useCallback((waybill: Waybill) => {
@@ -166,7 +166,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
             // Add back to inventory if deleted
             setWaybillInventoryData(prevInv => {
                 if (!prevInv.includes(waybillToDelete.waybillNumber)) {
-                    return [...prevInv, waybillToDelete.waybillNumber];
+                    return [...prevInv, waybillToDelete.waybillNumber].sort((a, b) => a.localeCompare(b, undefined, { numeric: true }));
                 }
                 return prevInv;
             });

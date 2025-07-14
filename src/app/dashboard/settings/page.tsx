@@ -21,11 +21,89 @@ import {
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/hooks/useAuth.tsx';
-import { Moon, Sun, Trash2, Save, User, KeyRound, Building, MapPin, Phone } from 'lucide-react';
+import { Moon, Sun, Trash2, Save, User, KeyRound, Building, MapPin, Phone, PlusCircle, Warehouse, Hash } from 'lucide-react';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import { useWaybillInventory } from '@/hooks/useWaybillInventory';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 
 type Theme = 'light' | 'dark' | 'system';
 type StickerSize = '4x6' | '3x2';
+
+function WaybillInventorySettings() {
+  const { waybillInventory, addWaybillToInventory, removeWaybillFromInventory } = useWaybillInventory();
+  const [newWaybillNumber, setNewWaybillNumber] = useState('');
+  const { toast } = useToast();
+
+  const handleAddWaybill = () => {
+    if (!newWaybillNumber.trim()) {
+      toast({ title: "Waybill number cannot be empty", variant: "destructive" });
+      return;
+    }
+    const success = addWaybillToInventory(newWaybillNumber);
+    if (success) {
+      toast({ title: "Waybill number added to inventory" });
+      setNewWaybillNumber('');
+    }
+  };
+
+  const handleDeleteWaybill = (waybillNumber: string) => {
+    removeWaybillFromInventory(waybillNumber);
+    toast({ title: "Waybill number removed from inventory" });
+  };
+  
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle>Waybill Inventory</CardTitle>
+        <CardDescription>Manage your pre-allocated waybill numbers. Numbers added here will be available when creating a new waybill.</CardDescription>
+      </CardHeader>
+      <CardContent className="space-y-4">
+        <div className="flex gap-2">
+          <Input
+            placeholder="Enter new waybill number"
+            value={newWaybillNumber}
+            onChange={(e) => setNewWaybillNumber(e.target.value)}
+            onKeyDown={(e) => e.key === 'Enter' && handleAddWaybill()}
+          />
+          <Button onClick={handleAddWaybill}>
+            <PlusCircle className="mr-2 h-4 w-4" /> Add
+          </Button>
+        </div>
+        <div className="border rounded-md max-h-60 overflow-y-auto">
+          <Table>
+            <TableHeader className="sticky top-0 bg-muted/50">
+              <TableRow>
+                <TableHead>Available Waybill Numbers ({waybillInventory.length})</TableHead>
+                <TableHead className="text-right">Action</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {waybillInventory.length > 0 ? (
+                waybillInventory.map((wbNumber) => (
+                  <TableRow key={wbNumber}>
+                    <TableCell className="font-medium flex items-center gap-2"><Hash className="h-4 w-4 text-muted-foreground" /> {wbNumber}</TableCell>
+                    <TableCell className="text-right">
+                       <Button variant="ghost" size="icon" onClick={() => handleDeleteWaybill(wbNumber)}>
+                          <Trash2 className="h-4 w-4 text-destructive" />
+                          <span className="sr-only">Delete</span>
+                      </Button>
+                    </TableCell>
+                  </TableRow>
+                ))
+              ) : (
+                <TableRow>
+                  <TableCell colSpan={2} className="h-24 text-center">
+                    Inventory is empty.
+                  </TableCell>
+                </TableRow>
+              )}
+            </TableBody>
+          </Table>
+        </div>
+      </CardContent>
+    </Card>
+  )
+}
 
 export default function SettingsPage() {
   const { toast } = useToast();
@@ -119,9 +197,10 @@ export default function SettingsPage() {
     try {
       localStorage.removeItem('ss-cargo-waybills');
       localStorage.removeItem('ss-cargo-manifests');
+      localStorage.removeItem('ss-cargo-waybill-inventory');
       toast({
         title: 'Application Data Cleared',
-        description: 'All waybills and manifests have been deleted.',
+        description: 'All waybills, manifests, and inventory have been deleted.',
       });
       setTimeout(() => window.location.reload(), 1000);
     } catch (error) {
@@ -236,6 +315,8 @@ export default function SettingsPage() {
         </Card>
       </div>
 
+      <WaybillInventorySettings />
+
       <Card>
         <Form {...senderForm}>
             <form onSubmit={senderForm.handleSubmit(onSenderSubmit)}>
@@ -318,7 +399,7 @@ export default function SettingsPage() {
           <div className="flex items-center justify-between">
             <div>
                 <Label className="font-medium">Clear All Local Data</Label>
-                <p className="text-sm text-muted-foreground">This will permanently delete all waybills and manifests.</p>
+                <p className="text-sm text-muted-foreground">This will permanently delete all waybills, manifests, and inventory.</p>
             </div>
             <AlertDialog>
               <AlertDialogTrigger asChild>
@@ -331,7 +412,7 @@ export default function SettingsPage() {
                 <AlertDialogHeader>
                   <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
                   <AlertDialogDescription>
-                    This action cannot be undone. This will permanently delete all your waybill and manifest data from this device.
+                    This action cannot be undone. This will permanently delete all your waybill, manifest, and inventory data from this device.
                   </AlertDialogDescription>
                 </AlertDialogHeader>
                 <AlertDialogFooter>
