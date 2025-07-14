@@ -1,12 +1,12 @@
 import {genkit, Plugin} from 'genkit';
 import {googleAI} from '@genkit-ai/googleai';
-import {noop} from '@genkit-ai/core';
 
 const geminiApiKey = process.env.GEMINI_API_KEY;
 
-const plugins: Plugin<any, any>[] = [
-  geminiApiKey ? googleAI({apiKey: geminiApiKey}) : noop('google-ai'),
-];
+const plugins: Plugin<any, any>[] = [];
+if (geminiApiKey) {
+  plugins.push(googleAI({apiKey: geminiApiKey}));
+}
 
 export const ai = genkit({
   plugins: plugins,
