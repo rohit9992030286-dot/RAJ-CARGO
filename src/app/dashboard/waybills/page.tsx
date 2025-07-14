@@ -139,8 +139,8 @@ export default function WaybillsPage() {
                         shippingDate = format(new Date(), 'yyyy-MM-dd');
                     }
 
-                    // Sanitize and coerce data types before validation
-                    const newWaybillData = {
+                    // Sanitize and coerce data types without strict validation
+                    const newWaybillData: Waybill = {
                       id: crypto.randomUUID(),
                       waybillNumber: String(row.waybillNumber || ''),
                       invoiceNumber: String(row.invoiceNumber || ''),
@@ -164,8 +164,14 @@ export default function WaybillsPage() {
                       shipmentValue: Number(row.shipmentValue || 0),
                     };
                     
-                    const parsed = waybillSchema.parse(newWaybillData);
-                    if (addWaybill(parsed, true)) { // Pass true to suppress toast
+                    // Basic check to avoid blank waybill numbers
+                    if (!newWaybillData.waybillNumber) {
+                        console.error(`Error processing row ${index + 2}: Waybill number is missing.`);
+                        skippedCount++;
+                        return; // continue to next row
+                    }
+
+                    if (addWaybill(newWaybillData, true)) { // Pass true to suppress toast
                         addedCount++;
                     } else {
                         skippedCount++;
@@ -368,5 +374,3 @@ export default function WaybillsPage() {
     </div>
   );
 }
-
-    
