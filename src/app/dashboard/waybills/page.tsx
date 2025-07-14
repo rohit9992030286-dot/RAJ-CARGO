@@ -15,7 +15,7 @@ import { Waybill, waybillSchema } from '@/types/waybill';
 import { useToast } from '@/hooks/use-toast';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Calendar } from '@/components/ui/calendar';
-import { format } from 'date-fns';
+import { format, addDays } from 'date-fns';
 import { cn } from '@/lib/utils';
 import { useWaybillInventory } from '@/hooks/useWaybillInventory';
 
@@ -108,16 +108,37 @@ export default function WaybillsPage() {
         if (!data) return;
 
         try {
-            const workbook = XLSX.read(data, { type: 'binary' });
+            const workbook = XLSX.read(data, { type: 'binary', cellDates: true });
             const sheetName = workbook.SheetNames[0];
             const worksheet = workbook.Sheets[sheetName];
-            const json: any[] = XLSX.utils.sheet_to_json(worksheet);
+            const json: any[] = XLSX.utils.sheet_to_json(worksheet, { raw: false });
 
             let addedCount = 0;
             let skippedCount = 0;
 
             json.forEach((row, index) => {
                 try {
+                    let shippingDate;
+                    if (row.shippingDate instanceof Date && !isNaN(row.shippingDate.getTime())) {
+                        shippingDate = format(row.shippingDate, 'yyyy-MM-dd');
+                    } else if (typeof row.shippingDate === 'string') {
+                         const parsedDate = new Date(row.shippingDate);
+                         if(!isNaN(parsedDate.getTime())) {
+                           shippingDate = format(parsedDate, 'yyyy-MM-dd');
+                         }
+                    } else if (typeof row.shippingDate === 'number') {
+                         // Handle Excel's numeric date format
+                         const excelEpoch = new Date(1899, 11, 30);
+                         const parsedDate = addDays(excelEpoch, row.shippingDate);
+                         if(!isNaN(parsedDate.getTime())) {
+                            shippingDate = format(parsedDate, 'yyyy-MM-dd');
+                         }
+                    }
+                    
+                    if (!shippingDate) {
+                        shippingDate = format(new Date(), 'yyyy-MM-dd');
+                    }
+
                     // Sanitize and coerce data types before validation
                     const newWaybillData = {
                       ...row,
@@ -137,7 +158,7 @@ export default function WaybillsPage() {
                       receiverPhone: String(row.receiverPhone || ''),
                       packageDescription: String(row.packageDescription || ''),
                       status: row.status || 'Pending',
-                      shippingDate: row.shippingDate ? new Date(row.shippingDate).toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
+                      shippingDate: shippingDate,
                       shippingTime: row.shippingTime || '10:00',
                       numberOfBoxes: row.numberOfBoxes || 1,
                       packageWeight: row.packageWeight || 0,
