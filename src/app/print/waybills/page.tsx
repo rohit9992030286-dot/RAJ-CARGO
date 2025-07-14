@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useEffect, useRef, useState, Suspense } from 'react';
@@ -5,6 +6,8 @@ import { useSearchParams } from 'next/navigation';
 import { useWaybills } from '@/hooks/useWaybills';
 import { WaybillPrint } from '@/components/WaybillPrint';
 import { Waybill } from '@/types/waybill';
+import { DataProvider } from '@/components/DataContext';
+import { Loader2 } from 'lucide-react';
 
 function PrintWaybillsContent() {
   const searchParams = useSearchParams();
@@ -33,7 +36,7 @@ function PrintWaybillsContent() {
   if (!isLoaded || waybillsToPrint.length === 0) {
     return (
       <div className="flex justify-center items-center h-screen bg-white">
-        <div className="animate-spin rounded-full h-16 w-16 border-t-2 border-b-2 border-primary"></div>
+        <Loader2 className="h-16 w-16 animate-spin text-primary" />
       </div>
     );
   }
@@ -49,10 +52,18 @@ function PrintWaybillsContent() {
   );
 }
 
-export default function PrintWaybillsPage() {
+function PrintWaybillsPageWrapper() {
     return (
-        <Suspense fallback={<div>Loading...</div>}>
+        <Suspense fallback={<div className="flex justify-center items-center h-screen bg-white"><Loader2 className="h-16 w-16 animate-spin text-primary" /></div>}>
             <PrintWaybillsContent />
         </Suspense>
+    )
+}
+
+export default function PrintWaybillsPage() {
+    return (
+        <DataProvider>
+           <PrintWaybillsPageWrapper />
+        </DataProvider>
     )
 }

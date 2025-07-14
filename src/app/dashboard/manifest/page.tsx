@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
-import { PlusCircle, Eye, Pencil, Trash2, Truck } from 'lucide-react';
+import { PlusCircle, Eye, Pencil, Trash2, Truck, Loader2 } from 'lucide-react';
 import { Manifest } from '@/types/manifest';
 import { format } from 'date-fns';
 import { useMemo } from 'react';
@@ -34,7 +34,7 @@ export default function ManifestListPage() {
   if (!manifestsLoaded || !waybillsLoaded) {
     return (
       <div className="flex justify-center items-center h-64">
-        <div className="animate-spin rounded-full h-16 w-16 border-t-2 border-b-2 border-primary"></div>
+        <Loader2 className="h-16 w-16 animate-spin text-primary" />
       </div>
     );
   }

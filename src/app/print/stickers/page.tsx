@@ -6,6 +6,8 @@ import { useSearchParams } from 'next/navigation';
 import { useWaybills } from '@/hooks/useWaybills';
 import { WaybillSticker } from '@/components/WaybillSticker';
 import { Waybill } from '@/types/waybill';
+import { DataProvider } from '@/components/DataContext';
+import { Loader2 } from 'lucide-react';
 
 function PrintStickersContent() {
   const searchParams = useSearchParams();
@@ -34,7 +36,7 @@ function PrintStickersContent() {
   if (!isLoaded || waybillsToPrint.length === 0) {
     return (
       <div className="flex justify-center items-center h-screen bg-white">
-        <div className="animate-spin rounded-full h-16 w-16 border-t-2 border-b-2 border-primary"></div>
+        <Loader2 className="h-16 w-16 animate-spin text-primary" />
       </div>
     );
   }
@@ -46,7 +48,6 @@ function PrintStickersContent() {
         allStickers.push({ waybill, boxNumber: i, totalBoxes });
     }
   });
-
 
   return (
     <div className="bg-white">
@@ -63,10 +64,18 @@ function PrintStickersContent() {
   );
 }
 
-export default function PrintStickersPage() {
+function PrintStickersPageWrapper() {
     return (
-        <Suspense fallback={<div>Loading...</div>}>
+        <Suspense fallback={<div className="flex justify-center items-center h-screen bg-white"><Loader2 className="h-16 w-16 animate-spin text-primary" /></div>}>
             <PrintStickersContent />
         </Suspense>
+    )
+}
+
+export default function PrintStickersPage() {
+    return (
+        <DataProvider>
+           <PrintStickersPageWrapper />
+        </DataProvider>
     )
 }

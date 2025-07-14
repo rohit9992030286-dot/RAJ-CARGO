@@ -9,7 +9,7 @@ import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Waybill } from '@/types/waybill';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { Terminal, Search, Printer, AlertCircle } from 'lucide-react';
+import { Terminal, Search, Printer, AlertCircle, Loader2 } from 'lucide-react';
 
 export default function PrintStickerPage() {
   const { waybills, isLoaded } = useWaybills();
@@ -46,7 +46,7 @@ export default function PrintStickerPage() {
   if (!isLoaded) {
     return (
       <div className="flex justify-center items-center h-64">
-        <div className="animate-spin rounded-full h-16 w-16 border-t-2 border-b-2 border-primary"></div>
+        <Loader2 className="h-16 w-16 animate-spin text-primary" />
       </div>
     );
   }

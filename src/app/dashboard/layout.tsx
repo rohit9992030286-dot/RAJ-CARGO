@@ -6,7 +6,8 @@ import { Truck, Home, BookCopy, PlusCircle, ScanLine, Menu, ClipboardList, India
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
 import { Button } from '@/components/ui/button';
 import { withAuth } from '@/components/withAuth';
-import { useAuth } from '@/hooks/useAuth.tsx';
+import { useAuth } from '@/hooks/useAuth';
+import { DataProvider } from '@/components/DataContext';
 
 function DashboardLayout({
   children,
@@ -84,50 +85,52 @@ function DashboardLayout({
   );
 
   return (
-    <div className="flex min-h-screen">
-       <aside className="w-64 bg-card border-r hidden lg:flex lg:flex-col">
-        <div className="flex items-center gap-3 p-6 border-b">
-          <Truck className="h-8 w-8 text-primary" />
-          <h1 className="text-2xl font-bold">SS CARGO</h1>
+    <DataProvider>
+      <div className="flex min-h-screen">
+        <aside className="w-64 bg-card border-r hidden lg:flex lg:flex-col">
+          <div className="flex items-center gap-3 p-6 border-b">
+            <Truck className="h-8 w-8 text-primary" />
+            <h1 className="text-2xl font-bold">SS CARGO</h1>
+          </div>
+          <NavLinks onLogoutClick={logout} />
+        </aside>
+        <div className="flex-1 flex flex-col">
+          <header className="flex h-16 items-center gap-4 border-b bg-background px-6 lg:hidden">
+              <Sheet open={isSheetOpen} onOpenChange={setIsSheetOpen}>
+                  <SheetTrigger asChild>
+                      <Button variant="outline" size="icon">
+                          <Menu className="h-6 w-6" />
+                          <span className="sr-only">Toggle navigation menu</span>
+                      </Button>
+                  </SheetTrigger>
+                  <SheetContent side="left" className="flex flex-col p-0">
+                      <SheetHeader>
+                          <SheetTitle className="sr-only">Navigation Menu</SheetTitle>
+                      </SheetHeader>
+                      <div className="flex items-center gap-3 p-4 border-b">
+                          <Truck className="h-8 w-8 text-primary" />
+                          <h1 className="text-2xl font-bold">SS CARGO</h1>
+                      </div>
+                      <NavLinks onLinkClick={handleLinkClick} onLogoutClick={handleLogoutClick} />
+                  </SheetContent>
+              </Sheet>
+              <div className="flex-1">
+                   <h1 className="font-semibold text-xl">SS CARGO</h1>
+              </div>
+               <Button variant="ghost" size="sm" onClick={logout}>
+                  <LogOut className="mr-2 h-4 w-4" />
+                  Logout
+              </Button>
+          </header>
+          <main className="flex-1 p-8 bg-background">
+              {children}
+          </main>
+          <footer className="text-center p-4 text-sm text-muted-foreground border-t">
+            {year && <p>&copy; {year} SS CARGO. All rights reserved.</p>}
+          </footer>
         </div>
-        <NavLinks onLogoutClick={logout} />
-      </aside>
-      <div className="flex-1 flex flex-col">
-        <header className="flex h-16 items-center gap-4 border-b bg-background px-6 lg:hidden">
-            <Sheet open={isSheetOpen} onOpenChange={setIsSheetOpen}>
-                <SheetTrigger asChild>
-                    <Button variant="outline" size="icon">
-                        <Menu className="h-6 w-6" />
-                        <span className="sr-only">Toggle navigation menu</span>
-                    </Button>
-                </SheetTrigger>
-                <SheetContent side="left" className="flex flex-col p-0">
-                    <SheetHeader>
-                        <SheetTitle className="sr-only">Navigation Menu</SheetTitle>
-                    </SheetHeader>
-                    <div className="flex items-center gap-3 p-4 border-b">
-                        <Truck className="h-8 w-8 text-primary" />
-                        <h1 className="text-2xl font-bold">SS CARGO</h1>
-                    </div>
-                    <NavLinks onLinkClick={handleLinkClick} onLogoutClick={handleLogoutClick} />
-                </SheetContent>
-            </Sheet>
-            <div className="flex-1">
-                 <h1 className="font-semibold text-xl">SS CARGO</h1>
-            </div>
-             <Button variant="ghost" size="sm" onClick={logout}>
-                <LogOut className="mr-2 h-4 w-4" />
-                Logout
-            </Button>
-        </header>
-        <main className="flex-1 p-8 bg-background">
-            {children}
-        </main>
-        <footer className="text-center p-4 text-sm text-muted-foreground border-t">
-          {year && <p>&copy; {year} SS CARGO. All rights reserved.</p>}
-        </footer>
       </div>
-    </div>
+    </DataProvider>
   );
 }
 

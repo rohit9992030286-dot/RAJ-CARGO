@@ -11,7 +11,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { Printer, Truck, PlusCircle, AlertCircle, Trash2, Box, Save, ArrowLeft, Send } from 'lucide-react';
+import { Printer, Truck, PlusCircle, AlertCircle, Trash2, Box, Save, ArrowLeft, Send, Loader2 } from 'lucide-react';
 import { Waybill } from '@/types/waybill';
 import { Manifest } from '@/types/manifest';
 import { useToast } from '@/hooks/use-toast';
@@ -115,7 +115,7 @@ export default function EditManifestPage() {
   if (!manifestsLoaded || !waybillsLoaded || !manifest) {
     return (
       <div className="flex justify-center items-center h-64">
-        <div className="animate-spin rounded-full h-16 w-16 border-t-2 border-b-2 border-primary"></div>
+        <Loader2 className="h-16 w-16 animate-spin text-primary" />
       </div>
     );
   }

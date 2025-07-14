@@ -6,6 +6,8 @@ import { useParams, useSearchParams } from 'next/navigation';
 import { useWaybills } from '@/hooks/useWaybills';
 import { WaybillSticker } from '@/components/WaybillSticker';
 import { Waybill } from '@/types/waybill';
+import { DataProvider } from '@/components/DataContext';
+import { Loader2 } from 'lucide-react';
 
 function PrintStickerContent() {
   const params = useParams();
@@ -40,7 +42,7 @@ function PrintStickerContent() {
   if (!isLoaded || waybillToPrint === undefined) {
     return (
       <div className="flex justify-center items-center h-screen bg-white">
-        <div className="animate-spin rounded-full h-16 w-16 border-t-2 border-b-2 border-primary"></div>
+        <Loader2 className="h-16 w-16 animate-spin text-primary" />
       </div>
     );
   }
@@ -61,10 +63,18 @@ function PrintStickerContent() {
     );
 }
 
-export default function PrintStickerPage() {
+function PrintStickerPageWrapper() {
     return (
-        <Suspense fallback={<div>Loading...</div>}>
+        <Suspense fallback={<div className="flex justify-center items-center h-screen bg-white"><Loader2 className="h-16 w-16 animate-spin text-primary" /></div>}>
             <PrintStickerContent />
         </Suspense>
+    )
+}
+
+export default function PrintStickerPage() {
+    return (
+        <DataProvider>
+            <PrintStickerPageWrapper />
+        </DataProvider>
     )
 }

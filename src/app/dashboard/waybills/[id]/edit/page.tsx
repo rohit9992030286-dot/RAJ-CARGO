@@ -4,6 +4,7 @@ import { useRouter, useParams } from 'next/navigation';
 import { useWaybills } from '@/hooks/useWaybills';
 import { WaybillForm } from '@/components/WaybillForm';
 import { Waybill } from '@/types/waybill';
+import { Loader2 } from 'lucide-react';
 
 export default function EditWaybillPage() {
   const router = useRouter();
@@ -11,6 +12,15 @@ export default function EditWaybillPage() {
   const { getWaybillById, updateWaybill, isLoaded } = useWaybills();
   
   const id = Array.isArray(params.id) ? params.id[0] : params.id;
+  
+  if (!isLoaded) {
+    return (
+        <div className="flex justify-center items-center h-64">
+          <Loader2 className="h-16 w-16 animate-spin text-primary" />
+        </div>
+      );
+  }
+
   const waybillToEdit = getWaybillById(id);
 
   const handleSave = (waybill: Waybill) => {
@@ -22,14 +32,6 @@ export default function EditWaybillPage() {
   const handleCancel = () => {
     router.push('/dashboard/waybills');
   };
-
-  if (!isLoaded) {
-    return (
-        <div className="flex justify-center items-center h-64">
-          <div className="animate-spin rounded-full h-16 w-16 border-t-2 border-b-2 border-primary"></div>
-        </div>
-      );
-  }
 
   if (!waybillToEdit) {
     return <div>Waybill not found.</div>;

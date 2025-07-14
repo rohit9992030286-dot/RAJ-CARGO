@@ -39,7 +39,7 @@ const chartConfig = {
 
 
 export default function DashboardPage() {
-  const { waybills, isLoaded } = useWaybills();
+  const { waybills } = useWaybills();
 
   const todaysStats = useMemo(() => {
     const todaysWaybills = waybills.filter(w => w.shippingDate === format(new Date(), 'yyyy-MM-dd'));
@@ -72,15 +72,6 @@ export default function DashboardPage() {
         chartData
     };
   }, [waybills]);
-
-
-  if (!isLoaded) {
-    return (
-      <div className="flex justify-center items-center h-full">
-        <Loader2 className="h-16 w-16 animate-spin text-primary" />
-      </div>
-    );
-  }
 
   return (
     <div className="flex flex-col h-full">
