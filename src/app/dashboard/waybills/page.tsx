@@ -158,10 +158,10 @@ export default function WaybillsPage() {
                       packageDescription: String(row.packageDescription || ''),
                       status: row.status || 'Pending',
                       shippingDate: shippingDate,
-                      shippingTime: row.shippingTime || '10:00',
-                      numberOfBoxes: row.numberOfBoxes || 1,
-                      packageWeight: row.packageWeight || 0,
-                      shipmentValue: row.shipmentValue || 0,
+                      shippingTime: String(row.shippingTime || '10:00'),
+                      numberOfBoxes: Number(row.numberOfBoxes || 1),
+                      packageWeight: Number(row.packageWeight || 0),
+                      shipmentValue: Number(row.shipmentValue || 0),
                     };
                     
                     const parsed = waybillSchema.parse(newWaybillData);
@@ -368,3 +368,5 @@ export default function WaybillsPage() {
     </div>
   );
 }
+
+    
