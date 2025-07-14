@@ -183,11 +183,36 @@ function getBackupData() {
     return JSON.stringify(allData, null, 2);
 }
 
-function GoogleDriveBackup() {
-  const { toast } = useToast();
-  const [isDriveSaving, setIsDriveSaving] = useState(false);
+function GoogleDriveBackup({ onSaveClick, isSaving }: { onSaveClick: () => void, isSaving: boolean }) {
+  return (
+    <div className="flex items-center justify-between pt-4 border-t">
+      <div>
+          <Label className="font-medium">Save to Google Drive</Label>
+          <p className="text-sm text-muted-foreground">Save an encrypted backup to your Google Drive.</p>
+      </div>
+      <Button variant="outline" onClick={onSaveClick} disabled={isSaving}>
+        {isSaving ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Save className="mr-2 h-4 w-4" />}
+        {isSaving ? 'Saving...' : 'Save to Drive'}
+      </Button>
+    </div>
+  );
+}
 
-  const login = useGoogleLogin({
+interface SettingsPageContentProps extends WaybillInventorySettingsProps {}
+
+function SettingsPageContent({ waybillInventory, addWaybillToInventory, removeWaybillFromInventory }: SettingsPageContentProps) {
+  const { toast } = useToast();
+  const { updateCredentials } = useAuth();
+  const [theme, setTheme] = useState<Theme>('system');
+  const [stickerSize, setStickerSize] = useState<StickerSize>('4x6');
+  const [isGoogleDriveConfigured, setIsGoogleDriveConfigured] = useState(false);
+  const [isDriveSaving, setIsDriveSaving] = useState(false);
+  
+  useEffect(() => {
+    setIsGoogleDriveConfigured(!!process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID);
+  }, []);
+
+  const login = isGoogleDriveConfigured ? useGoogleLogin({
     onSuccess: async (tokenResponse) => {
         setIsDriveSaving(true);
         toast({ title: 'Saving to Google Drive...', description: 'Please wait, this may take a moment.' });
@@ -208,34 +233,7 @@ function GoogleDriveBackup() {
         toast({ title: 'Google Login Failed', description: 'Could not authenticate with Google.', variant: 'destructive' });
     },
     scope: 'https://www.googleapis.com/auth/drive.file',
-  });
-
-  return (
-    <div className="flex items-center justify-between pt-4 border-t">
-      <div>
-          <Label className="font-medium">Save to Google Drive</Label>
-          <p className="text-sm text-muted-foreground">Save an encrypted backup to your Google Drive.</p>
-      </div>
-      <Button variant="outline" onClick={() => login()} disabled={isDriveSaving}>
-        {isDriveSaving ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Save className="mr-2 h-4 w-4" />}
-        {isDriveSaving ? 'Saving...' : 'Save to Drive'}
-      </Button>
-    </div>
-  );
-}
-
-interface SettingsPageContentProps extends WaybillInventorySettingsProps {}
-
-function SettingsPageContent({ waybillInventory, addWaybillToInventory, removeWaybillFromInventory }: SettingsPageContentProps) {
-  const { toast } = useToast();
-  const { updateCredentials } = useAuth();
-  const [theme, setTheme] = useState<Theme>('system');
-  const [stickerSize, setStickerSize] = useState<StickerSize>('4x6');
-  const [isGoogleDriveConfigured, setIsGoogleDriveConfigured] = useState(false);
-
-  useEffect(() => {
-    setIsGoogleDriveConfigured(!!process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID);
-  }, []);
+  }) : () => {};
 
   const accountForm = useForm({
     defaultValues: { username: '', password: '' },
@@ -569,7 +567,7 @@ function SettingsPageContent({ waybillInventory, addWaybillToInventory, removeWa
               Export
             </Button>
           </div>
-          {isGoogleDriveConfigured && <GoogleDriveBackup />}
+          {isGoogleDriveConfigured && <GoogleDriveBackup onSaveClick={login} isSaving={isDriveSaving} />}
           <div className="flex items-center justify-between pt-4 border-t">
             <div>
                 <Label className="font-medium">Clear All Local Data</Label>

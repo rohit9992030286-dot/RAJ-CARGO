@@ -60,6 +60,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     const value = { isAuthenticated, isLoaded, login, logout, updateCredentials };
 
+    if (!clientId) {
+      return (
+          <AuthContext.Provider value={value}>
+              {children}
+          </AuthContext.Provider>
+      );
+    }
+
     return (
         <AuthContext.Provider value={value}>
             <GoogleOAuthProvider clientId={clientId}>
