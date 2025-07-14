@@ -29,7 +29,6 @@ const baseWaybillSchema = z.object({
   status: z.enum(['Pending', 'In Transit', 'Delivered', 'Cancelled']),
 });
 
-
 // Schema for the form data, with the superRefine for conditional validation.
 export const waybillFormSchema = baseWaybillSchema.superRefine((data, ctx) => {
     if (data.shipmentValue >= 50000) {
@@ -43,8 +42,8 @@ export const waybillFormSchema = baseWaybillSchema.superRefine((data, ctx) => {
     }
 });
 
-// Full schema for the data model, including the 'id'.
-export const waybillSchema = waybillFormSchema.extend({
+// Full schema for the data model, including the 'id'. This extends the BASE schema.
+export const waybillSchema = baseWaybillSchema.extend({
   id: z.string().uuid(),
 });
 
