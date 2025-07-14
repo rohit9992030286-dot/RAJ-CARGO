@@ -39,7 +39,7 @@ export function WaybillSticker({ waybill, storeCode, boxNumber, totalBoxes }: Wa
 
   if (size === 'compact') {
       return (
-        <div className="w-[3.5in] h-[2.5in] bg-white text-black font-sans flex flex-col p-1 border border-black">
+        <div className="w-[3.5in] h-[2.5in] bg-white text-black font-sans flex flex-col p-1 border border-black print:shadow-none print:border-none">
           <div className="flex justify-between items-center border-b border-black pb-1">
             <h1 className="text-xl font-bold">SME</h1>
             <p className="text-xs">ANY WHERE TO EVERY WHERE</p>
@@ -139,5 +139,3 @@ export function WaybillSticker({ waybill, storeCode, boxNumber, totalBoxes }: Wa
     </div>
   );
 }
-
-    
