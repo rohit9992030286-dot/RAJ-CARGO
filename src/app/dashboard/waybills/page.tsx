@@ -141,7 +141,6 @@ export default function WaybillsPage() {
 
                     // Sanitize and coerce data types before validation
                     const newWaybillData = {
-                      ...row,
                       id: crypto.randomUUID(),
                       waybillNumber: String(row.waybillNumber || ''),
                       invoiceNumber: String(row.invoiceNumber || ''),
@@ -369,5 +368,3 @@ export default function WaybillsPage() {
     </div>
   );
 }
-
-    
