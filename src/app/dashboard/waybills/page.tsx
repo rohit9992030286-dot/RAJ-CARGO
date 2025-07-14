@@ -166,11 +166,9 @@ export default function WaybillsPage() {
                     };
                     
                     const parsed = waybillSchema.parse(newWaybillData);
-                    if (addWaybill(parsed)) {
+                    if (addWaybill(parsed, true)) { // Pass true to suppress toast
                         addedCount++;
                     } else {
-                        // If it fails to add (e.g. duplicate), add to inventory instead.
-                        addWaybillToInventory(parsed.waybillNumber);
                         skippedCount++;
                     }
                 } catch(error) {
@@ -371,3 +369,5 @@ export default function WaybillsPage() {
     </div>
   );
 }
+
+    

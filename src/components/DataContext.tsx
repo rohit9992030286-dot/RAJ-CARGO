@@ -16,7 +16,7 @@ interface DataContextType {
   manifests: Manifest[];
   waybillInventory: string[];
   isLoaded: boolean;
-  addWaybill: (waybill: Waybill) => boolean;
+  addWaybill: (waybill: Waybill, silent?: boolean) => boolean;
   updateWaybill: (updatedWaybill: Waybill) => void;
   deleteWaybill: (id: string) => void;
   getWaybillById: (id: string) => Waybill | undefined;
@@ -132,13 +132,15 @@ export function DataProvider({ children }: { children: ReactNode }) {
     return [...waybillInventoryData].sort((a, b) => a.localeCompare(b, undefined, { numeric: true }));
   }, [waybillInventoryData]);
 
-  const addWaybill = useCallback((waybill: Waybill) => {
+  const addWaybill = useCallback((waybill: Waybill, silent = false) => {
     if (waybillsData.some(w => w.waybillNumber === waybill.waybillNumber)) {
-        toast({
-            title: 'Error: Duplicate Waybill Number ⚠️',
-            description: `A waybill with the number #${waybill.waybillNumber} already exists.`,
-            variant: 'destructive',
-        });
+        if (!silent) {
+            toast({
+                title: 'Error: Duplicate Waybill Number ⚠️',
+                description: `A waybill with the number #${waybill.waybillNumber} already exists.`,
+                variant: 'destructive',
+            });
+        }
         return false;
     }
     setWaybillsData(prev => [waybill, ...prev]);
@@ -257,3 +259,5 @@ export function DataProvider({ children }: { children: ReactNode }) {
 
   return <DataContext.Provider value={value}>{children}</DataContext.Provider>;
 }
+
+    

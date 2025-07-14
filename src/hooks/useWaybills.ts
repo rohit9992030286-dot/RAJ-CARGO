@@ -11,10 +11,12 @@ export function useWaybills() {
   }
   return {
     waybills: context.waybills,
-    addWaybill: context.addWaybill,
+    addWaybill: (waybill: any, silent?: boolean) => context.addWaybill(waybill, silent),
     updateWaybill: context.updateWaybill,
     deleteWaybill: context.deleteWaybill,
     getWaybillById: context.getWaybillById,
     isLoaded: context.isLoaded,
   };
 }
+
+    
