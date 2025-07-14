@@ -175,8 +175,9 @@ export function WaybillForm({ initialData, onSave, onCancel }: WaybillFormProps)
                     <FormLabel>Address</FormLabel>
                      <div className="relative">
                         <FormControl>
-                            <AddressAutocompleteInput {...field} onValueChange={field.onChange} placeholder="Start typing an address..."/>
+                            <Input placeholder="Enter address" {...field} className="pl-10" />
                         </FormControl>
+                        <IconWrapper><MapPin /></IconWrapper>
                     </div>
                     <FormMessage />
                   </FormItem>
@@ -261,8 +262,9 @@ export function WaybillForm({ initialData, onSave, onCancel }: WaybillFormProps)
                     <FormLabel>Address</FormLabel>
                      <div className="relative">
                         <FormControl>
-                            <AddressAutocompleteInput {...field} onValueChange={field.onChange} placeholder="Start typing an address..."/>
+                           <Input placeholder="Enter address" {...field} className="pl-10" />
                         </FormControl>
+                         <IconWrapper><MapPin /></IconWrapper>
                     </div>
                     <FormMessage />
                   </FormItem>
