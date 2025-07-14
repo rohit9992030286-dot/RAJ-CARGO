@@ -22,10 +22,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     useEffect(() => {
         try {
-            const storedAuth = sessionStorage.getItem('ss-cargo-auth');
+            const storedAuth = localStorage.getItem('ss-cargo-auth');
             setIsAuthenticated(storedAuth === 'true');
         } catch (error) {
-            console.error('Could not access session storage:', error);
+            console.error('Could not access local storage:', error);
             setIsAuthenticated(false);
         } finally {
             setIsLoaded(true);
@@ -35,7 +35,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const login = (username?: string, password?: string) => {
         const creds = getCredentials();
         if (username === creds.username && password === creds.password) {
-            sessionStorage.setItem('ss-cargo-auth', 'true');
+            localStorage.setItem('ss-cargo-auth', 'true');
             setIsAuthenticated(true);
             return true;
         }
@@ -43,7 +43,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     };
 
     const logout = () => {
-        sessionStorage.removeItem('ss-cargo-auth');
+        localStorage.removeItem('ss-cargo-auth');
         setIsAuthenticated(false);
     };
 
