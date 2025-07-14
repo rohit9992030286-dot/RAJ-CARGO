@@ -17,10 +17,12 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { Calendar } from '@/components/ui/calendar';
 import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
+import { useWaybillInventory } from '@/hooks/useWaybillInventory';
 
 
 export default function WaybillsPage() {
   const { waybills, deleteWaybill, updateWaybill, isLoaded, addWaybill } = useWaybills();
+  const { addWaybillToInventory } = useWaybillInventory();
   const [selectedWaybillIds, setSelectedWaybillIds] = useState<string[]>([]);
   const [currentPage, setCurrentPage] = useState(1);
   const [searchTerm, setSearchTerm] = useState('');
@@ -146,6 +148,8 @@ export default function WaybillsPage() {
                     if (addWaybill(parsed)) {
                         addedCount++;
                     } else {
+                        // If it fails to add (e.g. duplicate), add to inventory instead.
+                        addWaybillToInventory(parsed.waybillNumber);
                         skippedCount++;
                     }
                 } catch(error) {

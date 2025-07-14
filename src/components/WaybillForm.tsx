@@ -15,6 +15,7 @@ import { User, Phone, Package, Weight, Calendar, ListChecks, Save, XCircle, MapP
 import { Textarea } from './ui/textarea';
 import { pincodeLookup } from '@/ai/flows/pincode-lookup';
 import { useState, useEffect } from 'react';
+import { useWaybillInventory } from '@/hooks/useWaybillInventory';
 
 interface WaybillFormProps {
   initialData?: Waybill;
@@ -58,6 +59,7 @@ export function WaybillForm({ initialData, onSave, onCancel }: WaybillFormProps)
   const { toast } = useToast();
   const [isSenderPincodeLoading, setIsSenderPincodeLoading] = useState(false);
   const [isReceiverPincodeLoading, setIsReceiverPincodeLoading] = useState(false);
+  const { waybillInventory } = useWaybillInventory();
 
   const form = useForm<WaybillFormData>({
     resolver: zodResolver(waybillFormSchema),
@@ -324,20 +326,31 @@ export function WaybillForm({ initialData, onSave, onCancel }: WaybillFormProps)
           <CardContent className="space-y-6">
              <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-4">
                 <FormField
-                    control={form.control}
-                    name="waybillNumber"
-                    render={({ field }) => (
-                    <FormItem>
-                        <FormLabel>Waybill Number</FormLabel>
-                        <div className="relative">
-                        <FormControl>
-                            <Input placeholder="e.g., SW-123456" {...field} className="pl-10" disabled={!!initialData} />
-                        </FormControl>
-                        <IconWrapper><Hash /></IconWrapper>
-                        </div>
-                        <FormMessage />
-                    </FormItem>
-                    )}
+                  control={form.control}
+                  name="waybillNumber"
+                  render={({ field }) => (
+                  <FormItem>
+                      <FormLabel>Waybill Number</FormLabel>
+                       <Select onValueChange={field.onChange} defaultValue={field.value} disabled={!!initialData}>
+                          <FormControl>
+                          <div className="relative">
+                              <SelectTrigger className="pl-10">
+                                  <SelectValue placeholder="Select from inventory" />
+                              </SelectTrigger>
+                              <IconWrapper><Hash /></IconWrapper>
+                          </div>
+                          </FormControl>
+                          <SelectContent>
+                          {initialData && <SelectItem value={initialData.waybillNumber}>{initialData.waybillNumber}</SelectItem>}
+                          {waybillInventory.map(wbNumber => (
+                              <SelectItem key={wbNumber} value={wbNumber}>{wbNumber}</SelectItem>
+                          ))}
+                           {waybillInventory.length === 0 && !initialData && <div className="p-2 text-center text-sm text-muted-foreground">No available numbers. Add some in Waybill Inventory.</div>}
+                          </SelectContent>
+                      </Select>
+                      <FormMessage />
+                  </FormItem>
+                  )}
                 />
                 <FormField
                     control={form.control}

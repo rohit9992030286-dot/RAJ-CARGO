@@ -9,10 +9,12 @@ import { Loader2 } from 'lucide-react';
 
 const WAYBILL_STORAGE_KEY = 'ss-cargo-waybills';
 const MANIFEST_STORAGE_KEY = 'ss-cargo-manifests';
+const WAYBILL_INVENTORY_KEY = 'ss-cargo-waybill-inventory';
 
 interface DataContextType {
   waybills: Waybill[];
   manifests: Manifest[];
+  waybillInventory: string[];
   isLoaded: boolean;
   addWaybill: (waybill: Waybill) => boolean;
   updateWaybill: (updatedWaybill: Waybill) => void;
@@ -22,6 +24,8 @@ interface DataContextType {
   updateManifest: (updatedManifest: Manifest) => void;
   deleteManifest: (id: string) => void;
   getManifestById: (id: string) => Manifest | undefined;
+  addWaybillToInventory: (waybillNumber: string) => boolean;
+  removeWaybillFromInventory: (waybillNumber: string) => void;
 }
 
 export const DataContext = createContext<DataContextType | undefined>(undefined);
@@ -29,6 +33,7 @@ export const DataContext = createContext<DataContextType | undefined>(undefined)
 export function DataProvider({ children }: { children: ReactNode }) {
   const [waybillsData, setWaybillsData] = useState<Waybill[]>([]);
   const [manifestsData, setManifestsData] = useState<Manifest[]>([]);
+  const [waybillInventoryData, setWaybillInventoryData] = useState<string[]>([]);
   const [isLoaded, setIsLoaded] = useState(false);
   const { toast } = useToast();
 
@@ -49,6 +54,15 @@ export function DataProvider({ children }: { children: ReactNode }) {
           setManifestsData(parsedManifests);
         }
       }
+
+      const inventoryItems = window.localStorage.getItem(WAYBILL_INVENTORY_KEY);
+      if (inventoryItems) {
+        const parsedInventory = JSON.parse(inventoryItems);
+        if(Array.isArray(parsedInventory)) {
+            setWaybillInventoryData(parsedInventory);
+        }
+      }
+
     } catch (error) {
       console.error('Failed to load data from local storage', error);
       toast({
@@ -91,6 +105,21 @@ export function DataProvider({ children }: { children: ReactNode }) {
     }
   }, [manifestsData, isLoaded, toast]);
 
+  useEffect(() => {
+    if (isLoaded) {
+      try {
+        window.localStorage.setItem(WAYBILL_INVENTORY_KEY, JSON.stringify(waybillInventoryData));
+      } catch (error) {
+        console.error('Failed to save waybill inventory to local storage', error);
+        toast({
+          title: 'Error',
+          description: 'Could not save waybill inventory.',
+          variant: 'destructive',
+        });
+      }
+    }
+  }, [waybillInventoryData, isLoaded, toast]);
+
   const sortedWaybills = useMemo(() => {
     return [...waybillsData].sort((a,b) => new Date(b.shippingDate).getTime() - new Date(a.shippingDate).getTime())
   }, [waybillsData]);
@@ -98,6 +127,10 @@ export function DataProvider({ children }: { children: ReactNode }) {
   const sortedManifests = useMemo(() => {
     return [...manifestsData].sort((a,b) => new Date(b.date).getTime() - new Date(a.date).getTime());
   }, [manifestsData]);
+  
+  const sortedInventory = useMemo(() => {
+    return [...waybillInventoryData].sort();
+  }, [waybillInventoryData]);
 
   const addWaybill = useCallback((waybill: Waybill) => {
     if (waybillsData.some(w => w.waybillNumber === waybill.waybillNumber)) {
@@ -109,6 +142,8 @@ export function DataProvider({ children }: { children: ReactNode }) {
         return false;
     }
     setWaybillsData(prev => [waybill, ...prev]);
+    // Remove from inventory when used
+    setWaybillInventoryData(prev => prev.filter(item => item !== waybill.waybillNumber));
     return true;
   }, [waybillsData, toast]);
 
@@ -127,6 +162,13 @@ export function DataProvider({ children }: { children: ReactNode }) {
              toast({
                 title: 'Waybill Deleted',
                 description: `Waybill #${waybillToDelete.waybillNumber} deleted.`,
+            });
+            // Add back to inventory if deleted
+            setWaybillInventoryData(prevInv => {
+                if (!prevInv.includes(waybillToDelete.waybillNumber)) {
+                    return [...prevInv, waybillToDelete.waybillNumber];
+                }
+                return prevInv;
             });
         }
         return prev.filter(w => w.id !== id);
@@ -171,9 +213,27 @@ export function DataProvider({ children }: { children: ReactNode }) {
     return manifestsData.find(m => m.id === id);
   }, [manifestsData]);
 
+  const addWaybillToInventory = useCallback((waybillNumber: string) => {
+    if (waybillInventoryData.includes(waybillNumber) || waybillsData.some(w => w.waybillNumber === waybillNumber)) {
+        toast({
+            title: "Waybill number already exists",
+            description: `The waybill number ${waybillNumber} is already in the inventory or in use.`,
+            variant: "destructive"
+        });
+        return false;
+    }
+    setWaybillInventoryData(prev => [...prev, waybillNumber]);
+    return true;
+  }, [waybillInventoryData, waybillsData, toast]);
+
+  const removeWaybillFromInventory = useCallback((waybillNumber: string) => {
+    setWaybillInventoryData(prev => prev.filter(item => item !== waybillNumber));
+  }, []);
+
   const value = {
     waybills: sortedWaybills,
     manifests: sortedManifests,
+    waybillInventory: sortedInventory,
     isLoaded,
     addWaybill,
     updateWaybill,
@@ -183,6 +243,8 @@ export function DataProvider({ children }: { children: ReactNode }) {
     updateManifest,
     deleteManifest,
     getManifestById,
+    addWaybillToInventory,
+    removeWaybillFromInventory,
   };
 
   if (!isLoaded) {
