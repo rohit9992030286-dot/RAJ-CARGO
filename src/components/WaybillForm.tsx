@@ -10,7 +10,6 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
 import { Waybill, waybillFormSchema, WaybillFormData } from '@/types/waybill';
-import { AddressAutocompleteInput } from './AddressAutocompleteInput';
 import { User, Phone, Package, Weight, Calendar, ListChecks, Save, XCircle, MapPin, Hash, Box, IndianRupee, Clock, Building, Loader2, FileText } from 'lucide-react';
 import { Textarea } from './ui/textarea';
 import { pincodeLookup } from '@/ai/flows/pincode-lookup';
