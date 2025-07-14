@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useForm } from 'react-hook-form';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
@@ -21,7 +21,7 @@ import {
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/hooks/useAuth.tsx';
-import { Moon, Sun, Trash2, Save, User, KeyRound, PlusCircle, Hash, Download, Loader2, AlertCircle } from 'lucide-react';
+import { Moon, Sun, Trash2, Save, User, KeyRound, PlusCircle, Hash, Download, Upload, Loader2, AlertCircle } from 'lucide-react';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { useWaybillInventory } from '@/hooks/useWaybillInventory';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
@@ -187,6 +187,7 @@ function SettingsPageContent({ waybillInventory, addWaybillToInventory, removeWa
   const { updateCredentials } = useAuth();
   const [theme, setTheme] = useState<Theme>('system');
   const [stickerSize, setStickerSize] = useState<StickerSize>('4x6');
+  const importFileRef = useRef<HTMLInputElement>(null);
 
   const accountForm = useForm({
     defaultValues: { username: '', password: '' },
@@ -301,6 +302,45 @@ function SettingsPageContent({ waybillInventory, addWaybillToInventory, removeWa
         variant: 'destructive',
       });
     }
+  };
+
+  const handleImportFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      try {
+        const text = e.target?.result as string;
+        const data = JSON.parse(text);
+
+        if (Array.isArray(data.waybills) && Array.isArray(data.manifests) && Array.isArray(data.waybillInventory)) {
+          localStorage.setItem('ss-cargo-waybills', JSON.stringify(data.waybills));
+          localStorage.setItem('ss-cargo-manifests', JSON.stringify(data.manifests));
+          localStorage.setItem('ss-cargo-waybill-inventory', JSON.stringify(data.waybillInventory));
+          toast({
+            title: 'Import Successful',
+            description: 'Your data has been restored from the backup file.',
+          });
+          setTimeout(() => window.location.reload(), 1000);
+        } else {
+          throw new Error('Invalid JSON structure. The file must contain waybills, manifests, and waybillInventory arrays.');
+        }
+      } catch (err) {
+        const errorMessage = err instanceof Error ? err.message : 'An unknown error occurred.';
+        toast({
+          title: 'Import Failed',
+          description: `Could not import data. Please check the file format. Error: ${errorMessage}`,
+          variant: 'destructive',
+        });
+      } finally {
+        // Reset file input to allow re-selection of the same file
+        if (importFileRef.current) {
+          importFileRef.current.value = '';
+        }
+      }
+    };
+    reader.readAsText(file);
   };
   
   return (
@@ -501,16 +541,51 @@ function SettingsPageContent({ waybillInventory, addWaybillToInventory, removeWa
           <CardDescription>Manage application data stored in your browser.</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div className="flex items-center justify-between">
-            <div>
-                <Label className="font-medium">Export All Data</Label>
-                <p className="text-sm text-muted-foreground">Save a JSON backup file to your local machine.</p>
+           <div className="flex items-center justify-between">
+                <div>
+                    <Label className="font-medium">Export All Data</Label>
+                    <p className="text-sm text-muted-foreground">Save a JSON backup file to your local machine.</p>
+                </div>
+                <Button variant="outline" onClick={handleExportData}>
+                    <Download className="mr-2 h-4 w-4" />
+                    Export Data
+                </Button>
             </div>
-            <Button variant="outline" onClick={handleExportData}>
-              <Download className="mr-2 h-4 w-4" />
-              Export
-            </Button>
-          </div>
+            <div className="flex items-center justify-between pt-4 border-t">
+                <div>
+                    <Label className="font-medium">Import Data from JSON</Label>
+                    <p className="text-sm text-muted-foreground">Restore data from a backup file. This will overwrite existing data.</p>
+                </div>
+                <AlertDialog>
+                    <AlertDialogTrigger asChild>
+                        <Button variant="outline">
+                            <Upload className="mr-2 h-4 w-4" />
+                            Import Data
+                        </Button>
+                    </AlertDialogTrigger>
+                    <AlertDialogContent>
+                        <AlertDialogHeader>
+                            <AlertDialogTitle>Are you sure you want to import data?</AlertDialogTitle>
+                            <AlertDialogDescription>
+                                This will overwrite all current waybills, manifests, and inventory with the data from the selected file. This action cannot be undone.
+                            </AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter>
+                            <AlertDialogCancel>Cancel</AlertDialogCancel>
+                            <AlertDialogAction onClick={() => importFileRef.current?.click()}>
+                                Yes, Overwrite and Import
+                            </AlertDialogAction>
+                        </AlertDialogFooter>
+                    </AlertDialogContent>
+                </AlertDialog>
+                <input
+                    type="file"
+                    ref={importFileRef}
+                    className="hidden"
+                    accept="application/json"
+                    onChange={handleImportFileChange}
+                />
+            </div>
           <div className="flex items-center justify-between pt-4 border-t">
             <div>
                 <Label className="font-medium">Clear All Local Data</Label>
@@ -563,5 +638,3 @@ export default function SettingsPage() {
     removeWaybillFromInventory={removeWaybillFromInventory}
   />;
 }
-
-    
