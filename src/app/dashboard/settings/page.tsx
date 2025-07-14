@@ -21,13 +21,14 @@ import {
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/hooks/useAuth.tsx';
-import { Moon, Sun, Trash2, Save, User, KeyRound, Building, MapPin, Phone, PlusCircle, Warehouse, Hash, Download, Loader2 } from 'lucide-react';
+import { Moon, Sun, Trash2, Save, User, KeyRound, Building, MapPin, Phone, PlusCircle, Warehouse, Hash, Download, Loader2, AlertCircle } from 'lucide-react';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { useWaybillInventory } from '@/hooks/useWaybillInventory';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { saveAs } from 'file-saver';
 import { useGoogleLogin } from '@react-oauth/google';
 import { saveToGoogleDrive } from '@/lib/gdrive';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 
 type Theme = 'light' | 'dark' | 'system';
 type StickerSize = '4x6' | '3x2' | 'compact' | '75mm';
@@ -177,6 +178,7 @@ function SettingsPageContent({ waybillInventory, addWaybillToInventory, removeWa
   const [theme, setTheme] = useState<Theme>('system');
   const [stickerSize, setStickerSize] = useState<StickerSize>('4x6');
   const [isDriveSaving, setIsDriveSaving] = useState(false);
+  const isGoogleDriveConfigured = !!process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID;
 
   const accountForm = useForm({
     defaultValues: { username: '', password: '' },
@@ -528,6 +530,15 @@ function SettingsPageContent({ waybillInventory, addWaybillToInventory, removeWa
           <CardDescription>Manage application data stored in your browser or cloud.</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
+          {!isGoogleDriveConfigured && (
+              <Alert variant="default">
+                  <AlertCircle className="h-4 w-4" />
+                  <AlertTitle>Google Drive Backup Not Configured</AlertTitle>
+                  <AlertDescription>
+                    To enable Google Drive backups, please add your Google OAuth Client ID to the `.env` file as `NEXT_PUBLIC_GOOGLE_CLIENT_ID`.
+                  </AlertDescription>
+              </Alert>
+          )}
           <div className="flex items-center justify-between">
             <div>
                 <Label className="font-medium">Export All Data</Label>
@@ -543,7 +554,7 @@ function SettingsPageContent({ waybillInventory, addWaybillToInventory, removeWa
                 <Label className="font-medium">Save to Google Drive</Label>
                 <p className="text-sm text-muted-foreground">Save an encrypted backup to your Google Drive.</p>
             </div>
-            <Button variant="outline" onClick={() => handleSaveToDrive()} disabled={isDriveSaving}>
+            <Button variant="outline" onClick={() => handleSaveToDrive()} disabled={isDriveSaving || !isGoogleDriveConfigured}>
               {isDriveSaving ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Save className="mr-2 h-4 w-4" />}
               {isDriveSaving ? 'Saving...' : 'Save to Drive'}
             </Button>
