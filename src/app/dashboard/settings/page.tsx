@@ -28,7 +28,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { saveAs } from 'file-saver';
 
 type Theme = 'light' | 'dark' | 'system';
-type StickerSize = '4x6' | '3x2';
+type StickerSize = '4x6' | '3x2' | 'compact';
 
 interface WaybillInventorySettingsProps {
     waybillInventory: string[];
@@ -227,7 +227,7 @@ function SettingsPageContent() {
     localStorage.setItem('ss-cargo-stickerSize', newSize);
     toast({
       title: 'Sticker Size Updated',
-      description: `Default print size set to ${newSize} inches.`,
+      description: `Default print size set to ${newSize}.`,
     });
   };
 
@@ -335,16 +335,21 @@ function SettingsPageContent() {
                 </div>
                 <div>
                    <Label className="font-medium">Sticker Print Size</Label>
-                   <RadioGroup value={stickerSize} onValueChange={(value: StickerSize) => handleStickerSizeChange(value)} className="grid grid-cols-2 gap-4 mt-2">
+                   <RadioGroup value={stickerSize} onValueChange={(value: StickerSize) => handleStickerSizeChange(value)} className="grid grid-cols-3 gap-4 mt-2">
                         <Label htmlFor="size-4x6" className="flex flex-col items-center justify-center rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground [&:has([data-state=checked])]:border-primary">
                            <RadioGroupItem value="4x6" id="size-4x6" className="sr-only" />
                            <span className="font-bold text-lg">4" x 6"</span>
-                           <span className="text-sm text-muted-foreground">Standard</span>
+                           <span className="text-xs text-muted-foreground">Large</span>
                        </Label>
                        <Label htmlFor="size-3x2" className="flex flex-col items-center justify-center rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground [&:has([data-state=checked])]:border-primary">
                            <RadioGroupItem value="3x2" id="size-3x2" className="sr-only" />
                            <span className="font-bold text-lg">3" x 2"</span>
-                            <span className="text-sm text-muted-foreground">Small</span>
+                            <span className="text-xs text-muted-foreground">Medium</span>
+                       </Label>
+                       <Label htmlFor="size-compact" className="flex flex-col items-center justify-center rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground [&:has([data-state=checked])]:border-primary">
+                           <RadioGroupItem value="compact" id="size-compact" className="sr-only" />
+                           <span className="font-bold text-lg">Compact</span>
+                           <span className="text-xs text-muted-foreground">Small</span>
                        </Label>
                    </RadioGroup>
                 </div>
@@ -545,6 +550,8 @@ export default function SettingsPage() {
 
   return <SettingsPageContent />;
 }
+
+    
 
     
 

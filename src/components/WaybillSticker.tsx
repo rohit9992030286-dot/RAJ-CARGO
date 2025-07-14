@@ -6,7 +6,7 @@ import { Truck, Building, Phone, Box, Weight } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useEffect, useState } from 'react';
 
-type StickerSize = '4x6' | '3x2';
+type StickerSize = '4x6' | '3x2' | 'compact';
 
 interface WaybillStickerProps {
   waybill: Waybill;
@@ -21,7 +21,7 @@ export function WaybillSticker({ waybill, storeCode, boxNumber, totalBoxes }: Wa
   useEffect(() => {
     try {
       const storedSize = localStorage.getItem('ss-cargo-stickerSize') as StickerSize;
-      if (storedSize && ['4x6', '3x2'].includes(storedSize)) {
+      if (storedSize && ['4x6', '3x2', 'compact'].includes(storedSize)) {
         setSize(storedSize);
       }
     } catch (error) {
@@ -36,6 +36,36 @@ export function WaybillSticker({ waybill, storeCode, boxNumber, totalBoxes }: Wa
       </g>
     </svg>
   );
+
+  if (size === 'compact') {
+      return (
+        <div className="w-[3.5in] h-[2.5in] bg-white text-black font-sans flex flex-col p-1 border border-black">
+          <div className="flex justify-between items-center border-b border-black pb-1">
+            <h1 className="text-xl font-bold">SME</h1>
+            <p className="text-xs">ANY WHERE TO EVERY WHERE</p>
+          </div>
+          <div className="flex-grow flex flex-col justify-center items-center border-b border-black py-1">
+            <p className="text-xs self-start">AWB. NO.:</p>
+            <div className="w-48 h-8">
+                <Barcode />
+            </div>
+            <p className="font-mono font-bold text-lg tracking-wider">{waybill.waybillNumber}</p>
+          </div>
+          <div className="grid grid-cols-3 border-b border-black">
+            <div className="col-span-2 border-r border-black p-1">
+                <p className="text-xs">FROM: <span className="font-bold">{(waybill.senderCity || '').toUpperCase()}</span></p>
+            </div>
+            <div className="p-1 text-center">
+                <p className="text-xs">NOS OF PKGS</p>
+                <p className="font-bold text-lg">{waybill.numberOfBoxes}</p>
+            </div>
+          </div>
+          <div className="p-1">
+              <p className="text-xs">TO: <span className="font-bold text-lg">{(waybill.receiverCity || '').toUpperCase()} {waybill.receiverPincode}</span></p>
+          </div>
+        </div>
+      )
+  }
 
   const destinationTextSize = size === '4x6' ? 'text-7xl' : 'text-5xl';
   const pincodeTextSize = size === '4x6' ? 'text-6xl' : 'text-4xl';
@@ -109,3 +139,5 @@ export function WaybillSticker({ waybill, storeCode, boxNumber, totalBoxes }: Wa
     </div>
   );
 }
+
+    
