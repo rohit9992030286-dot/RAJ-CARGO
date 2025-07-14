@@ -44,7 +44,7 @@ export const waybillFormSchema = baseWaybillSchema.superRefine((data, ctx) => {
 });
 
 // Full schema for the data model, including the 'id'.
-export const waybillSchema = baseWaybillSchema.extend({
+export const waybillSchema = waybillFormSchema.extend({
   id: z.string().uuid(),
 });
 

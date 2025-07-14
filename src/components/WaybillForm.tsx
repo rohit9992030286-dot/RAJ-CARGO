@@ -23,12 +23,7 @@ interface WaybillFormProps {
 }
 
 const getInitialValues = (initialData?: Waybill): WaybillFormData => {
-    if (initialData) {
-        const { id, ...formData } = initialData;
-        return formData;
-    }
-    
-    return {
+    const defaults = {
         waybillNumber: '',
         invoiceNumber: '',
         eWayBillNo: '',
@@ -48,8 +43,15 @@ const getInitialValues = (initialData?: Waybill): WaybillFormData => {
         shipmentValue: 0,
         shippingDate: new Date().toISOString().split('T')[0],
         shippingTime: '10:00',
-        status: 'Pending',
+        status: 'Pending' as 'Pending',
     };
+    
+    if (initialData) {
+        const { id, ...formData } = initialData;
+        return { ...defaults, ...formData };
+    }
+    
+    return defaults;
 };
 
 export function WaybillForm({ initialData, onSave, onCancel }: WaybillFormProps) {
@@ -69,23 +71,20 @@ export function WaybillForm({ initialData, onSave, onCancel }: WaybillFormProps)
   });
 
   useEffect(() => {
+    const values = getInitialValues(initialData);
     if (!initialData) {
       try {
         const storedSender = localStorage.getItem('ss-cargo-defaultSender');
         if (storedSender) {
           const defaultSender = JSON.parse(storedSender);
-          const currentValues = form.getValues();
-          form.reset({
-            ...currentValues, 
-            ...defaultSender,
-          });
+          // Only apply default sender if creating a new waybill
+          Object.assign(values, defaultSender);
         }
       } catch (error) {
         console.error('Could not get default sender from local storage', error);
       }
-    } else {
-        form.reset(getInitialValues(initialData));
     }
+    form.reset(values);
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [initialData]);
 
