@@ -205,7 +205,8 @@ function SettingsPageContent() {
         senderForm.reset(sender);
     } catch { /* ignore */ }
 
-  }, [accountForm, senderForm]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const handleThemeChange = (newTheme: Theme) => {
     setTheme(newTheme);
@@ -550,5 +551,3 @@ export default function SettingsPage() {
 
   return <SettingsPageContent />;
 }
-
-    
