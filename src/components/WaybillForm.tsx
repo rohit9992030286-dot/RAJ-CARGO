@@ -9,7 +9,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
-import { Waybill, waybillSchema } from '@/types/waybill';
+import { Waybill, waybillFormSchema, WaybillFormData } from '@/types/waybill';
 import { AddressAutocompleteInput } from './AddressAutocompleteInput';
 import { User, Phone, Package, Weight, Calendar, ListChecks, Save, XCircle, MapPin, Hash, Box, IndianRupee, Clock, Building, Loader2, FileText } from 'lucide-react';
 import { Textarea } from './ui/textarea';
@@ -22,8 +22,6 @@ interface WaybillFormProps {
   onSave: (data: Waybill) => boolean; // Return boolean to indicate success
   onCancel: () => void;
 }
-
-type WaybillFormData = Omit<Waybill, 'id'>;
 
 const getInitialValues = (initialData?: Waybill): WaybillFormData => {
     if (initialData) {
@@ -61,7 +59,7 @@ export function WaybillForm({ initialData, onSave, onCancel }: WaybillFormProps)
   const [isReceiverPincodeLoading, setIsReceiverPincodeLoading] = useState(false);
 
   const form = useForm<WaybillFormData>({
-    resolver: zodResolver(waybillSchema.omit({ id: true })),
+    resolver: zodResolver(waybillFormSchema),
     defaultValues: getInitialValues(initialData),
     mode: 'onChange'
   });

@@ -1,7 +1,7 @@
 import { z } from 'zod';
 
-export const waybillSchema = z.object({
-  id: z.string().uuid(),
+// Base schema for the form, without the 'id'
+export const waybillFormSchema = z.object({
   waybillNumber: z.string().min(1, 'Waybill number is required.'),
   invoiceNumber: z.string({ required_error: "Invoice number is required."}).min(1, { message: 'Invoice number is required.' }),
   eWayBillNo: z.string().optional(),
@@ -39,5 +39,11 @@ export const waybillSchema = z.object({
     }
 });
 
+// Full schema for the data model, including the 'id'
+export const waybillSchema = waybillFormSchema.extend({
+  id: z.string().uuid(),
+});
+
 
 export type Waybill = z.infer<typeof waybillSchema>;
+export type WaybillFormData = z.infer<typeof waybillFormSchema>;
