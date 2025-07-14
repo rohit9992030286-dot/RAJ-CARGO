@@ -167,12 +167,13 @@ function WaybillInventorySettings({ waybillInventory, addWaybillToInventory, rem
   )
 }
 
-function SettingsPageContent() {
+interface SettingsPageContentProps extends WaybillInventorySettingsProps {}
+
+function SettingsPageContent({ waybillInventory, addWaybillToInventory, removeWaybillFromInventory }: SettingsPageContentProps) {
   const { toast } = useToast();
   const { updateCredentials } = useAuth();
   const [theme, setTheme] = useState<Theme>('system');
   const [stickerSize, setStickerSize] = useState<StickerSize>('4x6');
-  const { waybillInventory, addWaybillToInventory, removeWaybillFromInventory } = useWaybillInventory();
 
   const accountForm = useForm({
     defaultValues: { username: '', password: '' },
@@ -544,7 +545,7 @@ function SettingsPageContent() {
 
 
 export default function SettingsPage() {
-  const { isInventoryLoaded } = useWaybillInventory();
+  const { isInventoryLoaded, waybillInventory, addWaybillToInventory, removeWaybillFromInventory } = useWaybillInventory();
 
   if (!isInventoryLoaded) {
     return (
@@ -554,5 +555,9 @@ export default function SettingsPage() {
     );
   }
 
-  return <SettingsPageContent />;
+  return <SettingsPageContent 
+    waybillInventory={waybillInventory}
+    addWaybillToInventory={addWaybillToInventory}
+    removeWaybillFromInventory={removeWaybillFromInventory}
+  />;
 }
