@@ -21,10 +21,11 @@ import {
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/hooks/useAuth.tsx';
-import { Moon, Sun, Trash2, Save, User, KeyRound, Building, MapPin, Phone, PlusCircle, Warehouse, Hash } from 'lucide-react';
+import { Moon, Sun, Trash2, Save, User, KeyRound, Building, MapPin, Phone, PlusCircle, Warehouse, Hash, Download } from 'lucide-react';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { useWaybillInventory } from '@/hooks/useWaybillInventory';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { saveAs } from 'file-saver';
 
 type Theme = 'light' | 'dark' | 'system';
 type StickerSize = '4x6' | '3x2';
@@ -218,6 +219,36 @@ export default function SettingsPage() {
     }
   };
 
+  const handleExportData = () => {
+    try {
+      const waybills = localStorage.getItem('ss-cargo-waybills') || '[]';
+      const manifests = localStorage.getItem('ss-cargo-manifests') || '[]';
+      const inventory = localStorage.getItem('ss-cargo-waybill-inventory') || '[]';
+
+      const allData = {
+        waybills: JSON.parse(waybills),
+        manifests: JSON.parse(manifests),
+        waybillInventory: JSON.parse(inventory),
+        exportDate: new Date().toISOString(),
+      };
+
+      const blob = new Blob([JSON.stringify(allData, null, 2)], { type: 'application/json' });
+      saveAs(blob, 'ss_cargo_backup.json');
+
+      toast({
+        title: 'Data Exported',
+        description: 'Your data has been saved to ss_cargo_backup.json.',
+      });
+
+    } catch (error) {
+       toast({
+        title: 'Error Exporting Data',
+        description: 'Could not export your data.',
+        variant: 'destructive',
+      });
+    }
+  };
+
   return (
     <div className="space-y-8 max-w-4xl mx-auto">
       <div>
@@ -405,8 +436,18 @@ export default function SettingsPage() {
           <CardTitle>Data Management</CardTitle>
           <CardDescription>Manage application data stored in your browser.</CardDescription>
         </CardHeader>
-        <CardContent>
+        <CardContent className="space-y-4">
           <div className="flex items-center justify-between">
+            <div>
+                <Label className="font-medium">Export All Data</Label>
+                <p className="text-sm text-muted-foreground">Save a JSON file of all waybills, manifests, and inventory.</p>
+            </div>
+            <Button variant="outline" onClick={handleExportData}>
+              <Download className="mr-2 h-4 w-4" />
+              Export
+            </Button>
+          </div>
+          <div className="flex items-center justify-between pt-4 border-t">
             <div>
                 <Label className="font-medium">Clear All Local Data</Label>
                 <p className="text-sm text-muted-foreground">This will permanently delete all waybills, manifests, and inventory.</p>
