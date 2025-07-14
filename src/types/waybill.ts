@@ -23,10 +23,10 @@ export const waybillFormSchema = z.object({
   numberOfBoxes: z.coerce.number({ required_error: "Number of boxes is required."}).int().min(1, {message: 'Must have at least one box.'}),
   shipmentValue: z.coerce.number({ required_error: "Shipment value is required."}).nonnegative({ message: 'Value must be a positive number.' }),
 
-  shippingDate: z.string().min(1, 'Shipping date is required').default(() => new Date().toISOString().split('T')[0]),
-  shippingTime: z.string().min(1, 'Shipping time is required').default('10:00'),
+  shippingDate: z.string().min(1, 'Shipping date is required'),
+  shippingTime: z.string().min(1, 'Shipping time is required'),
   
-  status: z.enum(['Pending', 'In Transit', 'Delivered', 'Cancelled']).default('Pending'),
+  status: z.enum(['Pending', 'In Transit', 'Delivered', 'Cancelled']),
 }).superRefine((data, ctx) => {
     if (data.shipmentValue >= 50000) {
         if (!data.eWayBillNo || data.eWayBillNo.trim() === '') {
