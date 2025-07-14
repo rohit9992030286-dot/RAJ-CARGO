@@ -178,7 +178,14 @@ function SettingsPageContent({ waybillInventory, addWaybillToInventory, removeWa
   const [theme, setTheme] = useState<Theme>('system');
   const [stickerSize, setStickerSize] = useState<StickerSize>('4x6');
   const [isDriveSaving, setIsDriveSaving] = useState(false);
-  const isGoogleDriveConfigured = !!process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID;
+  
+  const [isGoogleDriveConfigured, setIsGoogleDriveConfigured] = useState(false);
+
+  useEffect(() => {
+    // This effect runs on the client and can safely access process.env
+    setIsGoogleDriveConfigured(!!process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID);
+  }, []);
+
 
   const accountForm = useForm({
     defaultValues: { username: '', password: '' },
@@ -619,3 +626,5 @@ export default function SettingsPage() {
     removeWaybillFromInventory={removeWaybillFromInventory}
   />;
 }
+
+    
