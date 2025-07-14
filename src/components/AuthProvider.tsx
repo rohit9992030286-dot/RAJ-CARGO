@@ -60,19 +60,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     const value = { isAuthenticated, isLoaded, login, logout, updateCredentials };
 
-    if (clientId) {
-      return (
+    // The GoogleOAuthProvider must wrap any component that uses useGoogleLogin.
+    // If clientId is not provided, the hook will still work, but the login will fail.
+    // The UI should handle disabling the feature if the clientId is missing.
+    return (
         <AuthContext.Provider value={value}>
             <GoogleOAuthProvider clientId={clientId}>
                 {children}
             </GoogleOAuthProvider>
-        </AuthContext.Provider>
-      );
-    }
-    
-    return (
-        <AuthContext.Provider value={value}>
-            {children}
         </AuthContext.Provider>
     );
 }

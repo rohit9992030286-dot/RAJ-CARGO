@@ -207,7 +207,7 @@ function SettingsPageContent({ waybillInventory, addWaybillToInventory, removeWa
       return JSON.stringify(allData, null, 2);
   }
 
-  const handleSaveToDrive = useGoogleLogin({
+  const login = useGoogleLogin({
     onSuccess: async (tokenResponse) => {
         setIsDriveSaving(true);
         toast({ title: 'Saving to Google Drive...', description: 'Please wait, this may take a moment.' });
@@ -229,6 +229,14 @@ function SettingsPageContent({ waybillInventory, addWaybillToInventory, removeWa
     },
     scope: 'https://www.googleapis.com/auth/drive.file',
   });
+
+  const handleSaveToDrive = () => {
+    if (!isGoogleDriveConfigured) {
+        toast({ title: "Google Drive Not Configured", description: "Administrator must provide a Google Client ID in settings.", variant: "destructive" });
+        return;
+    }
+    login();
+  }
 
 
   useEffect(() => {
@@ -554,7 +562,7 @@ function SettingsPageContent({ waybillInventory, addWaybillToInventory, removeWa
                 <Label className="font-medium">Save to Google Drive</Label>
                 <p className="text-sm text-muted-foreground">Save an encrypted backup to your Google Drive.</p>
             </div>
-            <Button variant="outline" onClick={() => handleSaveToDrive()} disabled={isDriveSaving || !isGoogleDriveConfigured}>
+            <Button variant="outline" onClick={handleSaveToDrive} disabled={isDriveSaving || !isGoogleDriveConfigured}>
               {isDriveSaving ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Save className="mr-2 h-4 w-4" />}
               {isDriveSaving ? 'Saving...' : 'Save to Drive'}
             </Button>
