@@ -21,14 +21,11 @@ import {
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/hooks/useAuth.tsx';
-import { Moon, Sun, Trash2, Save, User, KeyRound, Building, MapPin, Phone, PlusCircle, Warehouse, Hash, Download, Loader2, AlertCircle } from 'lucide-react';
+import { Moon, Sun, Trash2, Save, User, KeyRound, PlusCircle, Hash, Download, Loader2 } from 'lucide-react';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { useWaybillInventory } from '@/hooks/useWaybillInventory';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { saveAs } from 'file-saver';
-import { useGoogleLogin } from '@react-oauth/google';
-import { saveToGoogleDrive } from '@/lib/gdrive';
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 
 type Theme = 'light' | 'dark' | 'system';
 type StickerSize = '4x6' | '3x2' | 'compact' | '75mm';
@@ -183,21 +180,6 @@ function getBackupData() {
     return JSON.stringify(allData, null, 2);
 }
 
-function GoogleDriveBackup({ onSaveClick, isSaving }: { onSaveClick: () => void, isSaving: boolean }) {
-  return (
-    <div className="flex items-center justify-between pt-4 border-t">
-      <div>
-          <Label className="font-medium">Save to Google Drive</Label>
-          <p className="text-sm text-muted-foreground">Save an encrypted backup to your Google Drive.</p>
-      </div>
-      <Button variant="outline" onClick={onSaveClick} disabled={isSaving}>
-        {isSaving ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Save className="mr-2 h-4 w-4" />}
-        {isSaving ? 'Saving...' : 'Save to Drive'}
-      </Button>
-    </div>
-  );
-}
-
 interface SettingsPageContentProps extends WaybillInventorySettingsProps {}
 
 function SettingsPageContent({ waybillInventory, addWaybillToInventory, removeWaybillFromInventory }: SettingsPageContentProps) {
@@ -205,35 +187,6 @@ function SettingsPageContent({ waybillInventory, addWaybillToInventory, removeWa
   const { updateCredentials } = useAuth();
   const [theme, setTheme] = useState<Theme>('system');
   const [stickerSize, setStickerSize] = useState<StickerSize>('4x6');
-  const [isGoogleDriveConfigured, setIsGoogleDriveConfigured] = useState(false);
-  const [isDriveSaving, setIsDriveSaving] = useState(false);
-  
-  useEffect(() => {
-    setIsGoogleDriveConfigured(!!process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID);
-  }, []);
-
-  const login = isGoogleDriveConfigured ? useGoogleLogin({
-    onSuccess: async (tokenResponse) => {
-        setIsDriveSaving(true);
-        toast({ title: 'Saving to Google Drive...', description: 'Please wait, this may take a moment.' });
-        try {
-            const fileContent = getBackupData();
-            const result = await saveToGoogleDrive(tokenResponse.access_token, fileContent);
-            toast({ title: 'Successfully saved to Google Drive', description: `File '${result.name}' was saved.` });
-        } catch (error) {
-            console.error('Google Drive save error:', error);
-            const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred.';
-            toast({ title: 'Failed to save to Google Drive', description: errorMessage, variant: 'destructive' });
-        } finally {
-            setIsDriveSaving(false);
-        }
-    },
-    onError: (error) => {
-        console.error('Google Login error:', error);
-        toast({ title: 'Google Login Failed', description: 'Could not authenticate with Google.', variant: 'destructive' });
-    },
-    scope: 'https://www.googleapis.com/auth/drive.file',
-  }) : () => {};
 
   const accountForm = useForm({
     defaultValues: { username: '', password: '' },
@@ -545,18 +498,9 @@ function SettingsPageContent({ waybillInventory, addWaybillToInventory, removeWa
       <Card>
         <CardHeader>
           <CardTitle>Data Management</CardTitle>
-          <CardDescription>Manage application data stored in your browser or cloud.</CardDescription>
+          <CardDescription>Manage application data stored in your browser.</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
-          {!isGoogleDriveConfigured && (
-              <Alert variant="default">
-                  <AlertCircle className="h-4 w-4" />
-                  <AlertTitle>Google Drive Backup Not Configured</AlertTitle>
-                  <AlertDescription>
-                    To enable Google Drive backups, please create an OAuth Client ID in your Google Cloud Console and add it to the `.env` file as `NEXT_PUBLIC_GOOGLE_CLIENT_ID`.
-                  </AlertDescription>
-              </Alert>
-          )}
           <div className="flex items-center justify-between">
             <div>
                 <Label className="font-medium">Export All Data</Label>
@@ -567,7 +511,6 @@ function SettingsPageContent({ waybillInventory, addWaybillToInventory, removeWa
               Export
             </Button>
           </div>
-          {isGoogleDriveConfigured && <GoogleDriveBackup onSaveClick={login} isSaving={isDriveSaving} />}
           <div className="flex items-center justify-between pt-4 border-t">
             <div>
                 <Label className="font-medium">Clear All Local Data</Label>

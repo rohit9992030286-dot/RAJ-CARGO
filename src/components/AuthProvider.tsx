@@ -3,13 +3,11 @@
 
 import { useState, useEffect, ReactNode } from 'react';
 import { AuthContext } from '@/hooks/useAuth.tsx';
-import { GoogleOAuthProvider } from '@react-oauth/google';
 
 export function AuthProvider({ children }: { children: ReactNode }) {
     const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
     const [isLoaded, setIsLoaded] = useState(false);
-    const clientId = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID || '';
-
+    
     const getCredentials = () => {
         try {
             const storedCreds = localStorage.getItem('ss-cargo-credentials');
@@ -60,19 +58,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     const value = { isAuthenticated, isLoaded, login, logout, updateCredentials };
 
-    if (!clientId) {
-      return (
-          <AuthContext.Provider value={value}>
-              {children}
-          </AuthContext.Provider>
-      );
-    }
-
     return (
         <AuthContext.Provider value={value}>
-            <GoogleOAuthProvider clientId={clientId}>
-                {children}
-            </GoogleOAuthProvider>
+            {children}
         </AuthContext.Provider>
     );
 }
