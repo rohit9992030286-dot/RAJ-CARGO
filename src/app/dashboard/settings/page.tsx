@@ -21,7 +21,7 @@ import {
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/hooks/useAuth.tsx';
-import { Moon, Sun, Trash2, Save, User, KeyRound, Building, MapPin, Phone, PlusCircle, Warehouse, Hash, Download } from 'lucide-react';
+import { Moon, Sun, Trash2, Save, User, KeyRound, Building, MapPin, Phone, PlusCircle, Warehouse, Hash, Download, Loader2 } from 'lucide-react';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { useWaybillInventory } from '@/hooks/useWaybillInventory';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
@@ -111,19 +111,17 @@ function WaybillInventorySettings({ waybillInventory, addWaybillToInventory, rem
   )
 }
 
-export default function SettingsPage() {
+function SettingsPageContent() {
   const { toast } = useToast();
   const { updateCredentials } = useAuth();
   const [theme, setTheme] = useState<Theme>('system');
   const [stickerSize, setStickerSize] = useState<StickerSize>('4x6');
   const { waybillInventory, addWaybillToInventory, removeWaybillFromInventory } = useWaybillInventory();
 
-  // Form for credentials
   const accountForm = useForm({
     defaultValues: { username: '', password: '' },
   });
 
-  // Form for default sender
   const senderForm = useForm({
     defaultValues: {
       senderName: '',
@@ -135,21 +133,17 @@ export default function SettingsPage() {
   });
 
   useEffect(() => {
-    // Load theme
     const storedTheme = localStorage.getItem('ss-cargo-theme') as Theme | null;
     if (storedTheme) setTheme(storedTheme);
 
-    // Load sticker size
     const storedStickerSize = localStorage.getItem('ss-cargo-stickerSize') as StickerSize | null;
     if (storedStickerSize) setStickerSize(storedStickerSize);
 
-    // Load credentials placeholder
     try {
         const creds = JSON.parse(localStorage.getItem('ss-cargo-credentials') || '{}');
         accountForm.reset({ username: creds.username || 'admin', password: '' });
     } catch { /* ignore */ }
 
-    // Load default sender
     try {
         const sender = JSON.parse(localStorage.getItem('ss-cargo-defaultSender') || '{}');
         senderForm.reset(sender);
@@ -248,7 +242,7 @@ export default function SettingsPage() {
       });
     }
   };
-
+  
   return (
     <div className="space-y-8 max-w-4xl mx-auto">
       <div>
@@ -480,3 +474,20 @@ export default function SettingsPage() {
     </div>
   );
 }
+
+
+export default function SettingsPage() {
+  const { isInventoryLoaded } = useWaybillInventory();
+
+  if (!isInventoryLoaded) {
+    return (
+      <div className="flex justify-center items-center h-64">
+        <Loader2 className="h-16 w-16 animate-spin text-primary" />
+      </div>
+    );
+  }
+
+  return <SettingsPageContent />;
+}
+
+    
