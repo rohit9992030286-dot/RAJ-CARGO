@@ -26,6 +26,8 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '
 import { useWaybillInventory } from '@/hooks/useWaybillInventory';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { saveAs } from 'file-saver';
+import { useGoogleLogin } from '@react-oauth/google';
+import { saveToGoogleDrive } from '@/lib/gdrive';
 
 type Theme = 'light' | 'dark' | 'system';
 type StickerSize = '4x6' | '3x2' | 'compact' | '75mm';
@@ -174,6 +176,7 @@ function SettingsPageContent({ waybillInventory, addWaybillToInventory, removeWa
   const { updateCredentials } = useAuth();
   const [theme, setTheme] = useState<Theme>('system');
   const [stickerSize, setStickerSize] = useState<StickerSize>('4x6');
+  const [isDriveSaving, setIsDriveSaving] = useState(false);
 
   const accountForm = useForm({
     defaultValues: { username: '', password: '' },
@@ -188,6 +191,43 @@ function SettingsPageContent({ waybillInventory, addWaybillToInventory, removeWa
       senderPhone: '',
     },
   });
+
+  const getBackupData = () => {
+      const waybills = localStorage.getItem('ss-cargo-waybills') || '[]';
+      const manifests = localStorage.getItem('ss-cargo-manifests') || '[]';
+      const inventory = localStorage.getItem('ss-cargo-waybill-inventory') || '[]';
+      const allData = {
+        waybills: JSON.parse(waybills),
+        manifests: JSON.parse(manifests),
+        waybillInventory: JSON.parse(inventory),
+        exportDate: new Date().toISOString(),
+      };
+      return JSON.stringify(allData, null, 2);
+  }
+
+  const handleSaveToDrive = useGoogleLogin({
+    onSuccess: async (tokenResponse) => {
+        setIsDriveSaving(true);
+        toast({ title: 'Saving to Google Drive...', description: 'Please wait, this may take a moment.' });
+        try {
+            const fileContent = getBackupData();
+            const result = await saveToGoogleDrive(tokenResponse.access_token, fileContent);
+            toast({ title: 'Successfully saved to Google Drive', description: `File '${result.name}' was saved.` });
+        } catch (error) {
+            console.error('Google Drive save error:', error);
+            const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred.';
+            toast({ title: 'Failed to save to Google Drive', description: errorMessage, variant: 'destructive' });
+        } finally {
+            setIsDriveSaving(false);
+        }
+    },
+    onError: (error) => {
+        console.error('Google Login error:', error);
+        toast({ title: 'Google Login Failed', description: 'Could not authenticate with Google.', variant: 'destructive' });
+    },
+    scope: 'https://www.googleapis.com/auth/drive.file',
+  });
+
 
   useEffect(() => {
     const storedTheme = localStorage.getItem('ss-cargo-theme') as Theme | null;
@@ -273,20 +313,9 @@ function SettingsPageContent({ waybillInventory, addWaybillToInventory, removeWa
 
   const handleExportData = () => {
     try {
-      const waybills = localStorage.getItem('ss-cargo-waybills') || '[]';
-      const manifests = localStorage.getItem('ss-cargo-manifests') || '[]';
-      const inventory = localStorage.getItem('ss-cargo-waybill-inventory') || '[]';
-
-      const allData = {
-        waybills: JSON.parse(waybills),
-        manifests: JSON.parse(manifests),
-        waybillInventory: JSON.parse(inventory),
-        exportDate: new Date().toISOString(),
-      };
-
-      const blob = new Blob([JSON.stringify(allData, null, 2)], { type: 'application/json' });
+      const allData = getBackupData();
+      const blob = new Blob([allData], { type: 'application/json' });
       saveAs(blob, 'ss_cargo_backup.json');
-
       toast({
         title: 'Data Exported',
         description: 'Your data has been saved to ss_cargo_backup.json.',
@@ -456,7 +485,7 @@ function SettingsPageContent({ waybillInventory, addWaybillToInventory, removeWa
                         render={({ field }) => (
                             <FormItem className="col-span-2">
                                 <FormLabel>Sender Address</FormLabel>
-                                <FormControl><Input {...field} /></FormControl>
+                                <FormControl><Input placeholder="Enter address" {...field} /></FormControl>
                                 <FormMessage />
                             </FormItem>
                         )}
@@ -496,17 +525,27 @@ function SettingsPageContent({ waybillInventory, addWaybillToInventory, removeWa
       <Card>
         <CardHeader>
           <CardTitle>Data Management</CardTitle>
-          <CardDescription>Manage application data stored in your browser.</CardDescription>
+          <CardDescription>Manage application data stored in your browser or cloud.</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="flex items-center justify-between">
             <div>
                 <Label className="font-medium">Export All Data</Label>
-                <p className="text-sm text-muted-foreground">Save a JSON file of all waybills, manifests, and inventory.</p>
+                <p className="text-sm text-muted-foreground">Save a JSON backup file to your local machine.</p>
             </div>
             <Button variant="outline" onClick={handleExportData}>
               <Download className="mr-2 h-4 w-4" />
               Export
+            </Button>
+          </div>
+          <div className="flex items-center justify-between pt-4 border-t">
+            <div>
+                <Label className="font-medium">Save to Google Drive</Label>
+                <p className="text-sm text-muted-foreground">Save an encrypted backup to your Google Drive.</p>
+            </div>
+            <Button variant="outline" onClick={() => handleSaveToDrive()} disabled={isDriveSaving}>
+              {isDriveSaving ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Save className="mr-2 h-4 w-4" />}
+              {isDriveSaving ? 'Saving...' : 'Save to Drive'}
             </Button>
           </div>
           <div className="flex items-center justify-between pt-4 border-t">

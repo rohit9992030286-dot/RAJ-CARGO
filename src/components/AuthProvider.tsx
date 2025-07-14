@@ -3,10 +3,12 @@
 
 import { useState, useEffect, ReactNode } from 'react';
 import { AuthContext } from '@/hooks/useAuth.tsx';
+import { GoogleOAuthProvider } from '@react-oauth/google';
 
 export function AuthProvider({ children }: { children: ReactNode }) {
     const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
     const [isLoaded, setIsLoaded] = useState(false);
+    const clientId = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID || '';
 
     const getCredentials = () => {
         try {
@@ -60,7 +62,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     return (
         <AuthContext.Provider value={value}>
-            {children}
+            <GoogleOAuthProvider clientId={clientId}>
+                {children}
+            </GoogleOAuthProvider>
         </AuthContext.Provider>
     );
 }
