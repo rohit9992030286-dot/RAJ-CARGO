@@ -28,7 +28,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { saveAs } from 'file-saver';
 
 type Theme = 'light' | 'dark' | 'system';
-type StickerSize = '4x6' | '3x2' | 'compact';
+type StickerSize = '4x6' | '3x2' | 'compact' | '75mm';
 
 interface WaybillInventorySettingsProps {
     waybillInventory: string[];
@@ -336,7 +336,7 @@ function SettingsPageContent() {
                 </div>
                 <div>
                    <Label className="font-medium">Sticker Print Size</Label>
-                   <RadioGroup value={stickerSize} onValueChange={(value: StickerSize) => handleStickerSizeChange(value)} className="grid grid-cols-3 gap-4 mt-2">
+                   <RadioGroup value={stickerSize} onValueChange={(value: StickerSize) => handleStickerSizeChange(value)} className="grid grid-cols-2 lg:grid-cols-4 gap-4 mt-2">
                         <Label htmlFor="size-4x6" className="flex flex-col items-center justify-center rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground [&:has([data-state=checked])]:border-primary">
                            <RadioGroupItem value="4x6" id="size-4x6" className="sr-only" />
                            <span className="font-bold text-lg">4" x 6"</span>
@@ -351,6 +351,11 @@ function SettingsPageContent() {
                            <RadioGroupItem value="compact" id="size-compact" className="sr-only" />
                            <span className="font-bold text-lg">Compact</span>
                            <span className="text-xs text-muted-foreground">Small</span>
+                       </Label>
+                       <Label htmlFor="size-75mm" className="flex flex-col items-center justify-center rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground [&:has([data-state=checked])]:border-primary">
+                           <RadioGroupItem value="75mm" id="size-75mm" className="sr-only" />
+                           <span className="font-bold text-lg">75mm</span>
+                           <span className="text-xs text-muted-foreground">Square</span>
                        </Label>
                    </RadioGroup>
                 </div>
@@ -551,5 +556,3 @@ export default function SettingsPage() {
 
   return <SettingsPageContent />;
 }
-
-    

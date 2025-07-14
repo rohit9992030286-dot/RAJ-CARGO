@@ -6,7 +6,7 @@ import { Truck, Building, Phone, Box, Weight } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useEffect, useState } from 'react';
 
-type StickerSize = '4x6' | '3x2' | 'compact';
+type StickerSize = '4x6' | '3x2' | 'compact' | '75mm';
 
 interface WaybillStickerProps {
   waybill: Waybill;
@@ -21,7 +21,7 @@ export function WaybillSticker({ waybill, storeCode, boxNumber, totalBoxes }: Wa
   useEffect(() => {
     try {
       const storedSize = localStorage.getItem('ss-cargo-stickerSize') as StickerSize;
-      if (storedSize && ['4x6', '3x2', 'compact'].includes(storedSize)) {
+      if (storedSize && ['4x6', '3x2', 'compact', '75mm'].includes(storedSize)) {
         setSize(storedSize);
       }
     } catch (error) {
@@ -36,6 +36,33 @@ export function WaybillSticker({ waybill, storeCode, boxNumber, totalBoxes }: Wa
       </g>
     </svg>
   );
+
+  if (size === '75mm') {
+      return (
+        <div className="w-[75mm] h-[75mm] bg-white text-black font-sans flex flex-col p-2 border-2 border-black print:shadow-none print:border-none">
+          <header className="flex justify-between items-center border-b-2 border-black pb-1">
+             <h1 className="text-xl font-bold">SS CARGO</h1>
+             <p className="text-sm font-semibold">{new Date(waybill.shippingDate).toLocaleDateString()}</p>
+          </header>
+          <section className="flex-grow flex flex-col items-center justify-center text-center border-b-2 border-black py-2">
+            <p className="text-lg">TO:</p>
+            <p className="text-5xl font-black tracking-tighter leading-none">{(waybill.receiverCity || '').toUpperCase()}</p>
+            <p className="text-3xl font-bold">{waybill.receiverPincode}</p>
+          </section>
+          <section className="p-1 border-b-2 border-black">
+             <p className="text-xs">RECEIVER:</p>
+             <p className="font-bold text-lg leading-tight">{waybill.receiverName}</p>
+             <p className="text-sm leading-tight">{waybill.receiverAddress}</p>
+          </section>
+          <footer className="mt-auto pt-2">
+            <div className="w-full h-[40px] mx-auto">
+                <Barcode />
+            </div>
+            <p className="text-center font-mono tracking-[0.2em]">{waybill.waybillNumber}</p>
+          </footer>
+        </div>
+      )
+  }
 
   if (size === 'compact') {
       return (
