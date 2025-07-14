@@ -1,7 +1,7 @@
 import { z } from 'zod';
 
-// Schema for the form data, without the 'id'
-export const waybillFormSchema = z.object({
+// Base schema for fields shared between the form and the data model
+const baseWaybillSchema = z.object({
   waybillNumber: z.string().min(1, 'Waybill number is required.'),
   invoiceNumber: z.string().min(1, 'Invoice number is required.'),
   eWayBillNo: z.string().optional(),
@@ -27,7 +27,11 @@ export const waybillFormSchema = z.object({
   shippingTime: z.string().min(1, 'Shipping time is required'),
   
   status: z.enum(['Pending', 'In Transit', 'Delivered', 'Cancelled']),
-}).superRefine((data, ctx) => {
+});
+
+
+// Schema for the form data, with the superRefine for conditional validation.
+export const waybillFormSchema = baseWaybillSchema.superRefine((data, ctx) => {
     if (data.shipmentValue >= 50000) {
         if (!data.eWayBillNo || data.eWayBillNo.trim() === '') {
             ctx.addIssue({
@@ -39,10 +43,11 @@ export const waybillFormSchema = z.object({
     }
 });
 
-// Full schema for the data model, including the 'id'
-export const waybillSchema = waybillFormSchema.extend({
+// Full schema for the data model, including the 'id'.
+export const waybillSchema = baseWaybillSchema.extend({
   id: z.string().uuid(),
 });
+
 
 export type WaybillFormData = z.infer<typeof waybillFormSchema>;
 export type Waybill = z.infer<typeof waybillSchema>;
