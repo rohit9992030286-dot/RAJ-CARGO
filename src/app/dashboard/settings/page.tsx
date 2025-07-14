@@ -232,7 +232,7 @@ function SettingsPageContent({ waybillInventory, addWaybillToInventory, removeWa
 
   const handleSaveToDrive = () => {
     if (!isGoogleDriveConfigured) {
-        toast({ title: "Google Drive Not Configured", description: "Administrator must provide a Google Client ID in settings.", variant: "destructive" });
+        toast({ title: "Google Drive Not Configured", description: "Administrator must provide a Google Client ID in the .env file.", variant: "destructive" });
         return;
     }
     login();
@@ -543,7 +543,7 @@ function SettingsPageContent({ waybillInventory, addWaybillToInventory, removeWa
                   <AlertCircle className="h-4 w-4" />
                   <AlertTitle>Google Drive Backup Not Configured</AlertTitle>
                   <AlertDescription>
-                    To enable Google Drive backups, please add your Google OAuth Client ID to the `.env` file as `NEXT_PUBLIC_GOOGLE_CLIENT_ID`.
+                    To enable Google Drive backups, please create an OAuth Client ID in your Google Cloud Console and add it to the `.env` file as `NEXT_PUBLIC_GOOGLE_CLIENT_ID`.
                   </AlertDescription>
               </Alert>
           )}
