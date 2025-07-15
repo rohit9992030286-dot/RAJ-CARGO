@@ -12,7 +12,6 @@ import { useToast } from '@/hooks/use-toast';
 import { Waybill, waybillFormSchema, WaybillFormData } from '@/types/waybill';
 import { User, Phone, Package, Weight, Calendar, ListChecks, Save, XCircle, MapPin, Hash, Box, IndianRupee, Clock, Building, Loader2, FileText } from 'lucide-react';
 import { Textarea } from './ui/textarea';
-import { pincodeLookup } from '@/ai/flows/pincode-lookup';
 import { useState, useEffect } from 'react';
 import { useWaybillInventory } from '@/hooks/useWaybillInventory';
 
@@ -56,8 +55,6 @@ const getInitialValues = (initialData?: Waybill): WaybillFormData => {
 
 export function WaybillForm({ initialData, onSave, onCancel }: WaybillFormProps) {
   const { toast } = useToast();
-  const [isSenderPincodeLoading, setIsSenderPincodeLoading] = useState(false);
-  const [isReceiverPincodeLoading, setIsReceiverPincodeLoading] = useState(false);
   const { removeWaybillFromInventory } = useWaybillInventory();
 
   const form = useForm<WaybillFormData>({
@@ -89,35 +86,6 @@ export function WaybillForm({ initialData, onSave, onCancel }: WaybillFormProps)
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [initialData]);
 
-  const handlePincodeBlur = async (pincode: string, type: 'sender' | 'receiver') => {
-    if (pincode.length !== 6 || !/^\d{6}$/.test(pincode)) return;
-
-    if (type === 'sender') setIsSenderPincodeLoading(true);
-    else setIsReceiverPincodeLoading(true);
-
-    try {
-      const result = await pincodeLookup({ pincode });
-      if (result && result.city) {
-        if (type === 'sender') {
-          form.setValue('senderCity', result.city);
-        } else {
-          form.setValue('receiverCity', result.city);
-        }
-      }
-    } catch (error) {
-      console.error("Pincode lookup failed", error);
-      toast({
-        title: "Pincode lookup failed",
-        description: "Could not fetch city for the entered pincode.",
-        variant: "destructive"
-      });
-    } finally {
-      if (type === 'sender') setIsSenderPincodeLoading(false);
-      else setIsReceiverPincodeLoading(false);
-    }
-  };
-
-
   const onSubmit = (data: WaybillFormData) => {
     const waybillToSave: Waybill = {
         ...data,
@@ -137,9 +105,9 @@ export function WaybillForm({ initialData, onSave, onCancel }: WaybillFormProps)
     }
   };
 
-  const IconWrapper = ({ children, isLoading }: { children: React.ReactNode, isLoading?: boolean }) => (
+  const IconWrapper = ({ children }: { children: React.ReactNode }) => (
     <div className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground">
-      {isLoading ? <Loader2 className="animate-spin" /> : children}
+      {children}
     </div>
   );
 
@@ -192,9 +160,9 @@ export function WaybillForm({ initialData, onSave, onCancel }: WaybillFormProps)
                     <FormLabel>Pincode</FormLabel>
                     <div className="relative">
                       <FormControl>
-                        <Input placeholder="e.g., 10001" {...field} className="pl-10" onBlur={(e) => handlePincodeBlur(e.target.value, 'sender')} />
+                        <Input placeholder="e.g., 10001" {...field} className="pl-10" />
                       </FormControl>
-                      <IconWrapper isLoading={isSenderPincodeLoading}><MapPin /></IconWrapper>
+                      <IconWrapper><MapPin /></IconWrapper>
                     </div>
                     <FormMessage />
                   </FormItem>
@@ -279,9 +247,9 @@ export function WaybillForm({ initialData, onSave, onCancel }: WaybillFormProps)
                     <FormLabel>Pincode</FormLabel>
                     <div className="relative">
                       <FormControl>
-                        <Input placeholder="e.g., 90001" {...field} className="pl-10" onBlur={(e) => handlePincodeBlur(e.target.value, 'receiver')} />
+                        <Input placeholder="e.g., 90001" {...field} className="pl-10" />
                       </FormControl>
-                      <IconWrapper isLoading={isReceiverPincodeLoading}><MapPin /></IconWrapper>
+                      <IconWrapper><MapPin /></IconWrapper>
                     </div>
                     <FormMessage />
                   </FormItem>
