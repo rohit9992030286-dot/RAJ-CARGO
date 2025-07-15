@@ -66,26 +66,33 @@ export function WaybillSticker({ waybill, storeCode, boxNumber, totalBoxes }: Wa
 
   if (size === 'compact') {
       return (
-        <div className="w-[3.5in] h-[2.5in] bg-white text-black font-sans flex flex-col p-1 print:shadow-none print:border-none">
-          {/* Section for Barcode and Waybill Number */}
-          <div className="flex-grow flex flex-col justify-center items-center pb-1">
-            <div className="w-48 h-8">
+        <div className="w-[3.5in] h-[2.5in] bg-transparent text-black font-sans flex flex-col p-2 print:shadow-none print:border-none">
+          {/* Top Section for Waybill & Barcode */}
+          <div className="text-center mb-4">
+            <div className="w-48 h-8 mx-auto">
                 <Barcode />
             </div>
             <p className="font-mono font-bold text-lg tracking-wider">{waybill.waybillNumber}</p>
           </div>
-          
-          {/* Section for From, To, and Packages */}
-          <div className="grid grid-cols-3">
-            <div className="col-span-2 p-1">
-                <p className="font-bold text-lg">{(waybill.senderCity || '').toUpperCase()}</p>
+
+          {/* Middle Section for From/To */}
+          <div className="flex-grow grid grid-cols-2 gap-4 items-center">
+            {/* From */}
+            <div className="text-center">
+                <p className="font-bold text-2xl">{(waybill.senderCity || '').toUpperCase()}</p>
             </div>
-            <div className="p-1 text-center">
-                <p className="font-bold text-lg">{waybill.numberOfBoxes}</p>
+            {/* To */}
+            <div className="text-center">
+                <p className="font-bold text-xl">{waybill.receiverName}</p>
+                <p className="font-bold text-2xl">{(waybill.receiverCity || '').toUpperCase()}</p>
             </div>
           </div>
-          <div className="p-1">
-              <p className="font-bold text-lg">{(waybill.receiverCity || '').toUpperCase()} {waybill.receiverPincode}</p>
+          
+          {/* Bottom Right for Box Count */}
+          <div className="flex justify-end items-end">
+            <div className="text-center p-2">
+                 <p className="font-bold text-2xl">{waybill.numberOfBoxes}</p>
+            </div>
           </div>
         </div>
       )
