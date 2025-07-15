@@ -8,8 +8,8 @@
  * - AddressAutocompleteOutput - The return type for the addressAutocomplete function.
  */
 
-import {ai} from '@/ai/genkit';
-import {z} from 'genkit';
+
+import {z} import {ai} from '@/ai/genkit';from 'genkit';
 
 const AddressAutocompleteInputSchema = z.object({
   partialAddress: z.string().describe('The partial address entered by the user.'),

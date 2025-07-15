@@ -66,29 +66,26 @@ export function WaybillSticker({ waybill, storeCode, boxNumber, totalBoxes }: Wa
 
   if (size === 'compact') {
       return (
-        <div className="w-[3.5in] h-[2.5in] bg-white text-black font-sans flex flex-col p-1 border border-black print:shadow-none print:border-none">
-          <div className="flex justify-between items-center border-b border-black pb-1">
-            <h1 className="text-xl font-bold">SME</h1>
-            <p className="text-xs">ANY WHERE TO EVERY WHERE</p>
-          </div>
-          <div className="flex-grow flex flex-col justify-center items-center border-b border-black py-1">
-            <p className="text-xs self-start">AWB. NO.:</p>
+        <div className="w-[3.5in] h-[2.5in] bg-white text-black font-sans flex flex-col p-1 print:shadow-none print:border-none">
+          {/* Section for Barcode and Waybill Number */}
+          <div className="flex-grow flex flex-col justify-center items-center pb-1">
             <div className="w-48 h-8">
                 <Barcode />
             </div>
             <p className="font-mono font-bold text-lg tracking-wider">{waybill.waybillNumber}</p>
           </div>
-          <div className="grid grid-cols-3 border-b border-black">
-            <div className="col-span-2 border-r border-black p-1">
-                <p className="text-xs">FROM: <span className="font-bold">{(waybill.senderCity || '').toUpperCase()}</span></p>
+          
+          {/* Section for From, To, and Packages */}
+          <div className="grid grid-cols-3">
+            <div className="col-span-2 p-1">
+                <p className="font-bold text-lg">{(waybill.senderCity || '').toUpperCase()}</p>
             </div>
             <div className="p-1 text-center">
-                <p className="text-xs">NOS OF PKGS</p>
                 <p className="font-bold text-lg">{waybill.numberOfBoxes}</p>
             </div>
           </div>
           <div className="p-1">
-              <p className="text-xs">TO: <span className="font-bold text-lg">{(waybill.receiverCity || '').toUpperCase()} {waybill.receiverPincode}</span></p>
+              <p className="font-bold text-lg">{(waybill.receiverCity || '').toUpperCase()} {waybill.receiverPincode}</p>
           </div>
         </div>
       )
