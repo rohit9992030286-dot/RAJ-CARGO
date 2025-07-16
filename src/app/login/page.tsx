@@ -8,7 +8,7 @@ import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { Truck, LogIn, AlertCircle } from 'lucide-react';
+import { Send, LogIn, AlertCircle } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 
 export default function LoginPage() {
@@ -32,8 +32,8 @@ export default function LoginPage() {
     <div className="flex min-h-screen flex-col items-center justify-center bg-background px-4">
       <div className="w-full max-w-md">
         <div className="flex flex-col items-center justify-center mb-8">
-            <Truck className="h-12 w-12 text-primary" />
-            <h1 className="text-3xl font-bold mt-4">SS CARGO</h1>
+            <Send className="h-12 w-12 text-primary" />
+            <h1 className="text-3xl font-bold mt-4 text-primary">SwiftWay</h1>
             <p className="text-muted-foreground">Please sign in to continue</p>
         </div>
         <Card>

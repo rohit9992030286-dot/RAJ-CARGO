@@ -5,7 +5,7 @@ import { Toaster } from "@/components/ui/toaster"
 import { AuthProvider } from '@/components/AuthProvider';
 
 export const metadata: Metadata = {
-  title: 'SS CARGO',
+  title: 'SwiftWay',
   description: 'Transport and courier service',
   manifest: '/manifest.json',
 };
