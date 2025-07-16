@@ -20,7 +20,7 @@ import { cn } from '@/lib/utils';
 import { useWaybillInventory } from '@/hooks/useWaybillInventory';
 
 
-export default function WaybillsPage() {
+function WaybillsPageContent() {
   const { waybills, deleteWaybill, updateWaybill, isLoaded, addWaybill } = useWaybills();
   const { addWaybillToInventory } = useWaybillInventory();
   const [selectedWaybillIds, setSelectedWaybillIds] = useState<string[]>([]);
@@ -373,4 +373,8 @@ export default function WaybillsPage() {
         </Card>
     </div>
   );
+}
+
+export default function WaybillsPage() {
+    return <WaybillsPageContent />;
 }
