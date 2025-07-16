@@ -13,6 +13,7 @@ import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Terminal, Search, Printer, AlertCircle, Loader2, FileUp, FileSpreadsheet } from 'lucide-react';
 import * as XLSX from 'xlsx';
 import { useToast } from '@/hooks/use-toast';
+import { saveAs } from 'file-saver';
 
 export default function PrintStickerPage() {
   const { waybills, isLoaded } = useWaybills();
@@ -108,7 +109,7 @@ export default function PrintStickerPage() {
         });
     }
   };
-
+  
   const handleDownloadTemplate = () => {
     const headers = ["waybillNumber", "senderCity", "receiverCity", "receiverName", "numberOfBoxes"];
     const worksheet = XLSX.utils.json_to_sheet([{}], { header: headers });
@@ -117,13 +118,7 @@ export default function PrintStickerPage() {
 
     const excelBuffer = XLSX.write(workbook, { bookType: 'xlsx', type: 'array' });
     const data = new Blob([excelBuffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;charset=UTF-8' });
-    const url = URL.createObjectURL(data);
-    const link = document.createElement('a');
-    link.href = url;
-    link.setAttribute('download', 'sticker_template.xlsx');
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+    saveAs(data, 'sticker_template.xlsx');
   };
 
 
