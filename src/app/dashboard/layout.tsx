@@ -2,7 +2,7 @@
 'use client';
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { Send, Home, BookCopy, PlusCircle, ScanLine, Menu, Settings, LogOut, SlidersHorizontal } from 'lucide-react';
+import { Send, Home, BookCopy, PlusCircle, ScanLine, Menu, Settings, LogOut, Settings2 } from 'lucide-react';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
 import { Button } from '@/components/ui/button';
 import { withAuth } from '@/components/withAuth';
@@ -61,7 +61,7 @@ function DashboardLayout({
       </ul>
       <div className="space-y-2 border-t pt-4">
         <Link href="/dashboard/configuration" onClick={onLinkClick} className="flex items-center gap-3 p-3 rounded-lg hover:bg-primary/10 hover:text-primary transition-colors">
-            <SlidersHorizontal className="h-5 w-5" />
+            <Settings2 className="h-5 w-5" />
             <span>Configuration</span>
         </Link>
         <Link href="/dashboard/settings" onClick={onLinkClick} className="flex items-center gap-3 p-3 rounded-lg hover:bg-primary/10 hover:text-primary transition-colors">
