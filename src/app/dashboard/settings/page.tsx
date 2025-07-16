@@ -28,7 +28,7 @@ import { saveAs } from 'file-saver';
 
 
 type Theme = 'light' | 'dark' | 'system';
-type StickerSize = '4x6' | '3x2' | 'compact' | '75mm';
+type StickerSize = '4x6' | '3x2' | '75mm' | '100x75mm';
 
 function getBackupData() {
     const waybills = localStorage.getItem('ss-cargo-waybills') || '[]';
@@ -48,7 +48,7 @@ function SettingsPageContent() {
   const { toast } = useToast();
   const { updateCredentials } = useAuth();
   const [theme, setTheme] = useState<Theme>('system');
-  const [stickerSize, setStickerSize] = useState<StickerSize>('4x6');
+  const [stickerSize, setStickerSize] = useState<StickerSize>('75mm');
   const importFileRef = useRef<HTMLInputElement>(null);
 
   const accountForm = useForm({
@@ -228,15 +228,15 @@ function SettingsPageContent() {
                            <span className="font-bold text-lg">3" x 2"</span>
                             <span className="text-xs text-muted-foreground">Medium</span>
                        </Label>
-                       <Label htmlFor="size-compact" className="flex flex-col items-center justify-center rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground [&:has([data-state=checked])]:border-primary">
-                           <RadioGroupItem value="compact" id="size-compact" className="sr-only" />
-                           <span className="font-bold text-lg">Compact</span>
-                           <span className="text-xs text-muted-foreground">Small</span>
-                       </Label>
                        <Label htmlFor="size-75mm" className="flex flex-col items-center justify-center rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground [&:has([data-state=checked])]:border-primary">
                            <RadioGroupItem value="75mm" id="size-75mm" className="sr-only" />
                            <span className="font-bold text-lg">75mm</span>
                            <span className="text-xs text-muted-foreground">Square</span>
+                       </Label>
+                       <Label htmlFor="size-100x75mm" className="flex flex-col items-center justify-center rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground [&:has([data-state=checked])]:border-primary">
+                           <RadioGroupItem value="100x75mm" id="size-100x75mm" className="sr-only" />
+                           <span className="font-bold text-lg">100x75mm</span>
+                           <span className="text-xs text-muted-foreground">Rectangle</span>
                        </Label>
                    </RadioGroup>
                 </div>

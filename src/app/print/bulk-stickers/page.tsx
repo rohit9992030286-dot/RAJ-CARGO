@@ -37,6 +37,7 @@ function createMockWaybill(data: any): Waybill {
 
 export default function BulkPrintStickersPage() {
   const [stickers, setStickers] = useState<any[]>([]);
+  const [stickerSize, setStickerSize] = useState('75mm');
   const [isLoading, setIsLoading] = useState(true);
   const printTriggered = useRef(false);
 
@@ -47,6 +48,8 @@ export default function BulkPrintStickersPage() {
         const parsedStickers = JSON.parse(storedStickers);
         setStickers(parsedStickers);
       }
+      const size = localStorage.getItem('ss-cargo-stickerSize') || '75mm';
+      setStickerSize(size);
     } catch (e) {
       console.error("Could not parse stickers from session storage", e);
     } finally {
@@ -101,6 +104,7 @@ export default function BulkPrintStickersPage() {
               waybill={waybill}
               boxNumber={boxNumber}
               totalBoxes={totalBoxes}
+              stickerSize={stickerSize}
             />
         </div>
       ))}

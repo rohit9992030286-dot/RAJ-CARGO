@@ -13,6 +13,7 @@ function PrintStickersContent() {
   const searchParams = useSearchParams();
   const { getWaybillById, isLoaded } = useWaybills();
   const [waybillsToPrint, setWaybillsToPrint] = useState<Waybill[]>([]);
+  const [stickerSize, setStickerSize] = useState('75mm');
   const printTriggered = useRef(false);
 
   useEffect(() => {
@@ -21,6 +22,8 @@ function PrintStickersContent() {
       const waybills = ids.map(id => getWaybillById(id)).filter((w): w is Waybill => !!w);
       setWaybillsToPrint(waybills);
     }
+    const size = localStorage.getItem('ss-cargo-stickerSize') || '75mm';
+    setStickerSize(size);
   }, [isLoaded, searchParams, getWaybillById]);
 
   useEffect(() => {
@@ -57,6 +60,7 @@ function PrintStickersContent() {
               waybill={waybill}
               boxNumber={boxNumber}
               totalBoxes={totalBoxes}
+              stickerSize={stickerSize}
             />
         </div>
       ))}
