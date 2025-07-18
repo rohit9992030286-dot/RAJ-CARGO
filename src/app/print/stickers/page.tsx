@@ -22,7 +22,7 @@ function PrintStickersContent() {
       const waybills = ids.map(id => getWaybillById(id)).filter((w): w is Waybill => !!w);
       setWaybillsToPrint(waybills);
     }
-    const size = localStorage.getItem('ss-cargo-stickerSize') || '75mm';
+    const size = localStorage.getItem('raj-cargo-stickerSize') || '75mm';
     setStickerSize(size);
   }, [isLoaded, searchParams, getWaybillById]);
 

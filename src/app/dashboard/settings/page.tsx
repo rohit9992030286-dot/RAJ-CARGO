@@ -31,9 +31,9 @@ type Theme = 'light' | 'dark' | 'system';
 type StickerSize = '4x6' | '3x2' | '75mm' | '100x75mm';
 
 function getBackupData() {
-    const waybills = localStorage.getItem('ss-cargo-waybills') || '[]';
-    const manifests = localStorage.getItem('ss-cargo-manifests') || '[]';
-    const inventory = localStorage.getItem('ss-cargo-waybill-inventory') || '[]';
+    const waybills = localStorage.getItem('raj-cargo-waybills') || '[]';
+    const manifests = localStorage.getItem('raj-cargo-manifests') || '[]';
+    const inventory = localStorage.getItem('raj-cargo-waybill-inventory') || '[]';
     const allData = {
       waybills: JSON.parse(waybills),
       manifests: JSON.parse(manifests),
@@ -57,14 +57,14 @@ function SettingsPageContent() {
 
 
   useEffect(() => {
-    const storedTheme = localStorage.getItem('ss-cargo-theme') as Theme | null;
+    const storedTheme = localStorage.getItem('raj-cargo-theme') as Theme | null;
     if (storedTheme) setTheme(storedTheme);
 
-    const storedStickerSize = localStorage.getItem('ss-cargo-stickerSize') as StickerSize | null;
+    const storedStickerSize = localStorage.getItem('raj-cargo-stickerSize') as StickerSize | null;
     if (storedStickerSize) setStickerSize(storedStickerSize);
 
     try {
-        const creds = JSON.parse(localStorage.getItem('ss-cargo-credentials') || '{}');
+        const creds = JSON.parse(localStorage.getItem('raj-cargo-credentials') || '{}');
         accountForm.reset({ username: creds.username || 'admin', password: '' });
     } catch { /* ignore */ }
 
@@ -73,7 +73,7 @@ function SettingsPageContent() {
 
   const handleThemeChange = (newTheme: Theme) => {
     setTheme(newTheme);
-    localStorage.setItem('ss-cargo-theme', newTheme);
+    localStorage.setItem('raj-cargo-theme', newTheme);
     if (newTheme === 'system') {
         const systemTheme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
         document.documentElement.classList.toggle('dark', systemTheme === 'dark');
@@ -88,7 +88,7 @@ function SettingsPageContent() {
 
   const handleStickerSizeChange = (newSize: StickerSize) => {
     setStickerSize(newSize);
-    localStorage.setItem('ss-cargo-stickerSize', newSize);
+    localStorage.setItem('raj-cargo-stickerSize', newSize);
     toast({
       title: 'Sticker Size Updated',
       description: `Default print size set to ${newSize}.`,
@@ -106,9 +106,9 @@ function SettingsPageContent() {
 
   const handleClearData = () => {
     try {
-      localStorage.removeItem('ss-cargo-waybills');
-      localStorage.removeItem('ss-cargo-manifests');
-      localStorage.removeItem('ss-cargo-waybill-inventory');
+      localStorage.removeItem('raj-cargo-waybills');
+      localStorage.removeItem('raj-cargo-manifests');
+      localStorage.removeItem('raj-cargo-waybill-inventory');
       toast({
         title: 'Application Data Cleared',
         description: 'All waybills, manifests, and inventory have been deleted.',
@@ -127,10 +127,10 @@ function SettingsPageContent() {
     try {
       const allData = getBackupData();
       const blob = new Blob([allData], { type: 'application/json' });
-      saveAs(blob, 'ss_cargo_backup.json');
+      saveAs(blob, 'raj_cargo_backup.json');
       toast({
         title: 'Data Exported',
-        description: 'Your data has been saved to ss_cargo_backup.json.',
+        description: 'Your data has been saved to raj_cargo_backup.json.',
       });
 
     } catch (error) {
@@ -153,9 +153,9 @@ function SettingsPageContent() {
         const data = JSON.parse(text);
 
         if (Array.isArray(data.waybills) && Array.isArray(data.manifests) && Array.isArray(data.waybillInventory)) {
-          localStorage.setItem('ss-cargo-waybills', JSON.stringify(data.waybills));
-          localStorage.setItem('ss-cargo-manifests', JSON.stringify(data.manifests));
-          localStorage.setItem('ss-cargo-waybill-inventory', JSON.stringify(data.waybillInventory));
+          localStorage.setItem('raj-cargo-waybills', JSON.stringify(data.waybills));
+          localStorage.setItem('raj-cargo-manifests', JSON.stringify(data.manifests));
+          localStorage.setItem('raj-cargo-waybill-inventory', JSON.stringify(data.waybillInventory));
           toast({
             title: 'Import Successful',
             description: 'Your data has been restored from the backup file.',

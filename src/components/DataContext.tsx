@@ -7,9 +7,9 @@ import { Manifest, manifestSchema } from '@/types/manifest';
 import { useToast } from '@/hooks/use-toast';
 import { Loader2 } from 'lucide-react';
 
-const WAYBILL_STORAGE_KEY = 'ss-cargo-waybills';
-const MANIFEST_STORAGE_KEY = 'ss-cargo-manifests';
-const WAYBILL_INVENTORY_KEY = 'ss-cargo-waybill-inventory';
+const WAYBILL_STORAGE_KEY = 'raj-cargo-waybills';
+const MANIFEST_STORAGE_KEY = 'raj-cargo-manifests';
+const WAYBILL_INVENTORY_KEY = 'raj-cargo-waybill-inventory';
 
 interface DataContextType {
   waybills: Waybill[];

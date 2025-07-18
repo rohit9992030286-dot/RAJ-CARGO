@@ -43,12 +43,12 @@ export default function BulkPrintStickersPage() {
 
   useEffect(() => {
     try {
-      const storedStickers = sessionStorage.getItem('ss-cargo-bulk-stickers');
+      const storedStickers = sessionStorage.getItem('raj-cargo-bulk-stickers');
       if (storedStickers) {
         const parsedStickers = JSON.parse(storedStickers);
         setStickers(parsedStickers);
       }
-      const size = localStorage.getItem('ss-cargo-stickerSize') || '75mm';
+      const size = localStorage.getItem('raj-cargo-stickerSize') || '75mm';
       setStickerSize(size);
     } catch (e) {
       console.error("Could not parse stickers from session storage", e);
@@ -63,7 +63,7 @@ export default function BulkPrintStickersPage() {
       const timer = setTimeout(() => {
         window.print();
         // Optional: Clean up session storage after printing
-        // sessionStorage.removeItem('ss-cargo-bulk-stickers');
+        // sessionStorage.removeItem('raj-cargo-bulk-stickers');
       }, 500);
       return () => clearTimeout(timer);
     }
