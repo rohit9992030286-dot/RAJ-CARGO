@@ -11,13 +11,17 @@ interface WaybillStickerCustomProps {
   storeCode?: string;
 }
 
-// Helper component for layout sections
-const Section = ({ children, style }: { children: React.ReactNode; style?: React.CSSProperties }) => (
-  <div style={{...style}}>{children}</div>
-);
-
 const BorderedBox = ({ children, style }: { children: React.ReactNode; style?: React.CSSProperties }) => (
-    <div style={{ border: '1px solid black', padding: '2px', textAlign: 'center', ...style }}>{children}</div>
+    <div style={{
+      border: '1px solid black',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      boxSizing: 'border-box',
+       ...style
+    }}>
+        {children}
+    </div>
 );
 
 
@@ -32,120 +36,128 @@ export function WaybillStickerCustom({ waybill, boxNumber, totalBoxes, storeCode
       fontFamily: 'sans-serif',
       display: 'flex',
       flexDirection: 'column',
-      padding: '0 0.5cm 0.5cm 0.5cm',
+      padding: '2cm 0.5cm 0.5cm 0.5cm',
       boxSizing: 'border-box',
     }}>
-        {/* Top 2cm free space */}
-        <div style={{ height: '2cm', width: '100%' }}></div>
-        
-        {/* Main content area */}
+        {/* The main content area with border */}
         <div style={{
-            flex: 1,
+            width: '100%',
+            height: '100%',
             border: '2px solid black',
             display: 'flex',
         }}>
             {/* Left Column */}
-            <div style={{ 
+            <div style={{
                 width: '5.5cm',
                 display: 'flex',
                 flexDirection: 'column',
                 borderRight: '2px solid black',
+                boxSizing: 'border-box',
             }}>
                 {/* Sender Area */}
-                <Section style={{ 
-                    height: '0.8cm', 
+                <div style={{
+                    height: '0.8cm',
                     borderBottom: '1px solid black',
                     padding: '2px',
-                    fontSize: '12px',
-                    fontWeight: 'bold'
+                    fontSize: '10px',
+                    fontWeight: 'bold',
+                    boxSizing: 'border-box',
                 }}>
                     FROM: {waybill.senderName}
-                </Section>
-                
+                </div>
+
                 {/* Waybill No Area */}
-                <Section style={{ 
-                    height: '0.8cm',
+                <div style={{
+                    height: '0.7cm',
                     borderBottom: '2px solid black',
                     padding: '2px',
-                    fontSize: '12px',
-                    fontWeight: 'bold'
+                    fontSize: '10px',
+                    fontWeight: 'bold',
+                    boxSizing: 'border-box',
                 }}>
                     WAYBILL NO: {waybill.waybillNumber}
-                </Section>
-                
+                </div>
+
                 {/* Receiver City */}
-                <Section style={{
-                    height: '1.2cm',
+                <div style={{
+                    height: '0.6cm',
                     borderBottom: '2px solid black',
                     padding: '2px',
-                    fontSize: '24px',
+                    fontSize: '14px',
                     fontWeight: 'bold',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
-                    textAlign: 'center'
+                    textAlign: 'center',
+                    boxSizing: 'border-box',
                 }}>
                     {waybill.receiverCity.toUpperCase()}
-                </Section>
-                
-                {/* Receiver Name */}
-                 <Section style={{
+                </div>
+
+                {/* Receiver Name (Delivery Notes) */}
+                 <div style={{
                     height: '0.6cm',
+                    borderBottom: '2px solid black',
                     padding: '2px',
-                    fontSize: '12px',
+                    fontSize: '10px',
                     fontWeight: 'bold',
-                    textAlign: 'center'
+                    textAlign: 'center',
+                    boxSizing: 'border-box',
                 }}>
                     TO: {waybill.receiverName}
-                </Section>
-                 {/* Box ID Barcode */}
-                <Section style={{
+                </div>
+
+                {/* Box ID Barcode */}
+                <div style={{
                     flex: 1,
                     display: 'flex',
                     flexDirection: 'column',
                     alignItems: 'center',
                     justifyContent: 'center',
                     padding: '2px',
+                    boxSizing: 'border-box',
                 }}>
                     {boxNumber && totalBoxes && (
                        <Barcode
                             value={`BOX${boxNumber}OF${totalBoxes}`}
                             height={25}
-                            width={1.5}
+                            width={1.2}
                             displayValue={true}
-                            fontSize={10}
+                            fontSize={8}
                             margin={0}
                         />
                     )}
-                </Section>
+                </div>
 
             </div>
 
             {/* Right Column */}
-            <div style={{ 
+            <div style={{
                 flex: 1,
                 display: 'flex',
                 flexDirection: 'column',
-                
+                boxSizing: 'border-box',
             }}>
                 {/* Store Code */}
-                <BorderedBox style={{ height: '0.8cm', fontSize: '10px', fontWeight: 'bold' }}>
+                <BorderedBox style={{ height: '0.7cm', fontSize: '10px', fontWeight: 'bold' }}>
                     STORE: {storeCode || 'N/A'}
                 </BorderedBox>
-                
+
                 {/* Box Number */}
-                <BorderedBox style={{ height: '0.8cm', fontSize: '10px', fontWeight: 'bold', borderTop: 'none' }}>
+                <BorderedBox style={{ height: '0.7cm', fontSize: '10px', fontWeight: 'bold', borderTop: 'none' }}>
                     BOX: {boxNumber || 'N/A'} OF {totalBoxes || 'N/A'}
                 </BorderedBox>
                 
                 {/* Chicken Illustration */}
                 <div style={{
-                    flex: 1,
+                    height: '1.2cm',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
-                    padding: '5px',
-                    borderBottom: '2px solid black',
+                    padding: '2px',
+                    border: '1px solid black',
+                    borderTop: 'none',
+                    boxSizing: 'border-box',
                 }}>
                    <svg
                       data-ai-hint="chicken illustration"
@@ -162,20 +174,24 @@ export function WaybillStickerCustom({ waybill, boxNumber, totalBoxes, storeCode
                         <path d="M85,70 L75,85 L90,90 Z" fill="black"/>
                     </svg>
                 </div>
-                
+
                 {/* Main Barcode */}
                 <div style={{
                     flex: 1,
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
-                    padding: '5px'
+                    padding: '5px',
+                    border: '1px solid black',
+                    borderTop: 'none',
+                    boxSizing: 'border-box',
                 }}>
                     <Barcode
                         value={waybill.waybillNumber}
-                        height={50}
-                        width={1.5}
+                        height={40}
+                        width={1.2}
                         displayValue={false}
+                        margin={0}
                     />
                 </div>
             </div>
