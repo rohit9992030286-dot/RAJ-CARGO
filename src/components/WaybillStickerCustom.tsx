@@ -138,6 +138,31 @@ export function WaybillStickerCustom({ waybill, boxNumber, totalBoxes, storeCode
                     BOX: {boxNumber || 'N/A'} OF {totalBoxes || 'N/A'}
                 </BorderedBox>
                 
+                {/* Chicken Illustration */}
+                <div style={{
+                    flex: 1,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    padding: '5px',
+                    borderBottom: '2px solid black',
+                }}>
+                   <svg
+                      data-ai-hint="chicken illustration"
+                      width="90%"
+                      height="90%"
+                      viewBox="0 0 100 100"
+                      preserveAspectRatio="xMidYMid meet"
+                      xmlns="http://www.w3.org/2000/svg">
+                        <path d="M50,10 C60,0 75,5 85,15 C95,25 90,40 80,50 C85,55 95,60 90,75 C85,90 70,95 60,90 C50,95 40,90 30,75 C25,60 35,55 40,50 C30,40 25,25 35,15 C45,5 50,0 50,10 Z" fill="none" stroke="black" strokeWidth="3"/>
+                        <path d="M50,10 C45,20 45,30 50,35 C55,30 55,20 50,10" fill="black"/>
+                        <circle cx="65" cy="30" r="3" fill="black"/>
+                        <path d="M80,50 C70,60 60,75 50,80 C40,75 30,60 20,50" fill="none" stroke="black" strokeWidth="3"/>
+                        <path d="M15,70 L25,85 L10,90 Z" fill="black"/>
+                        <path d="M85,70 L75,85 L90,90 Z" fill="black"/>
+                    </svg>
+                </div>
+                
                 {/* Main Barcode */}
                 <div style={{
                     flex: 1,
@@ -149,7 +174,7 @@ export function WaybillStickerCustom({ waybill, boxNumber, totalBoxes, storeCode
                     <Barcode
                         value={waybill.waybillNumber}
                         height={50}
-                        width={2}
+                        width={1.5}
                         displayValue={false}
                     />
                 </div>
@@ -158,5 +183,3 @@ export function WaybillStickerCustom({ waybill, boxNumber, totalBoxes, storeCode
     </div>
   );
 }
-
-    
