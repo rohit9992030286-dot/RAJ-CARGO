@@ -63,7 +63,7 @@ export function WaybillStickerCustom({ waybill, boxNumber, totalBoxes, storeCode
                     fontWeight: 'bold',
                     boxSizing: 'border-box',
                 }}>
-                    FROM: {waybill.senderName}
+                    {waybill.senderName}
                 </div>
 
                 {/* Waybill No Area */}
@@ -75,7 +75,7 @@ export function WaybillStickerCustom({ waybill, boxNumber, totalBoxes, storeCode
                     fontWeight: 'bold',
                     boxSizing: 'border-box',
                 }}>
-                    WAYBILL NO: {waybill.waybillNumber}
+                    {waybill.waybillNumber}
                 </div>
 
                 {/* Receiver City */}
@@ -104,7 +104,7 @@ export function WaybillStickerCustom({ waybill, boxNumber, totalBoxes, storeCode
                     textAlign: 'center',
                     boxSizing: 'border-box',
                 }}>
-                    TO: {waybill.receiverName}
+                    {waybill.receiverName}
                 </div>
 
                 {/* Box ID Barcode */}
