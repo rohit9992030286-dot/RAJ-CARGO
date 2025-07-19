@@ -40,6 +40,7 @@ export function WaybillStickerCustom({ waybill, boxNumber, totalBoxes, storeCode
       flexDirection: 'column',
       padding: '2cm 0.5cm 0.5cm 0.5cm',
       boxSizing: 'border-box',
+      position: 'relative'
     }}>
         {/* The main content area with border */}
         <div style={{
@@ -109,6 +110,7 @@ export function WaybillStickerCustom({ waybill, boxNumber, totalBoxes, storeCode
                     padding: '2px',
                     fontSize: '10px',
                     fontWeight: 'bold',
+                    justifyContent: 'flex-start'
                 }}>
                     {waybill.receiverName}
                 </BorderedBox>
@@ -131,25 +133,23 @@ export function WaybillStickerCustom({ waybill, boxNumber, totalBoxes, storeCode
                     BOX: {boxNumber || 'N/A'} OF {totalBoxes || 'N/A'}
                 </BorderedBox>
                 
-                {/* Chicken Illustration */}
+                {/* Truck Illustration */}
                  <BorderedBox style={{
                     height: '1.2cm',
                     padding: '2px',
                     borderTop: 'none', borderRight: 'none', borderLeft: 'none'
                 }}>
                    <svg
-                      data-ai-hint="chicken illustration"
+                      data-ai-hint="truck illustration"
                       width="90%"
                       height="90%"
-                      viewBox="0 0 100 100"
+                      viewBox="0 0 100 60"
                       preserveAspectRatio="xMidYMid meet"
                       xmlns="http://www.w3.org/2000/svg">
-                        <path d="M50,10 C60,0 75,5 85,15 C95,25 90,40 80,50 C85,55 95,60 90,75 C85,90 70,95 60,90 C50,95 40,90 30,75 C25,60 35,55 40,50 C30,40 25,25 35,15 C45,5 50,0 50,10 Z" fill="none" stroke="black" strokeWidth="3"/>
-                        <path d="M50,10 C45,20 45,30 50,35 C55,30 55,20 50,10" fill="black"/>
-                        <circle cx="65" cy="30" r="3" fill="black"/>
-                        <path d="M80,50 C70,60 60,75 50,80 C40,75 30,60 20,50" fill="none" stroke="black" strokeWidth="3"/>
-                        <path d="M15,70 L25,85 L10,90 Z" fill="black"/>
-                        <path d="M85,70 L75,85 L90,90 Z" fill="black"/>
+                        <path d="M5 45 H 20 V 30 H 45 V 10 H 75 V 45 H 85" fill="none" stroke="black" strokeWidth="3" strokeLinejoin="round" />
+                        <rect x="50" y="20" width="20" height="10" fill="none" stroke="black" strokeWidth="3"/>
+                        <circle cx="30" cy="45" r="7" fill="none" stroke="black" strokeWidth="3"/>
+                        <circle cx="70" cy="45" r="7" fill="none" stroke="black" strokeWidth="3"/>
                     </svg>
                 </BorderedBox>
 
