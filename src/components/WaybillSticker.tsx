@@ -19,7 +19,7 @@ export function WaybillSticker({ waybill, boxNumber, totalBoxes }: WaybillSticke
   return (
     <div className={cn(baseClasses, sizeClasses)}>
         {/* Top: Barcode and Waybill Number */}
-        <div className="text-center border-b-2 border-black pb-2">
+        <div className="text-center border-b-2 border-black pb-2 flex flex-col items-center justify-center">
             <div className={cn("mx-auto", 'w-full h-auto')}>
                 <Barcode 
                   value={waybill.waybillNumber} 
