@@ -27,6 +27,8 @@ const BorderedBox = ({ children, style }: { children: React.ReactNode; style?: R
 
 export function WaybillStickerCustom({ waybill, boxNumber, totalBoxes, storeCode }: WaybillStickerCustomProps) {
 
+  const boxIdBarcodeValue = boxNumber ? `${waybill.waybillNumber}${String(boxNumber).padStart(4, '0')}` : waybill.waybillNumber;
+
   return (
     <div style={{
       width: '9cm',
@@ -62,6 +64,8 @@ export function WaybillStickerCustom({ waybill, boxNumber, totalBoxes, storeCode
                     fontSize: '10px',
                     fontWeight: 'bold',
                     boxSizing: 'border-box',
+                    display: 'flex',
+                    alignItems: 'center',
                 }}>
                     {waybill.senderName}
                 </div>
@@ -75,6 +79,8 @@ export function WaybillStickerCustom({ waybill, boxNumber, totalBoxes, storeCode
                     fontSize: '10px',
                     fontWeight: 'bold',
                     boxSizing: 'border-box',
+                    display: 'flex',
+                    alignItems: 'center',
                 }}>
                     {waybill.waybillNumber}
                 </div>
@@ -106,6 +112,9 @@ export function WaybillStickerCustom({ waybill, boxNumber, totalBoxes, storeCode
                     fontWeight: 'bold',
                     textAlign: 'center',
                     boxSizing: 'border-box',
+                     display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
                 }}>
                     {waybill.receiverName}
                 </div>
@@ -123,7 +132,7 @@ export function WaybillStickerCustom({ waybill, boxNumber, totalBoxes, storeCode
                 }}>
                     {boxNumber && totalBoxes && (
                        <Barcode
-                            value={`BOX${boxNumber}OF${totalBoxes}`}
+                            value={boxIdBarcodeValue}
                             height={25}
                             width={1.2}
                             displayValue={true}
