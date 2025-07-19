@@ -57,18 +57,34 @@ function PrintStickersContent() {
 
   const StickerComponent = stickerSize === 'custom' ? WaybillStickerCustom : WaybillSticker;
 
+  const printStyles = `
+    @media print {
+      @page {
+        size: ${stickerSize === '75mm' ? '75mm 75mm' : '9cm 7.3cm'};
+        margin: 0;
+      }
+      body {
+        -webkit-print-color-adjust: exact;
+      }
+    }
+  `;
+
+
   return (
-    <div className="bg-white">
-      {allStickers.map(({ waybill, boxNumber, totalBoxes }, index) => (
-        <div key={`${waybill.id}-${boxNumber}`} className="print:page-break-after-always">
-            <StickerComponent 
-              waybill={waybill}
-              boxNumber={boxNumber}
-              totalBoxes={totalBoxes}
-            />
-        </div>
-      ))}
-    </div>
+    <>
+      <style>{printStyles}</style>
+      <div className="bg-white">
+        {allStickers.map(({ waybill, boxNumber, totalBoxes }, index) => (
+          <div key={`${waybill.id}-${boxNumber}`} className="print:page-break-after-always">
+              <StickerComponent 
+                waybill={waybill}
+                boxNumber={boxNumber}
+                totalBoxes={totalBoxes}
+              />
+          </div>
+        ))}
+      </div>
+    </>
   );
 }
 
@@ -87,5 +103,3 @@ export default function PrintStickersPage() {
         </DataProvider>
     )
 }
-
-    
