@@ -51,13 +51,13 @@ export function WaybillStickerCustom({ waybill, boxNumber, totalBoxes, storeCode
                 width: '5.5cm',
                 display: 'flex',
                 flexDirection: 'column',
-                borderRight: '2px solid black',
                 boxSizing: 'border-box',
             }}>
                 {/* Sender Area */}
                 <div style={{
                     height: '0.8cm',
                     borderBottom: '1px solid black',
+                    borderRight: '2px solid black',
                     padding: '2px',
                     fontSize: '10px',
                     fontWeight: 'bold',
@@ -70,6 +70,7 @@ export function WaybillStickerCustom({ waybill, boxNumber, totalBoxes, storeCode
                 <div style={{
                     height: '0.7cm',
                     borderBottom: '2px solid black',
+                    borderRight: '2px solid black',
                     padding: '2px',
                     fontSize: '10px',
                     fontWeight: 'bold',
@@ -82,6 +83,7 @@ export function WaybillStickerCustom({ waybill, boxNumber, totalBoxes, storeCode
                 <div style={{
                     height: '0.6cm',
                     borderBottom: '2px solid black',
+                    borderRight: '2px solid black',
                     padding: '2px',
                     fontSize: '14px',
                     fontWeight: 'bold',
@@ -98,6 +100,7 @@ export function WaybillStickerCustom({ waybill, boxNumber, totalBoxes, storeCode
                  <div style={{
                     height: '0.6cm',
                     borderBottom: '2px solid black',
+                    borderRight: '2px solid black',
                     padding: '2px',
                     fontSize: '10px',
                     fontWeight: 'bold',
@@ -116,6 +119,7 @@ export function WaybillStickerCustom({ waybill, boxNumber, totalBoxes, storeCode
                     justifyContent: 'center',
                     padding: '2px',
                     boxSizing: 'border-box',
+                    borderRight: '2px solid black',
                 }}>
                     {boxNumber && totalBoxes && (
                        <Barcode
