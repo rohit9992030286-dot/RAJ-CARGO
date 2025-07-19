@@ -27,6 +27,8 @@ const BorderedBox = ({ children, style }: { children: React.ReactNode; style?: R
 
 export function WaybillStickerCustom({ waybill, boxNumber, totalBoxes, storeCode }: WaybillStickerCustomProps) {
 
+  const boxIdBarcode = `${waybill.waybillNumber}${String(boxNumber).padStart(4, '0')}`;
+
   return (
     <div style={{
       width: '9cm',
@@ -54,67 +56,62 @@ export function WaybillStickerCustom({ waybill, boxNumber, totalBoxes, storeCode
                 boxSizing: 'border-box',
             }}>
                 {/* Sender Area */}
-                <div style={{
+                <BorderedBox style={{
                     height: '0.8cm',
-                    borderBottom: '1px solid black',
                     borderRight: '2px solid black',
+                    borderBottom: '1px solid black',
+                    borderTop: 'none',
+                    borderLeft: 'none',
                     padding: '2px',
                     fontSize: '10px',
                     fontWeight: 'bold',
-                    boxSizing: 'border-box',
-                    display: 'flex',
-                    alignItems: 'center',
+                    justifyContent: 'flex-start',
                 }}>
                     {waybill.senderName}
-                </div>
+                </BorderedBox>
 
                 {/* Waybill No Area */}
-                <div style={{
+                 <BorderedBox style={{
                     height: '0.7cm',
-                    borderBottom: '2px solid black',
                     borderRight: '2px solid black',
+                    borderBottom: '2px solid black',
+                    borderTop: 'none',
+                    borderLeft: 'none',
                     padding: '2px',
                     fontSize: '10px',
                     fontWeight: 'bold',
-                    boxSizing: 'border-box',
-                    display: 'flex',
-                    alignItems: 'center',
+                    justifyContent: 'flex-start',
                 }}>
                     {waybill.waybillNumber}
-                </div>
+                </BorderedBox>
 
                 {/* Receiver City */}
-                <div style={{
+                <BorderedBox style={{
                     height: '0.6cm',
-                    borderBottom: '2px solid black',
                     borderRight: '2px solid black',
+                    borderBottom: '2px solid black',
+                    borderTop: 'none',
+                    borderLeft: 'none',
                     padding: '2px',
                     fontSize: '14px',
                     fontWeight: 'bold',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    textAlign: 'center',
-                    boxSizing: 'border-box',
                 }}>
                     {waybill.receiverCity.toUpperCase()}
-                </div>
+                </BorderedBox>
 
                 {/* Receiver Name (Delivery Notes) */}
-                 <div style={{
+                 <BorderedBox style={{
                     flex: 1,
                     borderRight: '2px solid black',
+                    borderTop: 'none',
+                    borderBottom: 'none',
+                    borderLeft: 'none',
                     padding: '2px',
                     fontSize: '10px',
                     fontWeight: 'bold',
-                    textAlign: 'center',
-                    boxSizing: 'border-box',
-                     display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
                 }}>
                     {waybill.receiverName}
-                </div>
+                </BorderedBox>
             </div>
 
             {/* Right Column */}
@@ -125,25 +122,20 @@ export function WaybillStickerCustom({ waybill, boxNumber, totalBoxes, storeCode
                 boxSizing: 'border-box',
             }}>
                 {/* Store Code */}
-                <BorderedBox style={{ height: '0.7cm', fontSize: '10px', fontWeight: 'bold' }}>
+                <BorderedBox style={{ height: '0.7cm', fontSize: '10px', fontWeight: 'bold', borderTop: 'none', borderRight: 'none', borderLeft: 'none' }}>
                     STORE: {storeCode || 'N/A'}
                 </BorderedBox>
 
                 {/* Box Number */}
-                <BorderedBox style={{ height: '0.7cm', fontSize: '10px', fontWeight: 'bold', borderTop: 'none' }}>
+                <BorderedBox style={{ height: '0.7cm', fontSize: '10px', fontWeight: 'bold', borderTop: 'none', borderRight: 'none', borderLeft: 'none' }}>
                     BOX: {boxNumber || 'N/A'} OF {totalBoxes || 'N/A'}
                 </BorderedBox>
                 
                 {/* Chicken Illustration */}
-                <div style={{
+                 <BorderedBox style={{
                     height: '1.2cm',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
                     padding: '2px',
-                    border: '1px solid black',
-                    borderTop: 'none',
-                    boxSizing: 'border-box',
+                    borderTop: 'none', borderRight: 'none', borderLeft: 'none'
                 }}>
                    <svg
                       data-ai-hint="chicken illustration"
@@ -159,27 +151,25 @@ export function WaybillStickerCustom({ waybill, boxNumber, totalBoxes, storeCode
                         <path d="M15,70 L25,85 L10,90 Z" fill="black"/>
                         <path d="M85,70 L75,85 L90,90 Z" fill="black"/>
                     </svg>
-                </div>
+                </BorderedBox>
 
                 {/* Main Barcode */}
-                <div style={{
+                <BorderedBox style={{
                     flex: 1,
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
                     padding: '5px',
-                    border: '1px solid black',
                     borderTop: 'none',
-                    boxSizing: 'border-box',
+                    borderRight: 'none',
+                    borderBottom: 'none',
+                    borderLeft: 'none'
                 }}>
                     <Barcode
-                        value={waybill.waybillNumber}
+                        value={boxIdBarcode}
                         height={40}
                         width={1.2}
                         displayValue={false}
                         margin={0}
                     />
-                </div>
+                </BorderedBox>
             </div>
         </div>
     </div>
