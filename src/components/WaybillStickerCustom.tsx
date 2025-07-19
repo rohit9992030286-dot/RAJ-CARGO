@@ -27,8 +27,6 @@ const BorderedBox = ({ children, style }: { children: React.ReactNode; style?: R
 
 export function WaybillStickerCustom({ waybill, boxNumber, totalBoxes, storeCode }: WaybillStickerCustomProps) {
 
-  const boxIdBarcodeValue = boxNumber ? `${waybill.waybillNumber}${String(boxNumber).padStart(4, '0')}` : waybill.waybillNumber;
-
   return (
     <div style={{
       width: '9cm',
@@ -104,8 +102,7 @@ export function WaybillStickerCustom({ waybill, boxNumber, totalBoxes, storeCode
 
                 {/* Receiver Name (Delivery Notes) */}
                  <div style={{
-                    height: '0.6cm',
-                    borderBottom: '2px solid black',
+                    flex: 1,
                     borderRight: '2px solid black',
                     padding: '2px',
                     fontSize: '10px',
@@ -118,30 +115,6 @@ export function WaybillStickerCustom({ waybill, boxNumber, totalBoxes, storeCode
                 }}>
                     {waybill.receiverName}
                 </div>
-
-                {/* Box ID Barcode */}
-                <div style={{
-                    flex: 1,
-                    display: 'flex',
-                    flexDirection: 'column',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    padding: '2px',
-                    boxSizing: 'border-box',
-                    borderRight: '2px solid black',
-                }}>
-                    {boxNumber && totalBoxes && (
-                       <Barcode
-                            value={boxIdBarcodeValue}
-                            height={25}
-                            width={1.2}
-                            displayValue={true}
-                            fontSize={8}
-                            margin={0}
-                        />
-                    )}
-                </div>
-
             </div>
 
             {/* Right Column */}
