@@ -44,12 +44,12 @@ export default function BulkPrintStickersPage() {
 
   useEffect(() => {
     try {
-      const storedStickers = sessionStorage.getItem('raj-cargo-bulk-stickers');
+      const storedStickers = sessionStorage.getItem('swiftway-bulk-stickers');
       if (storedStickers) {
         const parsedStickers = JSON.parse(storedStickers);
         setStickers(parsedStickers);
       }
-      const storedSize = localStorage.getItem('raj-cargo-stickerSize');
+      const storedSize = localStorage.getItem('swiftway-stickerSize');
       if (storedSize) {
         setStickerSize(storedSize);
       }
@@ -66,7 +66,7 @@ export default function BulkPrintStickersPage() {
       const timer = setTimeout(() => {
         window.print();
         // Optional: Clean up session storage after printing
-        // sessionStorage.removeItem('raj-cargo-bulk-stickers');
+        // sessionStorage.removeItem('swiftway-bulk-stickers');
       }, 500);
       return () => clearTimeout(timer);
     }

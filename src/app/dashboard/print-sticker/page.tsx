@@ -99,7 +99,7 @@ export default function PrintStickerPage() {
   const handlePrintBulk = () => {
     if (bulkStickers.length === 0) return;
     try {
-        sessionStorage.setItem('raj-cargo-bulk-stickers', JSON.stringify(bulkStickers));
+        sessionStorage.setItem('swiftway-bulk-stickers', JSON.stringify(bulkStickers));
         router.push('/print/bulk-stickers');
     } catch (e) {
         toast({

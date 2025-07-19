@@ -72,7 +72,7 @@ export function WaybillForm({ initialData, onSave, onCancel }: WaybillFormProps)
     const values = getInitialValues(initialData);
     if (!initialData) {
       try {
-        const storedSender = localStorage.getItem('raj-cargo-defaultSender');
+        const storedSender = localStorage.getItem('swiftway-defaultSender');
         if (storedSender) {
           const defaultSender = JSON.parse(storedSender);
           // Only apply default sender if creating a new waybill

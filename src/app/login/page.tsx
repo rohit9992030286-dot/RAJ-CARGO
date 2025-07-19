@@ -33,7 +33,7 @@ export default function LoginPage() {
       <div className="w-full max-w-md">
         <div className="flex flex-col items-center justify-center mb-8">
             <Send className="h-12 w-12 text-primary" />
-            <h1 className="text-3xl font-bold mt-4 text-primary">RAJ CARGO</h1>
+            <h1 className="text-3xl font-bold mt-4 text-primary">SwiftWay</h1>
             <p className="text-muted-foreground">Please sign in to continue</p>
         </div>
         <Card>
