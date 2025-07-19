@@ -28,7 +28,6 @@ import { saveAs } from 'file-saver';
 
 
 type Theme = 'light' | 'dark' | 'system';
-type StickerSize = '4x6' | '3x2' | '75mm' | '100x75mm';
 
 function getBackupData() {
     const waybills = localStorage.getItem('raj-cargo-waybills') || '[]';
@@ -48,7 +47,6 @@ function SettingsPageContent() {
   const { toast } = useToast();
   const { updateCredentials } = useAuth();
   const [theme, setTheme] = useState<Theme>('system');
-  const [stickerSize, setStickerSize] = useState<StickerSize>('75mm');
   const importFileRef = useRef<HTMLInputElement>(null);
 
   const accountForm = useForm({
@@ -59,9 +57,6 @@ function SettingsPageContent() {
   useEffect(() => {
     const storedTheme = localStorage.getItem('raj-cargo-theme') as Theme | null;
     if (storedTheme) setTheme(storedTheme);
-
-    const storedStickerSize = localStorage.getItem('raj-cargo-stickerSize') as StickerSize | null;
-    if (storedStickerSize) setStickerSize(storedStickerSize);
 
     try {
         const creds = JSON.parse(localStorage.getItem('raj-cargo-credentials') || '{}');
@@ -83,15 +78,6 @@ function SettingsPageContent() {
     toast({
       title: 'Theme Updated',
       description: `Switched to ${newTheme.charAt(0).toUpperCase() + newTheme.slice(1)} theme.`,
-    });
-  };
-
-  const handleStickerSizeChange = (newSize: StickerSize) => {
-    setStickerSize(newSize);
-    localStorage.setItem('raj-cargo-stickerSize', newSize);
-    toast({
-      title: 'Sticker Size Updated',
-      description: `Default print size set to ${newSize}.`,
     });
   };
 
@@ -214,31 +200,6 @@ function SettingsPageContent() {
                           <span>System</span>
                       </Label>
                   </RadioGroup>
-                </div>
-                <div>
-                   <Label className="font-medium">Sticker Print Size</Label>
-                   <RadioGroup value={stickerSize} onValueChange={(value: StickerSize) => handleStickerSizeChange(value)} className="grid grid-cols-2 lg:grid-cols-4 gap-4 mt-2">
-                        <Label htmlFor="size-4x6" className="flex flex-col items-center justify-center rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground [&:has([data-state=checked])]:border-primary">
-                           <RadioGroupItem value="4x6" id="size-4x6" className="sr-only" />
-                           <span className="font-bold text-lg">4" x 6"</span>
-                           <span className="text-xs text-muted-foreground">Large</span>
-                       </Label>
-                       <Label htmlFor="size-3x2" className="flex flex-col items-center justify-center rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground [&:has([data-state=checked])]:border-primary">
-                           <RadioGroupItem value="3x2" id="size-3x2" className="sr-only" />
-                           <span className="font-bold text-lg">3" x 2"</span>
-                            <span className="text-xs text-muted-foreground">Medium</span>
-                       </Label>
-                       <Label htmlFor="size-75mm" className="flex flex-col items-center justify-center rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground [&:has([data-state=checked])]:border-primary">
-                           <RadioGroupItem value="75mm" id="size-75mm" className="sr-only" />
-                           <span className="font-bold text-lg">75mm</span>
-                           <span className="text-xs text-muted-foreground">Square</span>
-                       </Label>
-                       <Label htmlFor="size-100x75mm" className="flex flex-col items-center justify-center rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground [&:has([data-state=checked])]:border-primary">
-                           <RadioGroupItem value="100x75mm" id="size-100x75mm" className="sr-only" />
-                           <span className="font-bold text-lg">100x75mm</span>
-                           <span className="text-xs text-muted-foreground">Rectangle</span>
-                       </Label>
-                   </RadioGroup>
                 </div>
             </CardContent>
         </Card>
