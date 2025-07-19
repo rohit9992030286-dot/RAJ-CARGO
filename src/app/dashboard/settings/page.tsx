@@ -21,13 +21,15 @@ import {
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/hooks/useAuth';
-import { Moon, Sun, Trash2, Save, User, KeyRound, Download, Upload, Loader2 } from 'lucide-react';
+import { Moon, Sun, Trash2, Save, User, KeyRound, Download, Upload, Loader2, Printer, Check } from 'lucide-react';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { useWaybillInventory } from '@/hooks/useWaybillInventory';
 import { saveAs } from 'file-saver';
+import { cn } from '@/lib/utils';
 
 
 type Theme = 'light' | 'dark' | 'system';
+type StickerSize = '75mm' | 'custom';
 
 function getBackupData() {
     const waybills = localStorage.getItem('raj-cargo-waybills') || '[]';
@@ -47,6 +49,7 @@ function SettingsPageContent() {
   const { toast } = useToast();
   const { updateCredentials } = useAuth();
   const [theme, setTheme] = useState<Theme>('system');
+  const [stickerSize, setStickerSize] = useState<StickerSize>('75mm');
   const importFileRef = useRef<HTMLInputElement>(null);
 
   const accountForm = useForm({
@@ -57,6 +60,9 @@ function SettingsPageContent() {
   useEffect(() => {
     const storedTheme = localStorage.getItem('raj-cargo-theme') as Theme | null;
     if (storedTheme) setTheme(storedTheme);
+
+    const storedStickerSize = localStorage.getItem('raj-cargo-stickerSize') as StickerSize | null;
+    if (storedStickerSize) setStickerSize(storedStickerSize);
 
     try {
         const creds = JSON.parse(localStorage.getItem('raj-cargo-credentials') || '{}');
@@ -78,6 +84,15 @@ function SettingsPageContent() {
     toast({
       title: 'Theme Updated',
       description: `Switched to ${newTheme.charAt(0).toUpperCase() + newTheme.slice(1)} theme.`,
+    });
+  };
+  
+   const handleStickerSizeChange = (newSize: StickerSize) => {
+    setStickerSize(newSize);
+    localStorage.setItem('raj-cargo-stickerSize', newSize);
+    toast({
+      title: 'Sticker Size Updated',
+      description: `Default sticker size set to ${newSize === 'custom' ? 'Custom (9cm x 7.3cm)' : '75mm x 75mm'}.`,
     });
   };
 
@@ -200,6 +215,36 @@ function SettingsPageContent() {
                           <span>System</span>
                       </Label>
                   </RadioGroup>
+                </div>
+                 <div>
+                    <Label className="font-medium">Sticker Print Size</Label>
+                    <p className="text-sm text-muted-foreground">Choose the default paper size for printing stickers.</p>
+                    <RadioGroup value={stickerSize} onValueChange={(value: StickerSize) => handleStickerSizeChange(value)} className="grid grid-cols-2 gap-4 mt-2">
+                        <Label
+                            htmlFor="size-75mm"
+                            className={cn(
+                                "flex flex-col items-center justify-center rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground",
+                                stickerSize === '75mm' && "border-primary"
+                            )}
+                        >
+                            <RadioGroupItem value="75mm" id="size-75mm" className="sr-only" />
+                            <Printer className="h-6 w-6 mb-2" />
+                            <span>75mm x 75mm</span>
+                            <span className="text-xs text-muted-foreground">Square</span>
+                        </Label>
+                        <Label
+                            htmlFor="size-custom"
+                            className={cn(
+                                "flex flex-col items-center justify-center rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground",
+                                stickerSize === 'custom' && "border-primary"
+                            )}
+                        >
+                            <RadioGroupItem value="custom" id="size-custom" className="sr-only" />
+                            <Printer className="h-6 w-6 mb-2" />
+                            <span>9cm x 7.3cm</span>
+                            <span className="text-xs text-muted-foreground">Custom</span>
+                        </Label>
+                    </RadioGroup>
                 </div>
             </CardContent>
         </Card>

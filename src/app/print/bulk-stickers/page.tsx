@@ -3,6 +3,7 @@
 
 import { useEffect, useRef, useState } from 'react';
 import { WaybillSticker } from '@/components/WaybillSticker';
+import { WaybillStickerCustom } from '@/components/WaybillStickerCustom';
 import { Loader2 } from 'lucide-react';
 import { Waybill } from '@/types/waybill';
 
@@ -11,6 +12,7 @@ function createMockWaybill(data: any): Waybill {
     return {
         id: data.waybillNumber || crypto.randomUUID(),
         waybillNumber: String(data.waybillNumber || ''),
+        senderName: String(data.senderName || ''),
         senderCity: String(data.senderCity || 'N/A'),
         receiverCity: String(data.receiverCity || 'N/A'),
         receiverName: String(data.receiverName || ''),
@@ -18,7 +20,6 @@ function createMockWaybill(data: any): Waybill {
         // Add default values for other required Waybill fields
         invoiceNumber: '',
         eWayBillNo: '',
-        senderName: '',
         senderAddress: '',
         senderPincode: '',
         senderPhone: '',
@@ -38,6 +39,7 @@ function createMockWaybill(data: any): Waybill {
 export default function BulkPrintStickersPage() {
   const [stickers, setStickers] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [stickerSize, setStickerSize] = useState('75mm');
   const printTriggered = useRef(false);
 
   useEffect(() => {
@@ -46,6 +48,10 @@ export default function BulkPrintStickersPage() {
       if (storedStickers) {
         const parsedStickers = JSON.parse(storedStickers);
         setStickers(parsedStickers);
+      }
+      const storedSize = localStorage.getItem('raj-cargo-stickerSize');
+      if (storedSize) {
+        setStickerSize(storedSize);
       }
     } catch (e) {
       console.error("Could not parse stickers from session storage", e);
@@ -83,27 +89,32 @@ export default function BulkPrintStickersPage() {
     );
   }
 
-  const allStickersToPrint: { waybill: Waybill; boxNumber: number; totalBoxes: number }[] = [];
+  const allStickersToPrint: { waybill: Waybill; boxNumber: number; totalBoxes: number; storeCode?: string }[] = [];
   stickers.forEach(stickerData => {
     const waybill = createMockWaybill(stickerData);
     const totalBoxes = waybill.numberOfBoxes || 1;
     for (let i = 1; i <= totalBoxes; i++) {
-        allStickersToPrint.push({ waybill, boxNumber: i, totalBoxes });
+        allStickersToPrint.push({ waybill, boxNumber: i, totalBoxes, storeCode: stickerData.storeCode });
     }
   });
+
+  const StickerComponent = stickerSize === 'custom' ? WaybillStickerCustom : WaybillSticker;
 
 
   return (
     <div className="bg-white">
-      {allStickersToPrint.map(({ waybill, boxNumber, totalBoxes }, index) => (
-        <div key={`${waybill.id}-${boxNumber}-${index}`} className="print:page-break-after-always flex justify-center items-center min-h-screen">
-            <WaybillSticker 
+      {allStickersToPrint.map(({ waybill, boxNumber, totalBoxes, storeCode }, index) => (
+        <div key={`${waybill.id}-${boxNumber}-${index}`} className="print:page-break-after-always">
+            <StickerComponent
               waybill={waybill}
               boxNumber={boxNumber}
               totalBoxes={totalBoxes}
+              storeCode={storeCode}
             />
         </div>
       ))}
     </div>
   );
 }
+
+    

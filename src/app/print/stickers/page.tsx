@@ -5,6 +5,7 @@ import { useEffect, useRef, useState, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { useWaybills } from '@/hooks/useWaybills';
 import { WaybillSticker } from '@/components/WaybillSticker';
+import { WaybillStickerCustom } from '@/components/WaybillStickerCustom';
 import { Waybill } from '@/types/waybill';
 import { DataProvider } from '@/components/DataContext';
 import { Loader2 } from 'lucide-react';
@@ -13,6 +14,7 @@ function PrintStickersContent() {
   const searchParams = useSearchParams();
   const { getWaybillById, isLoaded } = useWaybills();
   const [waybillsToPrint, setWaybillsToPrint] = useState<Waybill[]>([]);
+  const [stickerSize, setStickerSize] = useState('75mm');
   const printTriggered = useRef(false);
 
   useEffect(() => {
@@ -20,6 +22,10 @@ function PrintStickersContent() {
       const ids = searchParams.get('ids')?.split(',') || [];
       const waybills = ids.map(id => getWaybillById(id)).filter((w): w is Waybill => !!w);
       setWaybillsToPrint(waybills);
+    }
+    const storedSize = localStorage.getItem('raj-cargo-stickerSize');
+    if (storedSize) {
+        setStickerSize(storedSize);
     }
   }, [isLoaded, searchParams, getWaybillById]);
 
@@ -49,11 +55,13 @@ function PrintStickersContent() {
     }
   });
 
+  const StickerComponent = stickerSize === 'custom' ? WaybillStickerCustom : WaybillSticker;
+
   return (
     <div className="bg-white">
       {allStickers.map(({ waybill, boxNumber, totalBoxes }, index) => (
-        <div key={`${waybill.id}-${boxNumber}`} className="print:page-break-after-always flex justify-center items-center min-h-screen">
-            <WaybillSticker 
+        <div key={`${waybill.id}-${boxNumber}`} className="print:page-break-after-always">
+            <StickerComponent 
               waybill={waybill}
               boxNumber={boxNumber}
               totalBoxes={totalBoxes}
@@ -79,3 +87,5 @@ export default function PrintStickersPage() {
         </DataProvider>
     )
 }
+
+    
