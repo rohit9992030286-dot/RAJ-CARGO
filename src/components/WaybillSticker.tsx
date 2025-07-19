@@ -13,14 +13,14 @@ interface WaybillStickerProps {
 
 export function WaybillSticker({ waybill, boxNumber, totalBoxes }: WaybillStickerProps) {
   
-  const sizeClasses = 'w-[75mm] h-[75mm] p-2';
+  const sizeClasses = 'w-[72.2122mm] h-[72.2122mm] p-2';
   const baseClasses = "bg-white text-black font-sans flex flex-col border-2 border-black print:border-2 print:shadow-none";
 
   return (
     <div className={cn(baseClasses, sizeClasses)}>
         {/* Top: Barcode and Waybill Number */}
         <div className="text-center border-b-2 border-black pb-2 flex flex-col items-center justify-center">
-            <div className={cn("mx-auto", 'w-full h-auto')}>
+            <div className={cn("mx-auto flex justify-center items-center", 'w-full h-auto')}>
                 <Barcode 
                   value={waybill.waybillNumber} 
                   height={40} 
