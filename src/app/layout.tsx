@@ -1,5 +1,6 @@
 
 import type {Metadata} from 'next';
+// Style Version: 1 - This comment helps ensure style changes are picked up.
 import './globals.css';
 import { Toaster } from "@/components/ui/toaster"
 import { AuthProvider } from '@/components/AuthProvider';
