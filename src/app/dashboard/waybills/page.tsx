@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useState, useMemo, useRef } from 'react';
+import { useState, useMemo, useRef, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useWaybills } from '@/hooks/useWaybills';
 import { WaybillList } from '@/components/WaybillList';
@@ -19,6 +19,22 @@ import { format, addDays } from 'date-fns';
 import { cn } from '@/lib/utils';
 import { useWaybillInventory } from '@/hooks/useWaybillInventory';
 
+function useDebounce(value: string, delay: number): string {
+  const [debouncedValue, setDebouncedValue] = useState(value);
+
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      setDebouncedValue(value);
+    }, delay);
+
+    return () => {
+      clearTimeout(handler);
+    };
+  }, [value, delay]);
+
+  return debouncedValue;
+}
+
 
 function WaybillsPageContent() {
   const { waybills, deleteWaybill, updateWaybill, isLoaded, addWaybill } = useWaybills();
@@ -31,18 +47,21 @@ function WaybillsPageContent() {
   const { toast } = useToast();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
+  const debouncedSearchTerm = useDebounce(searchTerm, 300);
+
   const WAYBILLS_PER_PAGE = 10;
 
   const filteredWaybills = useMemo(() => {
     let filtered = waybills;
 
-    if (searchTerm) {
+    if (debouncedSearchTerm) {
+      const lowercasedTerm = debouncedSearchTerm.toLowerCase();
       filtered = filtered.filter(w => 
-          w.waybillNumber.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          w.invoiceNumber.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          w.senderName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          w.receiverName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          w.receiverCity.toLowerCase().includes(searchTerm.toLowerCase())
+          w.waybillNumber.toLowerCase().includes(lowercasedTerm) ||
+          w.invoiceNumber.toLowerCase().includes(lowercasedTerm) ||
+          w.senderName.toLowerCase().includes(lowercasedTerm) ||
+          w.receiverName.toLowerCase().includes(lowercasedTerm) ||
+          w.receiverCity.toLowerCase().includes(lowercasedTerm)
       );
     }
 
@@ -52,7 +71,11 @@ function WaybillsPageContent() {
     }
     
     return filtered;
-  }, [waybills, searchTerm, date]);
+  }, [waybills, debouncedSearchTerm, date]);
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [debouncedSearchTerm, date]);
 
   const indexOfLastWaybill = currentPage * WAYBILLS_PER_PAGE;
   const indexOfFirstWaybill = indexOfLastWaybill - WAYBILLS_PER_PAGE;
@@ -288,10 +311,7 @@ function WaybillsPageContent() {
                             type="search"
                             placeholder="Search by waybill #, name, city..."
                             value={searchTerm}
-                            onChange={(e) => {
-                              setSearchTerm(e.target.value);
-                              setCurrentPage(1); // Reset to first page on new search
-                            }}
+                            onChange={(e) => setSearchTerm(e.target.value)}
                             className="pl-10"
                         />
                     </div>
@@ -314,7 +334,6 @@ function WaybillsPageContent() {
                             selected={date}
                             onSelect={(newDate) => {
                                 setDate(newDate);
-                                setCurrentPage(1);
                             }}
                             initialFocus
                             />
