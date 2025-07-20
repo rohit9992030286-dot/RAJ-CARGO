@@ -18,8 +18,8 @@ export function WaybillSticker({ waybill, boxNumber, totalBoxes }: WaybillSticke
 
   return (
     <div className={cn(baseClasses, sizeClasses)}>
-        {/* Top: Barcode and Waybill Number */}
-        <div className="text-center border-b-2 border-black pb-2 flex flex-col items-center justify-center">
+        {/* Top: Barcode and Waybill Number - Height: 35% */}
+        <div className="text-center border-b-2 border-black flex flex-col items-center justify-center" style={{ height: '35%' }}>
             <div className={cn("mx-auto flex justify-center items-center", 'w-full h-auto')}>
                 <Barcode 
                   value={waybill.waybillNumber} 
@@ -29,24 +29,24 @@ export function WaybillSticker({ waybill, boxNumber, totalBoxes }: WaybillSticke
                   margin={0}
                 />
             </div>
-            <p className={cn("text-center font-mono", 'tracking-[0.2em] text-lg')}>{waybill.waybillNumber}</p>
+            <p className={cn("text-center font-mono pt-1", 'tracking-[0.2em] text-lg')}>{waybill.waybillNumber}</p>
         </div>
 
-        {/* Middle: Sender City */}
-        <div className="flex-grow flex flex-col items-center justify-center border-b-2 border-black">
+        {/* Middle: Sender City - Height: 30% */}
+        <div className="flex flex-col items-center justify-center border-b-2 border-black" style={{ height: '30%' }}>
             <p className="text-xs uppercase text-gray-500">From</p>
             <p className={cn("font-black tracking-tighter leading-none", 'text-4xl')}>{(waybill.senderCity || '').toUpperCase()}</p>
         </div>
 
-        {/* Bottom: Receiver City and Box Count */}
-        <div className="flex-grow flex items-center justify-between pt-2">
-            <div className="text-center">
+        {/* Bottom: Receiver City and Box Count - Height: 35% */}
+        <div className="flex items-center justify-between pt-2" style={{ height: '35%' }}>
+            <div className="text-center flex-grow">
                  <p className="text-xs uppercase text-gray-500">To</p>
                  <p className={cn("font-black tracking-tighter leading-none", 'text-4xl')}>{(waybill.receiverCity || '').toUpperCase()}</p>
                  <p className="text-sm font-semibold">{waybill.receiverName}</p>
             </div>
             {boxNumber && totalBoxes && (
-                <div className="text-center p-2 border-l-2 border-black pl-4">
+                <div className="text-center p-2 border-l-2 border-black pl-4 h-full flex flex-col justify-center">
                     <p className="text-xs uppercase text-gray-500">Box</p>
                     <p className={cn("font-black", 'text-3xl')}>{boxNumber}/{totalBoxes}</p>
                 </div>
