@@ -103,7 +103,7 @@ export default function BulkPrintStickersPage() {
   const printStyles = `
     @media print {
       @page {
-        size: ${stickerSize === '75mm' ? '72.2122mm 72.2122mm' : '9cm 7.3cm'};
+        size: ${stickerSize === '75mm' ? '75mm 75mm' : '9cm 7.3cm'};
         margin: 0;
       }
       body {
