@@ -32,9 +32,9 @@ type Theme = 'light' | 'dark' | 'system';
 type StickerSize = '75mm' | 'custom';
 
 function getBackupData() {
-    const waybills = localStorage.getItem('swiftway-waybills') || '[]';
-    const manifests = localStorage.getItem('swiftway-manifests') || '[]';
-    const inventory = localStorage.getItem('swiftway-waybill-inventory') || '[]';
+    const waybills = localStorage.getItem('rajcargo-waybills') || '[]';
+    const manifests = localStorage.getItem('rajcargo-manifests') || '[]';
+    const inventory = localStorage.getItem('rajcargo-waybill-inventory') || '[]';
     const allData = {
       waybills: JSON.parse(waybills),
       manifests: JSON.parse(manifests),
@@ -58,14 +58,14 @@ function SettingsPageContent() {
 
 
   useEffect(() => {
-    const storedTheme = localStorage.getItem('swiftway-theme') as Theme | null;
+    const storedTheme = localStorage.getItem('rajcargo-theme') as Theme | null;
     if (storedTheme) setTheme(storedTheme);
 
-    const storedStickerSize = localStorage.getItem('swiftway-stickerSize') as StickerSize | null;
+    const storedStickerSize = localStorage.getItem('rajcargo-stickerSize') as StickerSize | null;
     if (storedStickerSize) setStickerSize(storedStickerSize);
 
     try {
-        const creds = JSON.parse(localStorage.getItem('swiftway-credentials') || '{}');
+        const creds = JSON.parse(localStorage.getItem('rajcargo-credentials') || '{}');
         accountForm.reset({ username: creds.username || 'admin', password: '' });
     } catch { /* ignore */ }
 
@@ -74,7 +74,7 @@ function SettingsPageContent() {
 
   const handleThemeChange = (newTheme: Theme) => {
     setTheme(newTheme);
-    localStorage.setItem('swiftway-theme', newTheme);
+    localStorage.setItem('rajcargo-theme', newTheme);
     if (newTheme === 'system') {
         const systemTheme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
         document.documentElement.classList.toggle('dark', systemTheme === 'dark');
@@ -89,7 +89,7 @@ function SettingsPageContent() {
   
    const handleStickerSizeChange = (newSize: StickerSize) => {
     setStickerSize(newSize);
-    localStorage.setItem('swiftway-stickerSize', newSize);
+    localStorage.setItem('rajcargo-stickerSize', newSize);
     toast({
       title: 'Sticker Size Updated',
       description: `Default sticker size set to ${newSize === 'custom' ? 'Custom (9cm x 7.3cm)' : '75mm x 75mm'}.`,
@@ -107,9 +107,9 @@ function SettingsPageContent() {
 
   const handleClearData = () => {
     try {
-      localStorage.removeItem('swiftway-waybills');
-      localStorage.removeItem('swiftway-manifests');
-      localStorage.removeItem('swiftway-waybill-inventory');
+      localStorage.removeItem('rajcargo-waybills');
+      localStorage.removeItem('rajcargo-manifests');
+      localStorage.removeItem('rajcargo-waybill-inventory');
       toast({
         title: 'Application Data Cleared',
         description: 'All waybills, manifests, and inventory have been deleted.',
@@ -128,10 +128,10 @@ function SettingsPageContent() {
     try {
       const allData = getBackupData();
       const blob = new Blob([allData], { type: 'application/json' });
-      saveAs(blob, 'swiftway_backup.json');
+      saveAs(blob, 'rajcargo_backup.json');
       toast({
         title: 'Data Exported',
-        description: 'Your data has been saved to swiftway_backup.json.',
+        description: 'Your data has been saved to rajcargo_backup.json.',
       });
 
     } catch (error) {
@@ -154,9 +154,9 @@ function SettingsPageContent() {
         const data = JSON.parse(text);
 
         if (Array.isArray(data.waybills) && Array.isArray(data.manifests) && Array.isArray(data.waybillInventory)) {
-          localStorage.setItem('swiftway-waybills', JSON.stringify(data.waybills));
-          localStorage.setItem('swiftway-manifests', JSON.stringify(data.manifests));
-          localStorage.setItem('swiftway-waybill-inventory', JSON.stringify(data.waybillInventory));
+          localStorage.setItem('rajcargo-waybills', JSON.stringify(data.waybills));
+          localStorage.setItem('rajcargo-manifests', JSON.stringify(data.manifests));
+          localStorage.setItem('rajcargo-waybill-inventory', JSON.stringify(data.waybillInventory));
           toast({
             title: 'Import Successful',
             description: 'Your data has been restored from the backup file.',

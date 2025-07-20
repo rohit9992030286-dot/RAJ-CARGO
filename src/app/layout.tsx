@@ -5,7 +5,7 @@ import { Toaster } from "@/components/ui/toaster"
 import { AuthProvider } from '@/components/AuthProvider';
 
 export const metadata: Metadata = {
-  title: 'SwiftWay',
+  title: 'RAJ CARGO',
   description: 'Transport and courier service',
   manifest: '/manifest.json',
 };
@@ -27,7 +27,7 @@ export default function RootLayout({
           dangerouslySetInnerHTML={{
             __html: `
               (function() {
-                const theme = localStorage.getItem('swiftway-theme') || 'system';
+                const theme = localStorage.getItem('rajcargo-theme') || 'system';
                 if (theme === 'dark' || (theme === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
                   document.documentElement.classList.add('dark');
                 } else {

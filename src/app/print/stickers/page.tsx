@@ -23,7 +23,7 @@ function PrintStickersContent() {
       const waybills = ids.map(id => getWaybillById(id)).filter((w): w is Waybill => !!w);
       setWaybillsToPrint(waybills);
     }
-    const storedSize = localStorage.getItem('swiftway-stickerSize');
+    const storedSize = localStorage.getItem('rajcargo-stickerSize');
     if (storedSize) {
         setStickerSize(storedSize);
     }

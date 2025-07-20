@@ -82,7 +82,7 @@ function DashboardLayout({
         <aside className="w-64 bg-card border-r hidden lg:flex lg:flex-col">
           <div className="flex items-center gap-3 p-6 border-b">
             <Send className="h-8 w-8 text-primary" />
-            <h1 className="text-2xl font-bold text-primary">SwiftWay</h1>
+            <h1 className="text-2xl font-bold text-primary">RAJ CARGO</h1>
           </div>
           <NavLinks onLogoutClick={logout} />
         </aside>
@@ -101,13 +101,13 @@ function DashboardLayout({
                       </SheetHeader>
                       <div className="flex items-center gap-3 p-4 border-b">
                           <Send className="h-8 w-8 text-primary" />
-                          <h1 className="text-2xl font-bold text-primary">SwiftWay</h1>
+                          <h1 className="text-2xl font-bold text-primary">RAJ CARGO</h1>
                       </div>
                       <NavLinks onLinkClick={handleLinkClick} onLogoutClick={handleLogoutClick} />
                   </SheetContent>
               </Sheet>
               <div className="flex-1">
-                   <h1 className="font-semibold text-xl text-primary">SwiftWay</h1>
+                   <h1 className="font-semibold text-xl text-primary">RAJ CARGO</h1>
               </div>
                <Button variant="ghost" size="sm" onClick={logout}>
                   <LogOut className="mr-2 h-4 w-4" />
@@ -118,7 +118,7 @@ function DashboardLayout({
               {children}
           </main>
           <footer className="text-center p-4 text-sm text-muted-foreground border-t bg-card">
-            {year && <p>&copy; {year} SwiftWay. All rights reserved.</p>}
+            {year && <p>&copy; {year} RAJ CARGO. All rights reserved.</p>}
           </footer>
         </div>
       </div>

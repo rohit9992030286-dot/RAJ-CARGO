@@ -21,7 +21,7 @@ export function ManifestPrint({ waybills, date, vehicleNo }: ManifestPrintProps)
         <div className="flex items-center gap-3">
             <Truck className="h-10 w-10 text-primary" />
             <div>
-                <h1 className="text-3xl font-bold text-primary">SwiftWay</h1>
+                <h1 className="text-3xl font-bold text-primary">RAJ CARGO</h1>
                 <p className="text-muted-foreground">Transport & Courier Service</p>
             </div>
         </div>

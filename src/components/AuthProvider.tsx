@@ -10,7 +10,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     
     const getCredentials = () => {
         try {
-            const storedCreds = localStorage.getItem('swiftway-credentials');
+            const storedCreds = localStorage.getItem('rajcargo-credentials');
             if (storedCreds) {
                 return JSON.parse(storedCreds);
             }
@@ -22,7 +22,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     useEffect(() => {
         try {
-            const storedAuth = localStorage.getItem('swiftway-auth');
+            const storedAuth = localStorage.getItem('rajcargo-auth');
             setIsAuthenticated(storedAuth === 'true');
         } catch (error) {
             console.error('Could not access local storage:', error);
@@ -35,7 +35,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const login = (username?: string, password?: string) => {
         const creds = getCredentials();
         if (username === creds.username && password === creds.password) {
-            localStorage.setItem('swiftway-auth', 'true');
+            localStorage.setItem('rajcargo-auth', 'true');
             setIsAuthenticated(true);
             return true;
         }
@@ -43,14 +43,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     };
 
     const logout = () => {
-        localStorage.removeItem('swiftway-auth');
+        localStorage.removeItem('rajcargo-auth');
         setIsAuthenticated(false);
     };
 
     const updateCredentials = (newUsername?: string, newPassword?: string) => {
         if (newUsername && newPassword) {
             const creds = { username: newUsername, password: newPassword };
-            localStorage.setItem('swiftway-credentials', JSON.stringify(creds));
+            localStorage.setItem('rajcargo-credentials', JSON.stringify(creds));
             return true;
         }
         return false;
