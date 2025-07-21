@@ -20,9 +20,7 @@ import {
 } from '@/components/ui/alert-dialog';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { useToast } from '@/hooks/use-toast';
-import { useAuth } from '@/hooks/useAuth';
-import { Moon, Sun, Trash2, Save, User, KeyRound, Download, Upload, Loader2, Printer, Check } from 'lucide-react';
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import { Moon, Sun, Trash2, Save, Download, Upload, Loader2, Printer, Check } from 'lucide-react';
 import { useWaybillInventory } from '@/hooks/useWaybillInventory';
 import { saveAs } from 'file-saver';
 import { cn } from '@/lib/utils';
@@ -47,15 +45,9 @@ function getBackupData() {
 
 function SettingsPageContent() {
   const { toast } = useToast();
-  const { updateCredentials } = useAuth();
   const [theme, setTheme] = useState<Theme>('system');
   const [stickerSize, setStickerSize] = useState<StickerSize>('75mm');
   const importFileRef = useRef<HTMLInputElement>(null);
-
-  const accountForm = useForm({
-    defaultValues: { username: '', password: '' },
-  });
-
 
   useEffect(() => {
     const storedTheme = localStorage.getItem('rajcargo-theme') as Theme | null;
@@ -63,11 +55,6 @@ function SettingsPageContent() {
 
     const storedStickerSize = localStorage.getItem('rajcargo-stickerSize') as StickerSize | null;
     if (storedStickerSize) setStickerSize(storedStickerSize);
-
-    try {
-        const creds = JSON.parse(localStorage.getItem('rajcargo-credentials') || '{}');
-        accountForm.reset({ username: creds.username || 'admin', password: '' });
-    } catch { /* ignore */ }
 
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -94,15 +81,6 @@ function SettingsPageContent() {
       title: 'Sticker Size Updated',
       description: `Default sticker size set to ${newSize === 'custom' ? 'Custom (9cm x 7.3cm)' : '75mm x 75mm'}.`,
     });
-  };
-
-  const onAccountSubmit = (data: any) => {
-    if (updateCredentials(data.username, data.password)) {
-        toast({ title: 'Credentials Updated', description: 'Your login details have been changed.'});
-        accountForm.reset({ ...data, password: ''});
-    } else {
-        toast({ title: 'Update Failed', description: 'Please provide both a username and password.', variant: 'destructive' });
-    }
   };
 
   const handleClearData = () => {
@@ -250,137 +228,87 @@ function SettingsPageContent() {
         </Card>
         
         <Card>
-            <Form {...accountForm}>
-                <form onSubmit={accountForm.handleSubmit(onAccountSubmit)}>
-                    <CardHeader>
-                        <CardTitle>Account</CardTitle>
-                        <CardDescription>Update your login credentials.</CardDescription>
-                    </CardHeader>
-                    <CardContent className="space-y-4">
-                        <FormField
-                            control={accountForm.control}
-                            name="username"
-                            render={({ field }) => (
-                                <FormItem>
-                                    <FormLabel>Username</FormLabel>
-                                    <div className="relative">
-                                        <FormControl>
-                                            <Input {...field} className="pl-10" />
-                                        </FormControl>
-                                        <User className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
-                                    </div>
-                                    <FormMessage />
-                                </FormItem>
-                            )}
-                        />
-                        <FormField
-                            control={accountForm.control}
-                            name="password"
-                            render={({ field }) => (
-                                <FormItem>
-                                    <FormLabel>New Password</FormLabel>
-                                    <div className="relative">
-                                        <FormControl>
-                                            <Input type="password" {...field} className="pl-10" placeholder="Enter new password" />
-                                        </FormControl>
-                                        <KeyRound className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
-                                    </div>
-                                    <FormMessage />
-                                </FormItem>
-                            )}
-                        />
-                    </CardContent>
-                    <CardFooter>
-                        <Button type="submit" className="ml-auto">
-                            <Save className="mr-2 h-4 w-4" /> Save Credentials
-                        </Button>
-                    </CardFooter>
-                </form>
-            </Form>
-        </Card>
-      </div>
-
-      <Card>
-        <CardHeader>
-          <CardTitle>Data Management</CardTitle>
-          <CardDescription>Manage application data stored in your browser.</CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
-           <div className="flex items-center justify-between">
-                <div>
-                    <Label className="font-medium">Export All Data</Label>
-                    <p className="text-sm text-muted-foreground">Save a JSON backup file to your local machine.</p>
+            <CardHeader>
+            <CardTitle>Data Management</CardTitle>
+            <CardDescription>Manage application data stored in your browser.</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+            <div className="flex items-center justify-between">
+                    <div>
+                        <Label className="font-medium">Export All Data</Label>
+                        <p className="text-sm text-muted-foreground">Save a JSON backup file to your local machine.</p>
+                    </div>
+                    <Button variant="outline" onClick={handleExportData}>
+                        <Download className="mr-2 h-4 w-4" />
+                        Export Data
+                    </Button>
                 </div>
-                <Button variant="outline" onClick={handleExportData}>
-                    <Download className="mr-2 h-4 w-4" />
-                    Export Data
-                </Button>
-            </div>
+                <div className="flex items-center justify-between pt-4 border-t">
+                    <div>
+                        <Label className="font-medium">Import Data from JSON</Label>
+                        <p className="text-sm text-muted-foreground">Restore data from a backup file. This will overwrite existing data.</p>
+                    </div>
+                    <AlertDialog>
+                        <AlertDialogTrigger asChild>
+                            <Button variant="outline">
+                                <Upload className="mr-2 h-4 w-4" />
+                                Import Data
+                            </Button>
+                        </AlertDialogTrigger>
+                        <AlertDialogContent>
+                            <AlertDialogHeader>
+                                <AlertDialogTitle>Are you sure you want to import data?</AlertDialogTitle>
+                                <AlertDialogDescription>
+                                    This will overwrite all current waybills, manifests, and inventory with the data from the selected file. This action cannot be undone.
+                                </AlertDialogDescription>
+                            </AlertDialogHeader>
+                            <AlertDialogFooter>
+                                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                <AlertDialogAction onClick={() => importFileRef.current?.click()}>
+                                    Yes, Overwrite and Import
+                                </AlertDialogAction>
+                            </AlertDialogFooter>
+                        </AlertDialogContent>
+                    </AlertDialog>
+                    <input
+                        type="file"
+                        ref={importFileRef}
+                        className="hidden"
+                        accept="application/json"
+                        onChange={handleImportFileChange}
+                    />
+                </div>
             <div className="flex items-center justify-between pt-4 border-t">
                 <div>
-                    <Label className="font-medium">Import Data from JSON</Label>
-                    <p className="text-sm text-muted-foreground">Restore data from a backup file. This will overwrite existing data.</p>
+                    <Label className="font-medium">Clear All Local Data</Label>
+                    <p className="text-sm text-muted-foreground">This will permanently delete all waybills, manifests, and inventory.</p>
                 </div>
                 <AlertDialog>
-                    <AlertDialogTrigger asChild>
-                        <Button variant="outline">
-                            <Upload className="mr-2 h-4 w-4" />
-                            Import Data
-                        </Button>
-                    </AlertDialogTrigger>
-                    <AlertDialogContent>
-                        <AlertDialogHeader>
-                            <AlertDialogTitle>Are you sure you want to import data?</AlertDialogTitle>
-                            <AlertDialogDescription>
-                                This will overwrite all current waybills, manifests, and inventory with the data from the selected file. This action cannot be undone.
-                            </AlertDialogDescription>
-                        </AlertDialogHeader>
-                        <AlertDialogFooter>
-                            <AlertDialogCancel>Cancel</AlertDialogCancel>
-                            <AlertDialogAction onClick={() => importFileRef.current?.click()}>
-                                Yes, Overwrite and Import
-                            </AlertDialogAction>
-                        </AlertDialogFooter>
-                    </AlertDialogContent>
+                <AlertDialogTrigger asChild>
+                    <Button variant="destructive">
+                    <Trash2 className="mr-2 h-4 w-4" />
+                    Clear Data
+                    </Button>
+                </AlertDialogTrigger>
+                <AlertDialogContent>
+                    <AlertDialogHeader>
+                    <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+                    <AlertDialogDescription>
+                        This action cannot be undone. This will permanently delete all your waybill, manifest, and inventory data from this device.
+                    </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                    <AlertDialogCancel>Cancel</AlertDialogCancel>
+                    <AlertDialogAction onClick={handleClearData}>
+                        Yes, delete everything
+                    </AlertDialogAction>
+                    </AlertDialogFooter>
+                </AlertDialogContent>
                 </AlertDialog>
-                <input
-                    type="file"
-                    ref={importFileRef}
-                    className="hidden"
-                    accept="application/json"
-                    onChange={handleImportFileChange}
-                />
             </div>
-          <div className="flex items-center justify-between pt-4 border-t">
-            <div>
-                <Label className="font-medium">Clear All Local Data</Label>
-                <p className="text-sm text-muted-foreground">This will permanently delete all waybills, manifests, and inventory.</p>
-            </div>
-            <AlertDialog>
-              <AlertDialogTrigger asChild>
-                <Button variant="destructive">
-                  <Trash2 className="mr-2 h-4 w-4" />
-                  Clear Data
-                </Button>
-              </AlertDialogTrigger>
-              <AlertDialogContent>
-                <AlertDialogHeader>
-                  <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
-                  <AlertDialogDescription>
-                    This action cannot be undone. This will permanently delete all your waybill, manifest, and inventory data from this device.
-                  </AlertDialogDescription>
-                </AlertDialogHeader>
-                <AlertDialogFooter>
-                  <AlertDialogCancel>Cancel</AlertDialogCancel>
-                  <AlertDialogAction onClick={handleClearData}>
-                    Yes, delete everything
-                  </AlertDialogAction>
-                </AlertDialogFooter>
-              </AlertDialogContent>
-            </AlertDialog>
-          </div>
-        </CardContent>
-      </Card>
+            </CardContent>
+        </Card>
+      </div>
     </div>
   );
 }

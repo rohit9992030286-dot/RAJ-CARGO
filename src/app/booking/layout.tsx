@@ -5,8 +5,6 @@ import Link from 'next/link';
 import { Send, Home, BookCopy, PlusCircle, ScanLine, Menu, Settings, LogOut, Settings2, Truck } from 'lucide-react';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
 import { Button } from '@/components/ui/button';
-import { withAuth } from '@/components/withAuth';
-import { useAuth } from '@/hooks/useAuth';
 import { DataProvider } from '@/components/DataContext';
 
 function BookingLayout({
@@ -16,7 +14,6 @@ function BookingLayout({
 }) {
   const [year, setYear] = useState<number | null>(null);
   const [isSheetOpen, setIsSheetOpen] = useState(false);
-  const { logout } = useAuth();
 
   useEffect(() => {
     setYear(new Date().getFullYear());
@@ -26,12 +23,7 @@ function BookingLayout({
     setIsSheetOpen(false);
   };
   
-  const handleLogoutClick = () => {
-    handleLinkClick();
-    logout();
-  }
-
-  const NavLinks = ({ onLinkClick, onLogoutClick }: { onLinkClick?: () => void, onLogoutClick?: () => void }) => (
+  const NavLinks = ({ onLinkClick }: { onLinkClick?: () => void }) => (
     <nav className="p-4 flex flex-col h-full">
       <ul className="space-y-2 flex-grow">
         <li>
@@ -74,10 +66,6 @@ function BookingLayout({
             <Settings className="h-5 w-5" />
             <span>Settings</span>
         </Link>
-        <Button variant="outline" onClick={onLogoutClick} className="w-full justify-start mt-4">
-            <LogOut className="mr-3 h-5 w-5" />
-            Logout
-        </Button>
       </div>
     </nav>
   );
@@ -90,7 +78,7 @@ function BookingLayout({
             <Send className="h-8 w-8 text-primary" />
             <h1 className="text-2xl font-bold text-primary">RAJ CARGO</h1>
           </div>
-          <NavLinks onLogoutClick={logout} />
+          <NavLinks />
         </aside>
         <div className="flex-1 flex flex-col">
           <header className="flex h-16 items-center gap-4 border-b bg-card px-6 lg:hidden">
@@ -109,16 +97,12 @@ function BookingLayout({
                           <Send className="h-8 w-8 text-primary" />
                           <h1 className="text-2xl font-bold text-primary">RAJ CARGO</h1>
                       </div>
-                      <NavLinks onLinkClick={handleLinkClick} onLogoutClick={handleLogoutClick} />
+                      <NavLinks onLinkClick={handleLinkClick} />
                   </SheetContent>
               </Sheet>
               <div className="flex-1">
                    <h1 className="font-semibold text-xl text-primary">RAJ CARGO</h1>
               </div>
-               <Button variant="ghost" size="sm" onClick={logout}>
-                  <LogOut className="mr-2 h-4 w-4" />
-                  Logout
-              </Button>
           </header>
           <main className="flex-1 p-4 md:p-8 bg-background">
               {children}
@@ -132,4 +116,4 @@ function BookingLayout({
   );
 }
 
-export default withAuth(BookingLayout);
+export default BookingLayout;
