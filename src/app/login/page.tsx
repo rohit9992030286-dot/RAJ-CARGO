@@ -24,7 +24,7 @@ export default function LoginPage() {
       setError('Invalid username or password. Please try again.');
     } else {
         setError('');
-        router.push('/dashboard');
+        router.push('/booking');
     }
   };
 
