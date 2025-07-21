@@ -1,18 +1,128 @@
 'use client';
 
-import { useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import { useState } from 'react';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
+import { useWaybills } from '@/hooks/useWaybills';
+import { Waybill } from '@/types/waybill';
+import { Search, Package, CheckCircle, Truck, XCircle, Loader2, ArrowRight } from 'lucide-react';
+import { DataProvider } from '@/components/DataContext';
+import { format } from 'date-fns';
+
+function TrackingResult({ waybill }: { waybill: Waybill }) {
+    const statusInfo = {
+        'Pending': { icon: Package, color: 'text-gray-500', description: 'Your shipment has been booked.' },
+        'In Transit': { icon: Truck, color: 'text-blue-500', description: 'The shipment is on its way.' },
+        'Out for Delivery': { icon: ArrowRight, color: 'text-yellow-500', description: 'The shipment is out for delivery.' },
+        'Delivered': { icon: CheckCircle, color: 'text-green-500', description: 'The shipment has been delivered.' },
+        'Cancelled': { icon: XCircle, color: 'text-red-500', description: 'This shipment has been cancelled.' },
+        'Returned': { icon: XCircle, color: 'text-red-500', description: 'The shipment has been returned.' }
+    };
+
+    const currentStatus = statusInfo[waybill.status] || statusInfo['Pending'];
+    const Icon = currentStatus.icon;
+
+    return (
+        <Card className="mt-8">
+            <CardHeader>
+                <CardTitle className="flex items-center gap-4">
+                    <Icon className={`h-8 w-8 ${currentStatus.color}`} />
+                    <span>Status: {waybill.status}</span>
+                </CardTitle>
+                <CardDescription>{currentStatus.description}</CardDescription>
+            </CardHeader>
+            <CardContent className="grid md:grid-cols-2 gap-6 text-sm">
+                <div>
+                    <h4 className="font-semibold mb-2">Waybill Details</h4>
+                    <p><strong>Waybill #:</strong> {waybill.waybillNumber}</p>
+                    <p><strong>Date:</strong> {format(new Date(waybill.shippingDate), 'PPP')}</p>
+                    <p><strong>Boxes:</strong> {waybill.numberOfBoxes}</p>
+                    <p><strong>Weight:</strong> {waybill.packageWeight} kg</p>
+                </div>
+                <div>
+                    <h4 className="font-semibold mb-2">Journey</h4>
+                    <p><strong>From:</strong> {waybill.senderName}, {waybill.senderCity}</p>
+                    <p><strong>To:</strong> {waybill.receiverName}, {waybill.receiverCity}</p>
+                </div>
+            </CardContent>
+        </Card>
+    );
+}
+
+function TrackingPageContent() {
+    const { waybills, isLoaded } = useWaybills();
+    const [waybillNumber, setWaybillNumber] = useState('');
+    const [foundWaybill, setFoundWaybill] = useState<Waybill | null | undefined>(undefined);
+    const [error, setError] = useState<string | null>(null);
+
+    const handleTrack = () => {
+        setError(null);
+        setFoundWaybill(undefined);
+        if (!waybillNumber.trim()) {
+            setError("Please enter a waybill number.");
+            return;
+        }
+        const waybill = waybills.find(w => w.waybillNumber.toLowerCase() === waybillNumber.toLowerCase().trim());
+        if (waybill) {
+            setFoundWaybill(waybill);
+        } else {
+            setFoundWaybill(null);
+            setError("No shipment found with that waybill number. Please check the number and try again.");
+        }
+    };
+    
+    if (!isLoaded) {
+        return (
+            <div className="flex justify-center items-center h-full">
+                <Loader2 className="h-8 w-8 animate-spin text-primary" />
+            </div>
+        )
+    }
+
+    return (
+        <div className="w-full max-w-2xl mx-auto py-12 px-4">
+            <Card>
+                <CardHeader className="text-center">
+                    <Package className="h-12 w-12 mx-auto text-primary" />
+                    <CardTitle className="text-3xl font-bold mt-4">Track Your Shipment</CardTitle>
+                    <CardDescription>Enter your waybill number below to see the status of your package.</CardDescription>
+                </CardHeader>
+                <CardContent>
+                    <div className="flex gap-2">
+                        <Input
+                            placeholder="Enter your waybill number"
+                            value={waybillNumber}
+                            onChange={(e) => setWaybillNumber(e.target.value)}
+                            onKeyDown={(e) => e.key === 'Enter' && handleTrack()}
+                        />
+                        <Button onClick={handleTrack}>
+                            <Search className="mr-2 h-4 w-4" /> Track
+                        </Button>
+                    </div>
+                </CardContent>
+            </Card>
+
+            {foundWaybill === undefined && !error && (
+                 <div className="text-center p-8 text-muted-foreground">
+                    <p>Your shipment status will appear here.</p>
+                </div>
+            )}
+            
+            {error && <p className="text-red-500 text-center mt-4">{error}</p>}
+
+            {foundWaybill && <TrackingResult waybill={foundWaybill} />}
+        </div>
+    );
+}
+
 
 export default function Home() {
-  const router = useRouter();
-
-  useEffect(() => {
-    router.replace('/booking');
-  }, [router]);
-
   return (
-    <div className="flex justify-center items-center h-screen">
-        <div className="animate-spin rounded-full h-16 w-16 border-t-2 border-b-2 border-primary"></div>
-    </div>
+    <DataProvider>
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <TrackingPageContent />
+      </div>
+    </DataProvider>
   );
 }
