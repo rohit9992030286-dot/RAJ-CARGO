@@ -9,7 +9,6 @@ import { Truck, CheckCircle, BookCopy, Loader2, Package, XCircleIcon, IndianRupe
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from '@/components/ui/chart';
 import { format } from 'date-fns';
 import { useMemo } from 'react';
-import { useAuth } from '@/hooks/useAuth';
 import { Button } from '@/components/ui/button';
 
 
@@ -41,8 +40,7 @@ const chartConfig = {
 
 
 export default function DashboardPage() {
-  const { waybills } = useWaybills();
-  const { isLoaded: authLoaded } = useAuth();
+  const { waybills, isLoaded } = useWaybills();
 
   const todaysStats = useMemo(() => {
     const todaysWaybills = waybills.filter(w => w.shippingDate === format(new Date(), 'yyyy-MM-dd'));
@@ -76,7 +74,7 @@ export default function DashboardPage() {
     };
   }, [waybills]);
 
-  if (!authLoaded) {
+  if (!isLoaded) {
      return (
       <div className="flex justify-center items-center h-64">
         <Loader2 className="h-16 w-16 animate-spin text-primary" />

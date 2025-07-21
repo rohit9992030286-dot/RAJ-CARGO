@@ -2,7 +2,7 @@
 'use client';
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { Send, Home, BookCopy, PlusCircle, ScanLine, Menu, Settings, LogOut, Settings2, Truck } from 'lucide-react';
+import { Send, Home, BookCopy, PlusCircle, ScanLine, Menu, Settings, Settings2, Truck } from 'lucide-react';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
 import { Button } from '@/components/ui/button';
 import { DataProvider } from '@/components/DataContext';
