@@ -7,7 +7,6 @@ import { Toaster } from "@/components/ui/toaster"
 export const metadata: Metadata = {
   title: 'RAJ CARGO',
   description: 'Transport and courier service',
-  manifest: '/manifest.json',
 };
 
 export default function RootLayout({
@@ -23,6 +22,21 @@ export default function RootLayout({
         <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet"></link>
         <link rel="apple-touch-icon" href="/icons/icon-192x192.png" />
         <meta name="theme-color" content="#29ABE2" />
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              if ('serviceWorker' in navigator) {
+                navigator.serviceWorker.getRegistrations().then(function(registrations) {
+                  for(let registration of registrations) {
+                    registration.unregister();
+                  }
+                }).catch(function(err) {
+                  console.log('Service Worker unregistration failed: ', err);
+                });
+              }
+            `,
+          }}
+        />
       </head>
       <body className="font-body antialiased bg-background">
           {children}
