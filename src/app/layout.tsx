@@ -1,6 +1,6 @@
 
 import type {Metadata} from 'next';
-// Style Version: 1 - This comment helps ensure style changes are picked up.
+// Style Version: 2 - This comment helps ensure style changes are picked up.
 import './globals.css';
 import { Toaster } from "@/components/ui/toaster"
 import { AuthProvider } from '@/components/AuthProvider';
@@ -33,15 +33,6 @@ export default function RootLayout({
                   document.documentElement.classList.add('dark');
                 } else {
                   document.documentElement.classList.remove('dark');
-                }
-                if ('serviceWorker' in navigator) {
-                  window.addEventListener('load', () => {
-                    navigator.serviceWorker.register('/sw.js').then(registration => {
-                      console.log('SW registered: ', registration);
-                    }).catch(registrationError => {
-                      console.log('SW registration failed: ', registrationError);
-                    });
-                  });
                 }
               })();
             `,
