@@ -464,10 +464,12 @@ export function WaybillForm({ initialData, onSave, onCancel }: WaybillFormProps)
                             </div>
                             </FormControl>
                             <SelectContent>
-                            <SelectItem value="Pending">Pending</SelectItem>
-                            <SelectItem value="In Transit">In Transit</SelectItem>
-                            <SelectItem value="Delivered">Delivered</SelectItem>
-                            <SelectItem value="Cancelled">Cancelled</SelectItem>
+                                <SelectItem value="Pending">Pending</SelectItem>
+                                <SelectItem value="In Transit">In Transit</SelectItem>
+                                <SelectItem value="Out for Delivery">Out for Delivery</SelectItem>
+                                <SelectItem value="Delivered">Delivered</SelectItem>
+                                <SelectItem value="Cancelled">Cancelled</SelectItem>
+                                <SelectItem value="Returned">Returned</SelectItem>
                             </SelectContent>
                         </Select>
                         <FormMessage />

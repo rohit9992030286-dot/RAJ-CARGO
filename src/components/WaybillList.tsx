@@ -53,11 +53,13 @@ interface WaybillListProps {
 const statusVariantMap: { [key: string]: 'default' | 'secondary' | 'destructive' | 'outline' } = {
   Delivered: 'default',
   'In Transit': 'secondary',
+  'Out for Delivery': 'secondary',
+  Returned: 'destructive',
   Pending: 'outline',
   Cancelled: 'destructive',
 };
 
-const statusOptions: Waybill['status'][] = ['Pending', 'In Transit', 'Delivered', 'Cancelled'];
+const statusOptions: Waybill['status'][] = ['Pending', 'In Transit', 'Out for Delivery', 'Delivered', 'Cancelled', 'Returned'];
 
 export function WaybillList({ 
     waybills, 
@@ -116,7 +118,7 @@ export function WaybillList({
             </TableHeader>
             <TableBody>
                 {waybills.map((waybill) => {
-                    const isLocked = waybill.status === 'In Transit' || waybill.status === 'Delivered';
+                    const isLocked = waybill.status === 'In Transit' || waybill.status === 'Delivered' || waybill.status === 'Out for Delivery';
                     return (
                         <TableRow key={waybill.id}>
                             <TableCell>
@@ -134,11 +136,11 @@ export function WaybillList({
                             <TableCell>
                                 <DropdownMenu>
                                     <DropdownMenuTrigger asChild>
-                                        <Button variant="outline" size="sm" className="w-[120px] justify-between" disabled={isLocked}>
+                                        <Button variant="outline" size="sm" className="w-[120px] justify-between" disabled={isLocked && waybill.status !== 'Out for Delivery'}>
                                             <Badge variant={statusVariantMap[waybill.status] || 'default'} className="p-1">
                                                 {waybill.status}
                                             </Badge>
-                                            {!isLocked && <MoreHorizontal className="w-4 h-4 ml-2" />}
+                                            {(!isLocked || waybill.status === 'Out for Delivery') && <MoreHorizontal className="w-4 h-4 ml-2" />}
                                         </Button>
                                     </DropdownMenuTrigger>
                                     <DropdownMenuContent>

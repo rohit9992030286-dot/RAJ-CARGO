@@ -26,7 +26,7 @@ const baseWaybillSchema = z.object({
   shippingDate: z.string().min(1, 'Shipping date is required'),
   shippingTime: z.string().min(1, 'Shipping time is required'),
   
-  status: z.enum(['Pending', 'In Transit', 'Delivered', 'Cancelled']),
+  status: z.enum(['Pending', 'In Transit', 'Out for Delivery', 'Delivered', 'Cancelled', 'Returned']),
 });
 
 // Schema for the form data, with the superRefine for conditional validation.
