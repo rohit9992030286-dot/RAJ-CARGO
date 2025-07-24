@@ -40,7 +40,7 @@ function HubLayout({
           </Link>
         </li>
         <li>
-          <Link href="/hub/scan" onClick={onLinkClick} className="flex items-center gap-3 p-3 rounded-lg text-muted-foreground cursor-not-allowed">
+          <Link href="/hub" onClick={onLinkClick} className="flex items-center gap-3 p-3 rounded-lg hover:bg-primary/10 hover:text-primary transition-colors">
             <ScanLine className="h-5 w-5" />
             <span>Scan & Sort</span>
           </Link>
