@@ -87,9 +87,14 @@ export default function EditManifestPage() {
   };
 
   const handleDispatchManifest = () => {
-    if (!manifest || manifest.waybillIds.length === 0) {
+    if (!manifest) return;
+    if (manifest.waybillIds.length === 0) {
       toast({ title: "Manifest is empty", description: "Add waybills to the manifest before dispatching.", variant: "destructive" });
       return;
+    }
+    if (!manifest.vehicleNo || manifest.vehicleNo.trim() === '') {
+        toast({ title: "Vehicle Number Required", description: "Please enter a vehicle number before dispatching.", variant: "destructive"});
+        return;
     }
     
     manifestWaybills.forEach(waybill => {

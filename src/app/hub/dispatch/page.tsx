@@ -11,12 +11,29 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Checkbox } from '@/components/ui/checkbox';
 import { Loader2, Package, Truck, PlusCircle, Building } from 'lucide-react';
 import { Waybill } from '@/types/waybill';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/components/ui/alert-dialog';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { useToast } from '@/hooks/use-toast';
+
 
 export default function HubDispatchPage() {
   const router = useRouter();
   const { manifests, addManifest, isLoaded: manifestsLoaded } = useManifests();
   const { waybills, getWaybillById, updateWaybill, isLoaded: waybillsLoaded } = useWaybills();
   const [selectedWaybillIds, setSelectedWaybillIds] = useState<string[]>([]);
+  const [vehicleNo, setVehicleNo] = useState('');
+  const { toast } = useToast();
   
   const waybillsReadyForDispatch = useMemo(() => {
     // Get IDs of all waybills that are already in a newly created 'hub' manifest or a dispatched one.
@@ -56,6 +73,10 @@ export default function HubDispatchPage() {
 
   const handleCreateManifest = () => {
     if (selectedWaybillIds.length === 0) return;
+    if (!vehicleNo.trim()) {
+        toast({ title: 'Vehicle Number Required', description: 'Please enter a vehicle number to create the manifest.', variant: 'destructive' });
+        return;
+    }
     
     const selectedWaybills = selectedWaybillIds.map(id => getWaybillById(id)).filter(w => w) as Waybill[];
 
@@ -64,7 +85,7 @@ export default function HubDispatchPage() {
         date: new Date().toISOString(),
         waybillIds: selectedWaybills.map(w => w.id),
         status: 'Draft',
-        vehicleNo: '',
+        vehicleNo: vehicleNo.trim(),
         origin: 'hub',
     });
 
@@ -73,8 +94,9 @@ export default function HubDispatchPage() {
         updateWaybill({ ...wb, status: 'Pending' });
     });
     
-    // Reset selection
+    // Reset selection and vehicle number
     setSelectedWaybillIds([]);
+    setVehicleNo('');
 
     router.push(`/booking/manifest/${newManifestId}`);
   };
@@ -108,10 +130,37 @@ export default function HubDispatchPage() {
             </div>
              <div className="flex items-center gap-4">
                 <span className="text-sm text-muted-foreground">{selectedWaybillIds.length} of {waybillsReadyForDispatch.length} selected</span>
-                <Button onClick={handleCreateManifest} disabled={selectedWaybillIds.length === 0}>
-                    <PlusCircle className="mr-2 h-4 w-4" />
-                    Create Manifest
-                </Button>
+
+                <AlertDialog>
+                    <AlertDialogTrigger asChild>
+                        <Button disabled={selectedWaybillIds.length === 0}>
+                           <PlusCircle className="mr-2 h-4 w-4" /> Create Manifest
+                        </Button>
+                    </AlertDialogTrigger>
+                    <AlertDialogContent>
+                        <AlertDialogHeader>
+                            <AlertDialogTitle>Create New Outbound Manifest</AlertDialogTitle>
+                            <AlertDialogDescription>
+                                Enter the vehicle number for this manifest. This cannot be changed later.
+                            </AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <div className="py-4">
+                           <Label htmlFor="vehicle-no-dialog">Vehicle Number</Label>
+                           <Input 
+                             id="vehicle-no-dialog"
+                             value={vehicleNo}
+                             onChange={(e) => setVehicleNo(e.target.value)}
+                             placeholder="e.g., MH-12-AB-1234"
+                           />
+                        </div>
+                        <AlertDialogFooter>
+                            <AlertDialogCancel onClick={() => setVehicleNo('')}>Cancel</AlertDialogCancel>
+                            <AlertDialogAction onClick={handleCreateManifest}>
+                                Create Manifest
+                            </AlertDialogAction>
+                        </AlertDialogFooter>
+                    </AlertDialogContent>
+                </AlertDialog>
             </div>
           </div>
         </CardHeader>
