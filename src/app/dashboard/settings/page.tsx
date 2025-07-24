@@ -20,7 +20,6 @@ import {
 } from '@/components/ui/alert-dialog';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { useToast } from '@/hooks/use-toast';
-import { useAuth } from '@/hooks/useAuth';
 import { Moon, Sun, Trash2, Save, User, KeyRound, Download, Upload, Loader2, Printer, Check } from 'lucide-react';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { useWaybillInventory } from '@/hooks/useWaybillInventory';
@@ -47,15 +46,9 @@ function getBackupData() {
 
 function SettingsPageContent() {
   const { toast } = useToast();
-  const { updateCredentials } = useAuth();
   const [theme, setTheme] = useState<Theme>('system');
   const [stickerSize, setStickerSize] = useState<StickerSize>('75mm');
   const importFileRef = useRef<HTMLInputElement>(null);
-
-  const accountForm = useForm({
-    defaultValues: { username: '', password: '' },
-  });
-
 
   useEffect(() => {
     const storedTheme = localStorage.getItem('rajcargo-theme') as Theme | null;
@@ -63,11 +56,6 @@ function SettingsPageContent() {
 
     const storedStickerSize = localStorage.getItem('rajcargo-stickerSize') as StickerSize | null;
     if (storedStickerSize) setStickerSize(storedStickerSize);
-
-    try {
-        const creds = JSON.parse(localStorage.getItem('rajcargo-credentials') || '{}');
-        accountForm.reset({ username: creds.username || 'admin', password: '' });
-    } catch { /* ignore */ }
 
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -94,15 +82,6 @@ function SettingsPageContent() {
       title: 'Sticker Size Updated',
       description: `Default sticker size set to ${newSize === 'custom' ? 'Custom (9cm x 7.3cm)' : '75mm x 75mm'}.`,
     });
-  };
-
-  const onAccountSubmit = (data: any) => {
-    if (updateCredentials(data.username, data.password)) {
-        toast({ title: 'Credentials Updated', description: 'Your login details have been changed.'});
-        accountForm.reset({ ...data, password: ''});
-    } else {
-        toast({ title: 'Update Failed', description: 'Please provide both a username and password.', variant: 'destructive' });
-    }
   };
 
   const handleClearData = () => {
@@ -189,116 +168,64 @@ function SettingsPageContent() {
         <p className="text-muted-foreground">Manage your application preferences and data.</p>
       </div>
 
-      <div className="grid md:grid-cols-2 gap-8">
-        <Card>
-            <CardHeader>
-                <CardTitle>Appearance</CardTitle>
-                <CardDescription>Customize the look and feel.</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-6">
-                <div>
-                  <Label className="font-medium">Theme</Label>
-                  <RadioGroup value={theme} onValueChange={(value: Theme) => handleThemeChange(value)} className="grid grid-cols-3 gap-4 mt-2">
-                      <Label htmlFor="theme-light" className="flex flex-col items-center justify-center rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground [&:has([data-state=checked])]:border-primary">
-                          <RadioGroupItem value="light" id="theme-light" className="sr-only" />
-                          <Sun className="h-6 w-6 mb-2" />
-                          <span>Light</span>
+      <Card>
+          <CardHeader>
+              <CardTitle>Appearance</CardTitle>
+              <CardDescription>Customize the look and feel.</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-6">
+              <div>
+                <Label className="font-medium">Theme</Label>
+                <RadioGroup value={theme} onValueChange={(value: Theme) => handleThemeChange(value)} className="grid grid-cols-3 gap-4 mt-2">
+                    <Label htmlFor="theme-light" className="flex flex-col items-center justify-center rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground [&:has([data-state=checked])]:border-primary">
+                        <RadioGroupItem value="light" id="theme-light" className="sr-only" />
+                        <Sun className="h-6 w-6 mb-2" />
+                        <span>Light</span>
+                    </Label>
+                    <Label htmlFor="theme-dark" className="flex flex-col items-center justify-center rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground [&:has([data-state=checked])]:border-primary">
+                        <RadioGroupItem value="dark" id="theme-dark" className="sr-only" />
+                        <Moon className="h-6 w-6 mb-2" />
+                        <span>Dark</span>
+                    </Label>
+                    <Label htmlFor="theme-system" className="flex flex-col items-center justify-center rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground [&:has([data-state=checked])]:border-primary">
+                        <RadioGroupItem value="system" id="theme-system" className="sr-only" />
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-6 w-6 mb-2"><rect width="14" height="20" x="5" y="2" rx="2" ry="2"/><path d="M12 18h.01"/></svg>
+                        <span>System</span>
+                    </Label>
+                </RadioGroup>
+              </div>
+               <div>
+                  <Label className="font-medium">Sticker Print Size</Label>
+                  <p className="text-sm text-muted-foreground">Choose the default paper size for printing stickers.</p>
+                  <RadioGroup value={stickerSize} onValueChange={(value: StickerSize) => handleStickerSizeChange(value)} className="grid grid-cols-2 gap-4 mt-2">
+                      <Label
+                          htmlFor="size-75mm"
+                          className={cn(
+                              "flex flex-col items-center justify-center rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground",
+                              stickerSize === '75mm' && "border-primary"
+                          )}
+                      >
+                          <RadioGroupItem value="75mm" id="size-75mm" className="sr-only" />
+                          <Printer className="h-6 w-6 mb-2" />
+                          <span>75mm x 75mm</span>
+                          <span className="text-xs text-muted-foreground">Square</span>
                       </Label>
-                      <Label htmlFor="theme-dark" className="flex flex-col items-center justify-center rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground [&:has([data-state=checked])]:border-primary">
-                          <RadioGroupItem value="dark" id="theme-dark" className="sr-only" />
-                          <Moon className="h-6 w-6 mb-2" />
-                          <span>Dark</span>
-                      </Label>
-                      <Label htmlFor="theme-system" className="flex flex-col items-center justify-center rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground [&:has([data-state=checked])]:border-primary">
-                          <RadioGroupItem value="system" id="theme-system" className="sr-only" />
-                          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-6 w-6 mb-2"><rect width="14" height="20" x="5" y="2" rx="2" ry="2"/><path d="M12 18h.01"/></svg>
-                          <span>System</span>
+                      <Label
+                          htmlFor="size-custom"
+                          className={cn(
+                              "flex flex-col items-center justify-center rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground",
+                              stickerSize === 'custom' && "border-primary"
+                          )}
+                      >
+                          <RadioGroupItem value="custom" id="size-custom" className="sr-only" />
+                          <Printer className="h-6 w-6 mb-2" />
+                          <span>9cm x 7.3cm</span>
+                          <span className="text-xs text-muted-foreground">Custom</span>
                       </Label>
                   </RadioGroup>
-                </div>
-                 <div>
-                    <Label className="font-medium">Sticker Print Size</Label>
-                    <p className="text-sm text-muted-foreground">Choose the default paper size for printing stickers.</p>
-                    <RadioGroup value={stickerSize} onValueChange={(value: StickerSize) => handleStickerSizeChange(value)} className="grid grid-cols-2 gap-4 mt-2">
-                        <Label
-                            htmlFor="size-75mm"
-                            className={cn(
-                                "flex flex-col items-center justify-center rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground",
-                                stickerSize === '75mm' && "border-primary"
-                            )}
-                        >
-                            <RadioGroupItem value="75mm" id="size-75mm" className="sr-only" />
-                            <Printer className="h-6 w-6 mb-2" />
-                            <span>75mm x 75mm</span>
-                            <span className="text-xs text-muted-foreground">Square</span>
-                        </Label>
-                        <Label
-                            htmlFor="size-custom"
-                            className={cn(
-                                "flex flex-col items-center justify-center rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground",
-                                stickerSize === 'custom' && "border-primary"
-                            )}
-                        >
-                            <RadioGroupItem value="custom" id="size-custom" className="sr-only" />
-                            <Printer className="h-6 w-6 mb-2" />
-                            <span>9cm x 7.3cm</span>
-                            <span className="text-xs text-muted-foreground">Custom</span>
-                        </Label>
-                    </RadioGroup>
-                </div>
-            </CardContent>
-        </Card>
-        
-        <Card>
-            <Form {...accountForm}>
-                <form onSubmit={accountForm.handleSubmit(onAccountSubmit)}>
-                    <CardHeader>
-                        <CardTitle>Account</CardTitle>
-                        <CardDescription>Update your login credentials.</CardDescription>
-                    </CardHeader>
-                    <CardContent className="space-y-4">
-                        <FormField
-                            control={accountForm.control}
-                            name="username"
-                            render={({ field }) => (
-                                <FormItem>
-                                    <FormLabel>Username</FormLabel>
-                                    <div className="relative">
-                                        <FormControl>
-                                            <Input {...field} className="pl-10" />
-                                        </FormControl>
-                                        <User className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
-                                    </div>
-                                    <FormMessage />
-                                </FormItem>
-                            )}
-                        />
-                        <FormField
-                            control={accountForm.control}
-                            name="password"
-                            render={({ field }) => (
-                                <FormItem>
-                                    <FormLabel>New Password</FormLabel>
-                                    <div className="relative">
-                                        <FormControl>
-                                            <Input type="password" {...field} className="pl-10" placeholder="Enter new password" />
-                                        </FormControl>
-                                        <KeyRound className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
-                                    </div>
-                                    <FormMessage />
-                                </FormItem>
-                            )}
-                        />
-                    </CardContent>
-                    <CardFooter>
-                        <Button type="submit" className="ml-auto">
-                            <Save className="mr-2 h-4 w-4" /> Save Credentials
-                        </Button>
-                    </CardFooter>
-                </form>
-            </Form>
-        </Card>
-      </div>
+              </div>
+          </CardContent>
+      </Card>
 
       <Card>
         <CardHeader>
@@ -399,3 +326,5 @@ export default function SettingsPage() {
 
   return <SettingsPageContent />;
 }
+
+    
