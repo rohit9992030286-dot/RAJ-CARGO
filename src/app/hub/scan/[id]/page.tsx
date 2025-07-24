@@ -24,7 +24,7 @@ function ScanManifestPage() {
   
   const manifestId = Array.isArray(params.id) ? params.id[0] : params.id;
   
-  const { getManifestById, isLoaded: manifestsLoaded } = useManifests();
+  const { getManifestById, updateManifest, isLoaded: manifestsLoaded } = useManifests();
   const { getWaybillById, isLoaded: waybillsLoaded } = useWaybills();
   
   const [manifest, setManifest] = useState<Manifest | null>(null);
@@ -68,6 +68,7 @@ function ScanManifestPage() {
 
   const handleConfirmArrival = () => {
     if (manifest) {
+      updateManifest({ ...manifest, status: 'Received' });
       toast({
         title: "Manifest Arrival Confirmed",
         description: `All ${manifestWaybills.length} waybills in manifest M-${manifest.id.substring(0,8)} have been marked as received.`,

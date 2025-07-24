@@ -6,7 +6,7 @@ export const manifestSchema = z.object({
   date: z.string().min(1, 'Manifest date is required.'),
   vehicleNo: z.string().optional(),
   waybillIds: z.array(z.string().uuid()),
-  status: z.enum(['Draft', 'Dispatched']).default('Draft'),
+  status: z.enum(['Draft', 'Dispatched', 'Received']).default('Draft'),
 });
 
 export type Manifest = z.infer<typeof manifestSchema>;

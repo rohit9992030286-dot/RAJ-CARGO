@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
-import { Eye, Truck, Loader2, ScanLine } from 'lucide-react';
+import { Eye, Truck, Loader2, ScanLine, CheckCircle } from 'lucide-react';
 import { Manifest } from '@/types/manifest';
 import { format } from 'date-fns';
 import { useMemo } from 'react';
@@ -19,7 +19,7 @@ export default function HubPage() {
   const { waybills, isLoaded: waybillsLoaded } = useWaybills();
   
   const dispatchedManifests = useMemo(() => {
-    return manifests.filter(m => m.status === 'Dispatched');
+    return manifests.filter(m => m.status === 'Dispatched' || m.status === 'Received');
   }, [manifests]);
 
   const getManifestDetails = useMemo(() => {
@@ -63,7 +63,7 @@ export default function HubPage() {
         <CardHeader>
           <CardTitle>Incoming Manifests</CardTitle>
           <CardDescription>
-            There are {dispatchedManifests.length} dispatched manifest(s) awaiting verification at the hub.
+            There are {dispatchedManifests.filter(m => m.status === 'Dispatched').length} dispatched manifest(s) awaiting verification at the hub.
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -92,9 +92,16 @@ export default function HubPage() {
                       <TableCell className="text-center">{details.waybillCount}</TableCell>
                       <TableCell className="text-center">{details.boxCount}</TableCell>
                       <TableCell className="text-right">
-                        <Button variant="outline" size="sm" onClick={() => handleVerifyManifest(manifest.id)}>
-                          <ScanLine className="mr-2 h-4 w-4" /> Verify Shipment
-                        </Button>
+                        {manifest.status === 'Received' ? (
+                            <div className="flex items-center justify-end gap-2 text-green-600 font-semibold">
+                                <CheckCircle className="h-5 w-5" />
+                                <span>Verified</span>
+                            </div>
+                        ) : (
+                           <Button variant="outline" size="sm" onClick={() => handleVerifyManifest(manifest.id)}>
+                              <ScanLine className="mr-2 h-4 w-4" /> Verify Shipment
+                           </Button>
+                        )}
                       </TableCell>
                     </TableRow>
                   )
