@@ -52,7 +52,8 @@ export default function HubDispatchPage() {
         date: new Date().toISOString(),
         waybillIds: waybillsForCity.map(w => w.id),
         status: 'Draft',
-        vehicleNo: ''
+        vehicleNo: '',
+        origin: 'hub',
     });
 
     // Mark these waybills as 'Pending' for the new manifest

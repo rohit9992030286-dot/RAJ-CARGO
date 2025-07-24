@@ -16,7 +16,8 @@ export default function CreateManifestPage() {
             date: new Date().toISOString(),
             waybillIds: [],
             status: 'Draft',
-            vehicleNo: ''
+            vehicleNo: '',
+            origin: 'booking',
         });
         router.replace(`/booking/manifest/${newManifestId}`);
 

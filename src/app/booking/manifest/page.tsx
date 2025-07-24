@@ -31,6 +31,10 @@ export default function ManifestListPage() {
     deleteManifest(id);
   };
   
+  const bookingManifests = useMemo(() => {
+    return manifests.filter(m => m.origin === 'booking');
+  }, [manifests]);
+
   if (!manifestsLoaded || !waybillsLoaded) {
     return (
       <div className="flex justify-center items-center h-64">
@@ -74,7 +78,7 @@ export default function ManifestListPage() {
         <CardHeader>
           <CardTitle>All Manifests</CardTitle>
           <CardDescription>
-            You have {manifests.length} manifest(s).
+            You have {bookingManifests.length} manifest(s).
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -92,8 +96,8 @@ export default function ManifestListPage() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {manifests.length > 0 ? (
-                manifests.map((manifest) => {
+              {bookingManifests.length > 0 ? (
+                bookingManifests.map((manifest) => {
                   const details = getManifestDetails(manifest);
                   return (
                     <TableRow key={manifest.id}>
