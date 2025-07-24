@@ -2,12 +2,12 @@
 'use client';
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { Send, Home, BookCopy, PlusCircle, ScanLine, Menu, Settings, Settings2, Truck, Cpu, LayoutDashboard } from 'lucide-react';
+import { Send, Menu, Settings, Settings2, Cpu, LayoutDashboard, ScanLine } from 'lucide-react';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
 import { Button } from '@/components/ui/button';
 import { DataProvider } from '@/components/DataContext';
 
-function BookingLayout({
+function HubLayout({
   children,
 }: {
   children: React.ReactNode;
@@ -32,49 +32,21 @@ function BookingLayout({
             <span>Main Dashboard</span>
           </Link>
         </li>
-        <li className="px-3 py-2 text-xs font-semibold text-muted-foreground uppercase">Booking</li>
+        <li className="px-3 py-2 text-xs font-semibold text-muted-foreground uppercase">Hub</li>
         <li>
-          <Link href="/booking" onClick={onLinkClick} className="flex items-center gap-3 p-3 rounded-lg hover:bg-primary/10 hover:text-primary transition-colors">
-            <Home className="h-5 w-5" />
-            <span>Booking Dashboard</span>
+          <Link href="/hub" onClick={onLinkClick} className="flex items-center gap-3 p-3 rounded-lg hover:bg-primary/10 hover:text-primary transition-colors">
+            <Cpu className="h-5 w-5" />
+            <span>Hub Dashboard</span>
           </Link>
         </li>
         <li>
-          <Link href="/booking/waybills/create" onClick={onLinkClick} className="flex items-center gap-3 p-3 rounded-lg hover:bg-primary/10 hover:text-primary transition-colors">
-            <PlusCircle className="h-5 w-5" />
-            <span>Create Waybill</span>
-          </Link>
-        </li>
-        <li>
-          <Link href="/booking/waybills" onClick={onLinkClick} className="flex items-center gap-3 p-3 rounded-lg hover:bg-primary/10 hover:text-primary transition-colors">
-            <BookCopy className="h-5 w-5" />
-            <span>Waybill Book</span>
-          </Link>
-        </li>
-        <li>
-          <Link href="/booking/manifest" onClick={onLinkClick} className="flex items-center gap-3 p-3 rounded-lg hover:bg-primary/10 hover:text-primary transition-colors">
-            <Truck className="h-5 w-5" />
-            <span>Dispatch Manifests</span>
-          </Link>
-        </li>
-        <li>
-          <Link href="/booking/print-sticker" onClick={onLinkClick} className="flex items-center gap-3 p-3 rounded-lg hover:bg-primary/10 hover:text-primary transition-colors">
+          <Link href="/hub/scan" onClick={onLinkClick} className="flex items-center gap-3 p-3 rounded-lg text-muted-foreground cursor-not-allowed">
             <ScanLine className="h-5 w-5" />
-            <span>Print Sticker</span>
-          </Link>
-        </li>
-         <li>
-          <Link href="/booking/sales" onClick={onLinkClick} className="flex items-center gap-3 p-3 rounded-lg hover:bg-primary/10 hover:text-primary transition-colors">
-            <IndianRupee className="h-5 w-5" />
-            <span>Sales Report</span>
+            <span>Scan & Sort</span>
           </Link>
         </li>
       </ul>
       <div className="space-y-2 border-t pt-4">
-        <Link href="/booking/configuration" onClick={onLinkClick} className="flex items-center gap-3 p-3 rounded-lg hover:bg-primary/10 hover:text-primary transition-colors">
-            <Settings2 className="h-5 w-5" />
-            <span>Configuration</span>
-        </Link>
         <Link href="/booking/settings" onClick={onLinkClick} className="flex items-center gap-3 p-3 rounded-lg hover:bg-primary/10 hover:text-primary transition-colors">
             <Settings className="h-5 w-5" />
             <span>Settings</span>
@@ -114,7 +86,7 @@ function BookingLayout({
                   </SheetContent>
               </Sheet>
               <div className="flex-1">
-                   <h1 className="font-semibold text-xl text-primary">RAJ CARGO</h1>
+                   <h1 className="font-semibold text-xl text-primary">RAJ CARGO - HUB</h1>
               </div>
           </header>
           <main className="flex-1 p-4 md:p-8 bg-background">
@@ -129,4 +101,4 @@ function BookingLayout({
   );
 }
 
-export default BookingLayout;
+export default HubLayout;

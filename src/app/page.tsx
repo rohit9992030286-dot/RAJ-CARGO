@@ -131,10 +131,10 @@ export default function Home() {
                         <span className="text-2xl font-bold text-primary">RAJ CARGO</span>
                     </div>
                     <div className="flex items-center">
-                        <Link href="/booking">
+                        <Link href="/dashboard">
                             <Button variant="ghost">
                                 <LogIn className="mr-2 h-5 w-5" />
-                                Open Dashboard
+                                Staff Login
                             </Button>
                         </Link>
                     </div>

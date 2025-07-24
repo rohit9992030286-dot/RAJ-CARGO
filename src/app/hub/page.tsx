@@ -8,7 +8,7 @@ export default function HubPage() {
   return (
     <div className="space-y-8">
       <div>
-        <h1 className="text-3xl font-bold">Hub Operations</h1>
+        <h1 className="text-3xl font-bold">Hub Operations Dashboard</h1>
         <p className="text-muted-foreground">Manage incoming and outgoing packages at your central hub.</p>
       </div>
       
