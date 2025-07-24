@@ -2,12 +2,13 @@
 'use client';
 
 import { useState } from 'react';
+import Link from 'next/link';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { useWaybills } from '@/hooks/useWaybills';
 import { Waybill } from '@/types/waybill';
-import { Search, Package, CheckCircle, Truck, XCircle, Loader2, ArrowRight } from 'lucide-react';
+import { Search, Package, CheckCircle, Truck, XCircle, Loader2, ArrowRight, LogIn, Send } from 'lucide-react';
 import { DataProvider } from '@/components/DataContext';
 import { format } from 'date-fns';
 
@@ -121,8 +122,28 @@ function TrackingPageContent() {
 export default function Home() {
   return (
     <DataProvider>
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <TrackingPageContent />
+      <div className="min-h-screen flex flex-col bg-gray-50">
+        <header className="w-full bg-card shadow-sm">
+            <nav className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div className="flex justify-between items-center h-16">
+                    <div className="flex-shrink-0 flex items-center gap-2">
+                        <Send className="h-8 w-8 text-primary"/>
+                        <span className="text-2xl font-bold text-primary">RAJ CARGO</span>
+                    </div>
+                    <div className="flex items-center">
+                        <Link href="/login">
+                            <Button variant="ghost">
+                                <LogIn className="mr-2 h-5 w-5" />
+                                Staff Login
+                            </Button>
+                        </Link>
+                    </div>
+                </div>
+            </nav>
+        </header>
+        <main className="flex-grow flex items-center justify-center">
+             <TrackingPageContent />
+        </main>
       </div>
     </DataProvider>
   );
