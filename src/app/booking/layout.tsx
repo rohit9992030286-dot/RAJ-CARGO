@@ -2,11 +2,9 @@
 'use client';
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { Send, Home, BookCopy, PlusCircle, ScanLine, Menu, Settings, Settings2, Truck, Cpu, LogOut } from 'lucide-react';
+import { Send, Home, BookCopy, PlusCircle, ScanLine, Menu, Settings, Settings2, Truck, Cpu } from 'lucide-react';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
 import { Button } from '@/components/ui/button';
-import { withAuth } from '@/components/withAuth';
-import { useAuth } from '@/hooks/useAuth';
 import { DataProvider } from '@/components/DataContext';
 
 function BookingLayout({
@@ -16,7 +14,6 @@ function BookingLayout({
 }) {
   const [year, setYear] = useState<number | null>(null);
   const [isSheetOpen, setIsSheetOpen] = useState(false);
-  const { logout } = useAuth();
 
   useEffect(() => {
     setYear(new Date().getFullYear());
@@ -75,10 +72,6 @@ function BookingLayout({
             <Settings className="h-5 w-5" />
             <span>Settings</span>
         </Link>
-         <Button variant="ghost" onClick={logout} className="w-full justify-start flex items-center gap-3 p-3 rounded-lg hover:bg-destructive/10 hover:text-destructive transition-colors text-base font-normal">
-            <LogOut className="h-5 w-5" />
-            <span>Logout</span>
-        </Button>
       </div>
     </nav>
   );
@@ -129,4 +122,4 @@ function BookingLayout({
   );
 }
 
-export default withAuth(BookingLayout);
+export default BookingLayout;
