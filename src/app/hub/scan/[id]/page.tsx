@@ -15,6 +15,7 @@ import { Manifest } from '@/types/manifest';
 import { useToast } from '@/hooks/use-toast';
 import { format } from 'date-fns';
 import { Input } from '@/components/ui/input';
+import { cn } from '@/lib/utils';
 
 function ScanManifestPage() {
   const router = useRouter();
@@ -23,8 +24,8 @@ function ScanManifestPage() {
   
   const manifestId = Array.isArray(params.id) ? params.id[0] : params.id;
   
-  const { getManifestById } = useManifests();
-  const { getWaybillById, isLoaded: waybillsLoaded, manifests, isLoaded: manifestsLoaded } = useWaybills();
+  const { getManifestById, isLoaded: manifestsLoaded } = useManifests();
+  const { getWaybillById, isLoaded: waybillsLoaded } = useWaybills();
   
   const [manifest, setManifest] = useState<Manifest | null>(null);
   const [scannedWaybillNumbers, setScannedWaybillNumbers] = useState<Set<string>>(new Set());
@@ -211,5 +212,3 @@ export default function ScanManifestPageWrapper() {
         </Suspense>
     )
 }
-
-    
