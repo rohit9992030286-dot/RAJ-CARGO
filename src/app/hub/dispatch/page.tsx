@@ -1,14 +1,14 @@
 
 'use client';
 
-import { useMemo } from 'react';
+import { useState, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import { useManifests } from '@/hooks/useManifests';
 import { useWaybills } from '@/hooks/useWaybills';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
+import { Checkbox } from '@/components/ui/checkbox';
 import { Loader2, Package, Truck, PlusCircle, Building } from 'lucide-react';
 import { Waybill } from '@/types/waybill';
 
@@ -16,50 +16,65 @@ export default function HubDispatchPage() {
   const router = useRouter();
   const { manifests, addManifest, isLoaded: manifestsLoaded } = useManifests();
   const { waybills, getWaybillById, updateWaybill, isLoaded: waybillsLoaded } = useWaybills();
+  const [selectedWaybillIds, setSelectedWaybillIds] = useState<string[]>([]);
   
   const waybillsReadyForDispatch = useMemo(() => {
-    // 1. Get IDs of all waybills that are in 'Dispatched' manifests, which means they are in transit to a new destination
+    // Get IDs of all waybills that are already in a newly created 'hub' manifest or a dispatched one.
     const dispatchedWaybillIds = new Set(
-        manifests.filter(m => m.status === 'Dispatched').flatMap(m => m.waybillIds)
+        manifests.filter(m => m.origin === 'hub').flatMap(m => m.waybillIds)
     );
 
-    // 2. Get all waybills from manifests that have been 'Received'
+    // Get all waybills from manifests that have been 'Received' at the hub.
     const receivedManifestWaybillIds = manifests
       .filter(m => m.status === 'Received')
       .flatMap(m => m.waybillIds);
       
-    // 3. Filter for waybills that have been received but are NOT yet in a new dispatched manifest
+    // Filter for waybills that have been received but are NOT yet in a new dispatched hub manifest.
     return receivedManifestWaybillIds
       .map(id => getWaybillById(id))
       .filter((w): w is Waybill => !!w && !dispatchedWaybillIds.has(w.id));
   }, [manifests, getWaybillById]);
   
-  const waybillsByCity = useMemo(() => {
-    return waybillsReadyForDispatch.reduce((acc, waybill) => {
-        const city = waybill.receiverCity;
-        if (!acc[city]) {
-            acc[city] = [];
+  const handleSelectionChange = (id: string, isSelected: boolean) => {
+    setSelectedWaybillIds(prev => {
+        if (isSelected) {
+            return [...prev, id];
+        } else {
+            return prev.filter(selectedId => selectedId !== id);
         }
-        acc[city].push(waybill);
-        return acc;
-    }, {} as Record<string, Waybill[]>);
-  }, [waybillsReadyForDispatch]);
+    });
+  };
+  
+  const handleSelectAll = (select: boolean) => {
+      if (select) {
+          setSelectedWaybillIds(waybillsReadyForDispatch.map(w => w.id));
+      } else {
+          setSelectedWaybillIds([]);
+      }
+  };
 
 
-  const handleCreateManifest = (city: string, waybillsForCity: Waybill[]) => {
+  const handleCreateManifest = () => {
+    if (selectedWaybillIds.length === 0) return;
+    
+    const selectedWaybills = selectedWaybillIds.map(id => getWaybillById(id)).filter(w => w) as Waybill[];
+
     const newManifestId = addManifest({
         id: crypto.randomUUID(),
         date: new Date().toISOString(),
-        waybillIds: waybillsForCity.map(w => w.id),
+        waybillIds: selectedWaybills.map(w => w.id),
         status: 'Draft',
         vehicleNo: '',
         origin: 'hub',
     });
 
     // Mark these waybills as 'Pending' for the new manifest
-    waybillsForCity.forEach(wb => {
+    selectedWaybills.forEach(wb => {
         updateWaybill({ ...wb, status: 'Pending' });
     });
+    
+    // Reset selection
+    setSelectedWaybillIds([]);
 
     router.push(`/booking/manifest/${newManifestId}`);
   };
@@ -73,65 +88,71 @@ export default function HubDispatchPage() {
     );
   }
 
+  const allSelected = waybillsReadyForDispatch.length > 0 && selectedWaybillIds.length === waybillsReadyForDispatch.length;
+
   return (
     <div className="space-y-8">
       <div>
         <h1 className="text-3xl font-bold">Outbound Dispatch</h1>
-        <p className="text-muted-foreground">Group verified waybills and dispatch them to their next destination.</p>
+        <p className="text-muted-foreground">Select waybills to create a new outbound manifest for the next destination.</p>
       </div>
       
       <Card>
         <CardHeader>
-          <CardTitle>Waybills Ready for Dispatch</CardTitle>
-          <CardDescription>
-            {waybillsReadyForDispatch.length} waybill(s) have been received at the hub and are waiting to be sorted into new manifests.
-          </CardDescription>
+          <div className="flex justify-between items-center gap-4">
+            <div>
+              <CardTitle>Waybills Ready for Dispatch</CardTitle>
+              <CardDescription>
+                {waybillsReadyForDispatch.length} waybill(s) are waiting to be dispatched.
+              </CardDescription>
+            </div>
+             <div className="flex items-center gap-4">
+                <span className="text-sm text-muted-foreground">{selectedWaybillIds.length} of {waybillsReadyForDispatch.length} selected</span>
+                <Button onClick={handleCreateManifest} disabled={selectedWaybillIds.length === 0}>
+                    <PlusCircle className="mr-2 h-4 w-4" />
+                    Create Manifest
+                </Button>
+            </div>
+          </div>
         </CardHeader>
         <CardContent>
-          {Object.keys(waybillsByCity).length > 0 ? (
-             <Accordion type="single" collapsible className="w-full">
-                {Object.entries(waybillsByCity).map(([city, cityWaybills]) => (
-                    <AccordionItem value={city} key={city}>
-                        <AccordionTrigger>
-                            <div className="flex items-center gap-4">
-                                <Building className="h-5 w-5 text-primary"/>
-                                <span className="text-lg font-semibold">{city}</span>
-                                <span className="text-sm text-muted-foreground">({cityWaybills.length} waybills)</span>
-                            </div>
-                        </AccordionTrigger>
-                        <AccordionContent>
-                           <div className="p-4 bg-muted/50 rounded-lg">
-                             <div className="flex justify-end mb-4">
-                               <Button size="sm" onClick={() => handleCreateManifest(city, cityWaybills)}>
-                                    <PlusCircle className="mr-2 h-4 w-4" />
-                                    Create Manifest for {city}
-                               </Button>
-                             </div>
-                             <Table>
-                                <TableHeader>
-                                    <TableRow>
-                                        <TableHead>Waybill #</TableHead>
-                                        <TableHead>Receiver</TableHead>
-                                        <TableHead>Pincode</TableHead>
-                                        <TableHead className="text-center">Boxes</TableHead>
-                                    </TableRow>
-                                </TableHeader>
-                                <TableBody>
-                                    {cityWaybills.map(wb => (
-                                        <TableRow key={wb.id}>
-                                            <TableCell className="font-medium">{wb.waybillNumber}</TableCell>
-                                            <TableCell>{wb.receiverName}</TableCell>
-                                            <TableCell>{wb.receiverPincode}</TableCell>
-                                            <TableCell className="text-center">{wb.numberOfBoxes}</TableCell>
-                                        </TableRow>
-                                    ))}
-                                </TableBody>
-                            </Table>
-                           </div>
-                        </AccordionContent>
-                    </AccordionItem>
+          {waybillsReadyForDispatch.length > 0 ? (
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead className="w-[50px]">
+                    <Checkbox
+                      checked={allSelected}
+                      onCheckedChange={(checked) => handleSelectAll(!!checked)}
+                      aria-label="Select all"
+                    />
+                  </TableHead>
+                  <TableHead>Waybill #</TableHead>
+                  <TableHead>Receiver</TableHead>
+                  <TableHead>Destination City</TableHead>
+                  <TableHead>Pincode</TableHead>
+                  <TableHead className="text-center">Boxes</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {waybillsReadyForDispatch.map((wb) => (
+                  <TableRow key={wb.id} data-state={selectedWaybillIds.includes(wb.id) && "selected"}>
+                     <TableCell>
+                        <Checkbox
+                            checked={selectedWaybillIds.includes(wb.id)}
+                            onCheckedChange={(checked) => handleSelectionChange(wb.id, !!checked)}
+                            aria-label={`Select waybill ${wb.waybillNumber}`}
+                        />
+                    </TableCell>
+                    <TableCell className="font-medium">{wb.waybillNumber}</TableCell>
+                    <TableCell>{wb.receiverName}</TableCell>
+                    <TableCell>{wb.receiverCity}</TableCell>
+                    <TableCell>{wb.receiverPincode}</TableCell>
+                    <TableCell className="text-center">{wb.numberOfBoxes}</TableCell>
+                  </TableRow>
                 ))}
-             </Accordion>
+              </TableBody>
+            </Table>
           ) : (
              <div className="text-center py-16 border-2 border-dashed rounded-lg">
                 <Package className="mx-auto h-12 w-12 text-muted-foreground" />
