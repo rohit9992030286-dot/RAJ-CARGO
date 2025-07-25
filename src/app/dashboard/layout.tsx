@@ -1,4 +1,5 @@
 
+'use client';
 import { DataProvider } from '@/components/DataContext';
 import { AuthProvider } from '@/hooks/useAuth';
 
