@@ -1,4 +1,4 @@
-// src/hooks/useAuth.ts
+
 'use client';
 
 import { createContext, useContext, useState, useEffect, ReactNode, useCallback } from 'react';
@@ -29,10 +29,9 @@ export interface AuthContextType {
 
 export const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-// Define default admin credentials - in a real app, this would be handled securely on a backend.
-const DEFAULT_ADMIN_USER = {
+export const DEFAULT_ADMIN_USER = {
   username: 'admin',
-  password: 'admin', // In a real-world app, passwords should be hashed.
+  password: 'admin',
   role: 'admin' as 'admin',
 };
 
@@ -44,7 +43,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     try {
-      // Initialize users if not present, with a default admin
       const storedUsers = localStorage.getItem(USERS_STORAGE_KEY);
       if (!storedUsers) {
         localStorage.setItem(USERS_STORAGE_KEY, JSON.stringify([DEFAULT_ADMIN_USER]));
@@ -53,14 +51,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setUsers(JSON.parse(storedUsers));
       }
 
-      // Check for a logged-in user
       const storedAuth = localStorage.getItem(AUTH_STORAGE_KEY);
       if (storedAuth) {
         setUser(JSON.parse(storedAuth));
       }
     } catch (error) {
       console.error("Failed to initialize auth from local storage", error);
-      // Clear potentially corrupt storage
       localStorage.removeItem(AUTH_STORAGE_KEY);
       localStorage.removeItem(USERS_STORAGE_KEY);
     } finally {
@@ -95,7 +91,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const addUser = useCallback((newUser: NewUser): boolean => {
     const currentUsers = JSON.parse(localStorage.getItem(USERS_STORAGE_KEY) || '[]');
     if(currentUsers.some((u: NewUser) => u.username === newUser.username)) {
-        return false; // User already exists
+        return false;
     }
     const updatedUsers = [...currentUsers, newUser];
     syncUsersToStorage(updatedUsers);
@@ -103,16 +99,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
   
   const deleteUser = useCallback((username: string) => {
-    if (username === DEFAULT_ADMIN_USER.username) return; // Prevent deleting default admin
+    if (username === DEFAULT_ADMIN_USER.username) return;
     const currentUsers = JSON.parse(localStorage.getItem(USERS_STORAGE_KEY) || '[]');
     const updatedUsers = currentUsers.filter((u: NewUser) => u.username !== username);
     syncUsersToStorage(updatedUsers);
   }, []);
 
-
   const value = {
     user,
-    users: users.map(({password, ...user}) => user), // Exclude passwords when providing user list
+    users: users.map(({password, ...user}) => user),
     isAuthenticated: !!user,
     isLoading,
     login,
