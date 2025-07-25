@@ -122,7 +122,7 @@ function TrackingPageContent() {
 export default function Home() {
   return (
     <DataProvider>
-      <div className="min-h-screen flex flex-col bg-gray-50 dark:bg-gray-900">
+    <div className="min-h-screen flex flex-col bg-gray-50 dark:bg-gray-900">
         <header className="w-full bg-card shadow-sm">
             <nav className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div className="flex justify-between items-center h-16">
@@ -131,7 +131,7 @@ export default function Home() {
                         <span className="text-2xl font-bold text-primary">RAJ CARGO</span>
                     </div>
                     <div className="flex items-center">
-                        <Link href="/dashboard">
+                        <Link href="/login">
                             <Button variant="ghost">
                                 <LogIn className="mr-2 h-5 w-5" />
                                 Staff Login
@@ -142,9 +142,9 @@ export default function Home() {
             </nav>
         </header>
         <main className="flex-grow flex items-center justify-center">
-             <TrackingPageContent />
+            <TrackingPageContent />
         </main>
-      </div>
+    </div>
     </DataProvider>
   );
 }

@@ -21,7 +21,6 @@ import {
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { useToast } from '@/hooks/use-toast';
 import { Moon, Sun, Trash2, Save, User, KeyRound, Download, Upload, Loader2, Printer, Check } from 'lucide-react';
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { useWaybillInventory } from '@/hooks/useWaybillInventory';
 import { saveAs } from 'file-saver';
 import { cn } from '@/lib/utils';
@@ -34,10 +33,12 @@ function getBackupData() {
     const waybills = localStorage.getItem('rajcargo-waybills') || '[]';
     const manifests = localStorage.getItem('rajcargo-manifests') || '[]';
     const inventory = localStorage.getItem('rajcargo-waybill-inventory') || '[]';
+    const users = localStorage.getItem('rajcargo-users') || '[]';
     const allData = {
       waybills: JSON.parse(waybills),
       manifests: JSON.parse(manifests),
       waybillInventory: JSON.parse(inventory),
+      users: JSON.parse(users),
       exportDate: new Date().toISOString(),
     };
     return JSON.stringify(allData, null, 2);
@@ -89,6 +90,7 @@ function SettingsPageContent() {
       localStorage.removeItem('rajcargo-waybills');
       localStorage.removeItem('rajcargo-manifests');
       localStorage.removeItem('rajcargo-waybill-inventory');
+      // Do not clear users or theme settings
       toast({
         title: 'Application Data Cleared',
         description: 'All waybills, manifests, and inventory have been deleted.',
@@ -131,18 +133,22 @@ function SettingsPageContent() {
       try {
         const text = e.target?.result as string;
         const data = JSON.parse(text);
+        
+        const requiredKeys = ['waybills', 'manifests', 'waybillInventory', 'users'];
+        const hasAllKeys = requiredKeys.every(key => Array.isArray(data[key]));
 
-        if (Array.isArray(data.waybills) && Array.isArray(data.manifests) && Array.isArray(data.waybillInventory)) {
+        if (hasAllKeys) {
           localStorage.setItem('rajcargo-waybills', JSON.stringify(data.waybills));
           localStorage.setItem('rajcargo-manifests', JSON.stringify(data.manifests));
           localStorage.setItem('rajcargo-waybill-inventory', JSON.stringify(data.waybillInventory));
+          localStorage.setItem('rajcargo-users', JSON.stringify(data.users));
           toast({
             title: 'Import Successful',
             description: 'Your data has been restored from the backup file.',
           });
           setTimeout(() => window.location.reload(), 1000);
         } else {
-          throw new Error('Invalid JSON structure. The file must contain waybills, manifests, and waybillInventory arrays.');
+          throw new Error('Invalid JSON structure. The file must contain waybills, manifests, waybillInventory and users arrays.');
         }
       } catch (err) {
         const errorMessage = err instanceof Error ? err.message : 'An unknown error occurred.';
@@ -326,5 +332,3 @@ export default function SettingsPage() {
 
   return <SettingsPageContent />;
 }
-
-    

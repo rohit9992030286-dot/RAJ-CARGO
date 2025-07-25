@@ -2,59 +2,86 @@
 'use client';
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { Send, Menu, Settings, Cpu, LayoutDashboard, ScanLine, Truck, CheckSquare, History } from 'lucide-react';
+import { Send, Menu, Settings, Cpu, LayoutDashboard, ScanLine, Truck, CheckSquare, History, LogOut } from 'lucide-react';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
 import { Button } from '@/components/ui/button';
 import { DataProvider } from '@/components/DataContext';
+import { AuthProvider, useAuth } from '@/hooks/useAuth';
+import { useRouter } from 'next/navigation';
+import { Loader2 } from 'lucide-react';
 
-function DeliveryLayout({
+function NavLinks({ onLinkClick }: { onLinkClick?: () => void }) {
+    const { logout } = useAuth();
+    return (
+        <nav className="p-4 flex flex-col h-full">
+            <ul className="space-y-2 flex-grow">
+                <li>
+                <Link href="/dashboard" onClick={onLinkClick} className="flex items-center gap-3 p-3 rounded-lg hover:bg-primary/10 hover:text-primary transition-colors">
+                    <LayoutDashboard className="h-5 w-5" />
+                    <span>Main Dashboard</span>
+                </Link>
+                </li>
+                <li className="px-3 py-2 text-xs font-semibold text-muted-foreground uppercase">Delivery</li>
+                <li>
+                <Link href="/delivery" onClick={onLinkClick} className="flex items-center gap-3 p-3 rounded-lg hover:bg-primary/10 hover:text-primary transition-colors">
+                    <CheckSquare className="h-5 w-5" />
+                    <span>Delivery Sheet</span>
+                </Link>
+                </li>
+                <li>
+                <Link href="/delivery/delivered" onClick={onLinkClick} className="flex items-center gap-3 p-3 rounded-lg hover:bg-primary/10 hover:text-primary transition-colors">
+                    <History className="h-5 w-5" />
+                    <span>Delivered History</span>
+                </Link>
+                </li>
+            </ul>
+            <div className="space-y-2 border-t pt-4">
+                <Link href="/booking/settings" onClick={onLinkClick} className="flex items-center gap-3 p-3 rounded-lg hover:bg-primary/10 hover:text-primary transition-colors">
+                    <Settings className="h-5 w-5" />
+                    <span>Settings</span>
+                </Link>
+                <Button variant="ghost" onClick={() => logout()} className="w-full justify-start flex items-center gap-3 p-3 rounded-lg hover:bg-destructive/10 hover:text-destructive transition-colors text-base">
+                    <LogOut className="h-5 w-5" />
+                    <span>Logout</span>
+                </Button>
+            </div>
+        </nav>
+    );
+}
+
+function DeliveryLayoutContent({
   children,
 }: {
   children: React.ReactNode;
 }) {
   const [year, setYear] = useState<number | null>(null);
   const [isSheetOpen, setIsSheetOpen] = useState(false);
+  const { user, isLoading } = useAuth();
+  const router = useRouter();
+
 
   useEffect(() => {
     setYear(new Date().getFullYear());
   }, []);
+
+  useEffect(() => {
+    if (!isLoading && !user) {
+        router.replace('/login');
+    }
+  }, [user, isLoading, router]);
+
+  if (isLoading || !user) {
+      return (
+           <div className="flex justify-center items-center h-screen">
+                <Loader2 className="h-16 w-16 animate-spin text-primary" />
+            </div>
+      )
+  }
   
   const handleLinkClick = () => {
     setIsSheetOpen(false);
   };
   
-  const NavLinks = ({ onLinkClick }: { onLinkClick?: () => void }) => (
-    <nav className="p-4 flex flex-col h-full">
-      <ul className="space-y-2 flex-grow">
-        <li>
-          <Link href="/dashboard" onClick={onLinkClick} className="flex items-center gap-3 p-3 rounded-lg hover:bg-primary/10 hover:text-primary transition-colors">
-            <LayoutDashboard className="h-5 w-5" />
-            <span>Main Dashboard</span>
-          </Link>
-        </li>
-        <li className="px-3 py-2 text-xs font-semibold text-muted-foreground uppercase">Delivery</li>
-        <li>
-          <Link href="/delivery" onClick={onLinkClick} className="flex items-center gap-3 p-3 rounded-lg hover:bg-primary/10 hover:text-primary transition-colors">
-            <CheckSquare className="h-5 w-5" />
-            <span>Delivery Sheet</span>
-          </Link>
-        </li>
-        <li>
-          <Link href="/delivery/delivered" onClick={onLinkClick} className="flex items-center gap-3 p-3 rounded-lg hover:bg-primary/10 hover:text-primary transition-colors">
-            <History className="h-5 w-5" />
-            <span>Delivered History</span>
-          </Link>
-        </li>
-      </ul>
-      <div className="space-y-2 border-t pt-4">
-        <Link href="/booking/settings" onClick={onLinkClick} className="flex items-center gap-3 p-3 rounded-lg hover:bg-primary/10 hover:text-primary transition-colors">
-            <Settings className="h-5 w-5" />
-            <span>Settings</span>
-        </Link>
-      </div>
-    </nav>
-  );
-
   return (
     <DataProvider>
       <div className="flex min-h-screen bg-background">
@@ -101,4 +128,10 @@ function DeliveryLayout({
   );
 }
 
-export default DeliveryLayout;
+export default function DeliveryLayout({ children }: { children: React.ReactNode }) {
+    return (
+        <AuthProvider>
+            <DeliveryLayoutContent>{children}</DeliveryLayoutContent>
+        </AuthProvider>
+    )
+};
