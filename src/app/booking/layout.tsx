@@ -2,7 +2,7 @@
 'use client';
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { Send, Home, BookCopy, PlusCircle, ScanLine, Menu, Settings, Settings2, Truck, Cpu, LayoutDashboard, IndianRupee } from 'lucide-react';
+import { Send, Home, BookCopy, PlusCircle, ScanLine, Menu, Settings, Settings2, Truck, Cpu, LayoutDashboard, IndianRupee, CheckCircle } from 'lucide-react';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
 import { Button } from '@/components/ui/button';
 import { DataProvider } from '@/components/DataContext';
@@ -55,6 +55,12 @@ function BookingLayout({
           <Link href="/booking/manifest" onClick={onLinkClick} className="flex items-center gap-3 p-3 rounded-lg hover:bg-primary/10 hover:text-primary transition-colors">
             <Truck className="h-5 w-5" />
             <span>Dispatch Manifests</span>
+          </Link>
+        </li>
+         <li>
+          <Link href="/booking/delivered" onClick={onLinkClick} className="flex items-center gap-3 p-3 rounded-lg hover:bg-primary/10 hover:text-primary transition-colors">
+            <CheckCircle className="h-5 w-5" />
+            <span>Delivered Waybills</span>
           </Link>
         </li>
         <li>
