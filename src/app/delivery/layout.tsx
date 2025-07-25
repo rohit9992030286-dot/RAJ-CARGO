@@ -2,7 +2,7 @@
 'use client';
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { Send, Menu, Settings, Cpu, LayoutDashboard, ScanLine, Truck, CheckSquare } from 'lucide-react';
+import { Send, Menu, Settings, Cpu, LayoutDashboard, ScanLine, Truck, CheckSquare, History } from 'lucide-react';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
 import { Button } from '@/components/ui/button';
 import { DataProvider } from '@/components/DataContext';
@@ -37,6 +37,12 @@ function DeliveryLayout({
           <Link href="/delivery" onClick={onLinkClick} className="flex items-center gap-3 p-3 rounded-lg hover:bg-primary/10 hover:text-primary transition-colors">
             <CheckSquare className="h-5 w-5" />
             <span>Delivery Sheet</span>
+          </Link>
+        </li>
+        <li>
+          <Link href="/delivery/delivered" onClick={onLinkClick} className="flex items-center gap-3 p-3 rounded-lg hover:bg-primary/10 hover:text-primary transition-colors">
+            <History className="h-5 w-5" />
+            <span>Delivered History</span>
           </Link>
         </li>
       </ul>

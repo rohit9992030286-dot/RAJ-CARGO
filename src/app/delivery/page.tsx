@@ -44,7 +44,7 @@ export default function DeliveryPage() {
     // Get the waybill objects, filtering for those relevant to delivery operations
     return dispatchedHubManifestWaybillIds
       .map(id => getWaybillById(id))
-      .filter((w): w is Waybill => !!w && (w.status === 'In Transit' || w.status === 'Out for Delivery' || w.status === 'Returned' || w.status === 'Delivered'));
+      .filter((w): w is Waybill => !!w && (w.status === 'In Transit' || w.status === 'Out for Delivery' || w.status === 'Returned'));
   }, [manifests, getWaybillById]);
   
   const handleUpdateStatus = (id: string, status: Waybill['status']) => {
@@ -66,7 +66,7 @@ export default function DeliveryPage() {
   return (
     <div className="space-y-8">
       <div>
-        <h1 className="text-3xl font-bold">Delivery Operations</h1>
+        <h1 className="text-3xl font-bold">Active Delivery Sheet</h1>
         <p className="text-muted-foreground">Manage final delivery of all incoming waybills.</p>
       </div>
 
@@ -125,7 +125,7 @@ export default function DeliveryPage() {
           ) : (
             <div className="text-center py-16 border-2 border-dashed rounded-lg">
               <Package className="mx-auto h-12 w-12 text-muted-foreground" />
-              <h3 className="mt-4 text-lg font-semibold">No Waybills for Delivery</h3>
+              <h3 className="mt-4 text-lg font-semibold">No Active Waybills for Delivery</h3>
               <p className="mt-1 text-sm text-muted-foreground">
                 Dispatch a manifest from the hub to see waybills here.
               </p>
