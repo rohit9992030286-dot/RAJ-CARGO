@@ -4,8 +4,8 @@
 import { createContext, useContext, useState, useEffect, ReactNode, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 
-const AUTH_STORAGE_KEY = 'rajcargo-auth';
-const USERS_STORAGE_KEY = 'rajcargo-users';
+export const AUTH_STORAGE_KEY = 'rajcargo-auth';
+export const USERS_STORAGE_KEY = 'rajcargo-users';
 
 export interface User {
   username: string;
