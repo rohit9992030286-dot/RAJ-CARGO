@@ -1,0 +1,98 @@
+
+'use client';
+import { useState, useEffect } from 'react';
+import Link from 'next/link';
+import { Send, Menu, Settings, Cpu, LayoutDashboard, ScanLine, Truck, CheckSquare } from 'lucide-react';
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
+import { Button } from '@/components/ui/button';
+import { DataProvider } from '@/components/DataContext';
+
+function DeliveryLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
+  const [year, setYear] = useState<number | null>(null);
+  const [isSheetOpen, setIsSheetOpen] = useState(false);
+
+  useEffect(() => {
+    setYear(new Date().getFullYear());
+  }, []);
+  
+  const handleLinkClick = () => {
+    setIsSheetOpen(false);
+  };
+  
+  const NavLinks = ({ onLinkClick }: { onLinkClick?: () => void }) => (
+    <nav className="p-4 flex flex-col h-full">
+      <ul className="space-y-2 flex-grow">
+        <li>
+          <Link href="/dashboard" onClick={onLinkClick} className="flex items-center gap-3 p-3 rounded-lg hover:bg-primary/10 hover:text-primary transition-colors">
+            <LayoutDashboard className="h-5 w-5" />
+            <span>Main Dashboard</span>
+          </Link>
+        </li>
+        <li className="px-3 py-2 text-xs font-semibold text-muted-foreground uppercase">Delivery</li>
+        <li>
+          <Link href="/delivery" onClick={onLinkClick} className="flex items-center gap-3 p-3 rounded-lg hover:bg-primary/10 hover:text-primary transition-colors">
+            <CheckSquare className="h-5 w-5" />
+            <span>Delivery Sheet</span>
+          </Link>
+        </li>
+      </ul>
+      <div className="space-y-2 border-t pt-4">
+        <Link href="/booking/settings" onClick={onLinkClick} className="flex items-center gap-3 p-3 rounded-lg hover:bg-primary/10 hover:text-primary transition-colors">
+            <Settings className="h-5 w-5" />
+            <span>Settings</span>
+        </Link>
+      </div>
+    </nav>
+  );
+
+  return (
+    <DataProvider>
+      <div className="flex min-h-screen bg-background">
+        <aside className="w-64 bg-card border-r hidden lg:flex lg:flex-col">
+          <div className="flex items-center gap-3 p-6 border-b">
+            <Send className="h-8 w-8 text-primary" />
+            <h1 className="text-2xl font-bold text-primary">RAJ CARGO</h1>
+          </div>
+          <NavLinks />
+        </aside>
+        <div className="flex-1 flex flex-col">
+          <header className="flex h-16 items-center gap-4 border-b bg-card px-6 lg:hidden">
+              <Sheet open={isSheetOpen} onOpenChange={setIsSheetOpen}>
+                  <SheetTrigger asChild>
+                      <Button variant="outline" size="icon">
+                          <Menu className="h-6 w-6" />
+                          <span className="sr-only">Toggle navigation menu</span>
+                      </Button>
+                  </SheetTrigger>
+                  <SheetContent side="left" className="flex flex-col p-0 bg-card">
+                      <SheetHeader>
+                          <SheetTitle className="sr-only">Navigation Menu</SheetTitle>
+                      </SheetHeader>
+                      <div className="flex items-center gap-3 p-4 border-b">
+                          <Send className="h-8 w-8 text-primary" />
+                          <h1 className="text-2xl font-bold text-primary">RAJ CARGO</h1>
+                      </div>
+                      <NavLinks onLinkClick={handleLinkClick} />
+                  </SheetContent>
+              </Sheet>
+              <div className="flex-1">
+                   <h1 className="font-semibold text-xl text-primary">RAJ CARGO - DELIVERY</h1>
+              </div>
+          </header>
+          <main className="flex-1 p-4 md:p-8 bg-background">
+              {children}
+          </main>
+          <footer className="text-center p-4 text-sm text-muted-foreground border-t bg-card">
+            {year && <p>&copy; {year} RAJ CARGO. All rights reserved.</p>}
+          </footer>
+        </div>
+      </div>
+    </DataProvider>
+  );
+}
+
+export default DeliveryLayout;

@@ -9,7 +9,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Checkbox } from '@/components/ui/checkbox';
-import { Loader2, Package, Truck, PlusCircle, Building } from 'lucide-react';
+import { Loader2, Package, Truck, PlusCircle } from 'lucide-react';
 import { Waybill } from '@/types/waybill';
 import {
   AlertDialog,
@@ -29,7 +29,7 @@ import { useToast } from '@/hooks/use-toast';
 
 export default function HubDispatchPage() {
   const router = useRouter();
-  const { manifests, addManifest, isLoaded: manifestsLoaded } = useManifests();
+  const { manifests, addManifest, updateManifest, isLoaded: manifestsLoaded } = useManifests();
   const { waybills, getWaybillById, updateWaybill, isLoaded: waybillsLoaded } = useWaybills();
   const [selectedWaybillIds, setSelectedWaybillIds] = useState<string[]>([]);
   const [vehicleNo, setVehicleNo] = useState('');
@@ -38,7 +38,7 @@ export default function HubDispatchPage() {
   const waybillsReadyForDispatch = useMemo(() => {
     // Get IDs of all waybills that are already in a newly created 'hub' manifest or a dispatched one.
     const dispatchedWaybillIds = new Set(
-        manifests.filter(m => m.origin === 'hub').flatMap(m => m.waybillIds)
+        manifests.filter(m => m.origin === 'hub' && (m.status === 'Draft' || m.status === 'Dispatched')).flatMap(m => m.waybillIds)
     );
 
     // Get all waybills from manifests that have been 'Received' at the hub.
@@ -71,7 +71,7 @@ export default function HubDispatchPage() {
   };
 
 
-  const handleCreateManifest = () => {
+  const handleCreateAndDispatchManifest = () => {
     if (selectedWaybillIds.length === 0) return;
     if (!vehicleNo.trim()) {
         toast({ title: 'Vehicle Number Required', description: 'Please enter a vehicle number to create the manifest.', variant: 'destructive' });
@@ -80,25 +80,30 @@ export default function HubDispatchPage() {
     
     const selectedWaybills = selectedWaybillIds.map(id => getWaybillById(id)).filter(w => w) as Waybill[];
 
-    const newManifestId = addManifest({
+    const newManifest = {
         id: crypto.randomUUID(),
         date: new Date().toISOString(),
         waybillIds: selectedWaybills.map(w => w.id),
-        status: 'Draft',
+        status: 'Dispatched' as 'Dispatched',
         vehicleNo: vehicleNo.trim(),
-        origin: 'hub',
-    });
+        origin: 'hub' as 'hub',
+    };
+    
+    addManifest(newManifest);
 
-    // Mark these waybills as 'Pending' for the new manifest
+    // Mark these waybills as 'In Transit' for their next journey
     selectedWaybills.forEach(wb => {
-        updateWaybill({ ...wb, status: 'Pending' });
+        updateWaybill({ ...wb, status: 'In Transit' });
+    });
+    
+    toast({
+        title: "Manifest Dispatched",
+        description: `Manifest with ${selectedWaybills.length} waybills is now in transit.`
     });
     
     // Reset selection and vehicle number
     setSelectedWaybillIds([]);
     setVehicleNo('');
-
-    router.push(`/booking/manifest/${newManifestId}`);
   };
 
 
@@ -134,7 +139,7 @@ export default function HubDispatchPage() {
                 <AlertDialog>
                     <AlertDialogTrigger asChild>
                         <Button disabled={selectedWaybillIds.length === 0}>
-                           <PlusCircle className="mr-2 h-4 w-4" /> Create Manifest
+                           <PlusCircle className="mr-2 h-4 w-4" /> Create & Dispatch Manifest
                         </Button>
                     </AlertDialogTrigger>
                     <AlertDialogContent>
@@ -155,8 +160,8 @@ export default function HubDispatchPage() {
                         </div>
                         <AlertDialogFooter>
                             <AlertDialogCancel onClick={() => setVehicleNo('')}>Cancel</AlertDialogCancel>
-                            <AlertDialogAction onClick={handleCreateManifest}>
-                                Create Manifest
+                            <AlertDialogAction onClick={handleCreateAndDispatchManifest}>
+                                Create & Dispatch
                             </AlertDialogAction>
                         </AlertDialogFooter>
                     </AlertDialogContent>
