@@ -35,16 +35,16 @@ export default function DeliveryPage() {
   const { manifests, isLoaded: manifestsLoaded } = useManifests();
   const { waybills, updateWaybill, getWaybillById, isLoaded: waybillsLoaded } = useWaybills();
 
-  const waybillsReadyForDelivery = useMemo(() => {
+  const waybillsForDelivery = useMemo(() => {
     // Get IDs of all waybills from dispatched manifests originating from the hub
     const dispatchedHubManifestWaybillIds = manifests
       .filter(m => m.origin === 'hub' && m.status === 'Dispatched')
       .flatMap(m => m.waybillIds);
 
-    // Get the waybill objects, filtering for those still 'In Transit'
+    // Get the waybill objects, filtering for those relevant to delivery operations
     return dispatchedHubManifestWaybillIds
       .map(id => getWaybillById(id))
-      .filter((w): w is Waybill => !!w && (w.status === 'In Transit' || w.status === 'Out for Delivery' || w.status === 'Returned'));
+      .filter((w): w is Waybill => !!w && (w.status === 'In Transit' || w.status === 'Out for Delivery' || w.status === 'Returned' || w.status === 'Delivered'));
   }, [manifests, getWaybillById]);
   
   const handleUpdateStatus = (id: string, status: Waybill['status']) => {
@@ -74,11 +74,11 @@ export default function DeliveryPage() {
         <CardHeader>
           <CardTitle>Waybills for Delivery</CardTitle>
           <CardDescription>
-            There are {waybillsReadyForDelivery.length} waybill(s) ready for delivery.
+            There are {waybillsForDelivery.length} waybill(s) assigned for delivery.
           </CardDescription>
         </CardHeader>
         <CardContent>
-          {waybillsReadyForDelivery.length > 0 ? (
+          {waybillsForDelivery.length > 0 ? (
             <Table>
               <TableHeader>
                 <TableRow>
@@ -90,7 +90,7 @@ export default function DeliveryPage() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {waybillsReadyForDelivery.map((wb) => (
+                {waybillsForDelivery.map((wb) => (
                   <TableRow key={wb.id}>
                     <TableCell className="font-medium">{wb.waybillNumber}</TableCell>
                     <TableCell>{wb.receiverName}</TableCell>
