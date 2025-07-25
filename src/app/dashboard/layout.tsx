@@ -10,7 +10,7 @@ export default function DashboardLayout({
 }) {
   return (
     <AuthProvider>
-        <DataProvider>{children}</DataProvider>
+      <DataProvider>{children}</DataProvider>
     </AuthProvider>
   );
 }
