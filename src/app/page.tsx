@@ -125,13 +125,13 @@ export default function Home() {
     <DataProvider>
     <div className="min-h-screen flex flex-col bg-gray-50 dark:bg-gray-900">
         <Image
-            src="https://images.unsplash.com/photo-1578575437130-5278ce68f69b"
-            alt="Trucks on a highway"
+            src="https://images.unsplash.com/photo-1707345512638-99e344a95427"
+            alt="Team of delivery workers handling packages in a city street"
             layout="fill"
             objectFit="cover"
             quality={75}
             className="-z-10"
-            data-ai-hint="trucks highway"
+            data-ai-hint="delivery workers packages"
         />
         <div className="absolute inset-0 bg-black/50 z-0"></div>
         <header className="w-full bg-white/90 dark:bg-gray-900/90 backdrop-blur-sm shadow-sm z-10">
