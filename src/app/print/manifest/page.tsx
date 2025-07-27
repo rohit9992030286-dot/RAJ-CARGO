@@ -10,6 +10,7 @@ import { Manifest } from '@/types/manifest';
 import { ManifestPrint } from '@/components/ManifestPrint';
 import { format } from 'date-fns';
 import { Loader2 } from 'lucide-react';
+import { DataProvider } from '@/components/DataContext';
 
 function PrintManifestContent() {
   const searchParams = useSearchParams();
@@ -54,7 +55,7 @@ function PrintManifestContent() {
     );
   }
   
-  const formattedDate = format(new Date(manifestData.date), 'MMMM d, yyyy');
+  const formattedDate = manifestData.date ? format(new Date(manifestData.date), 'MMMM d, yyyy') : 'N/A';
 
   return (
     <div className="bg-white">
@@ -63,10 +64,18 @@ function PrintManifestContent() {
   );
 }
 
-export default function PrintManifestPage() {
+function PrintManifestPageWrapper() {
     return (
-        <Suspense fallback={<div>Loading...</div>}>
+        <Suspense fallback={<div className="flex justify-center items-center h-screen bg-white"><Loader2 className="h-16 w-16 animate-spin text-primary" /></div>}>
             <PrintManifestContent />
         </Suspense>
+    )
+}
+
+export default function PrintManifestPage() {
+    return (
+      <DataProvider>
+        <PrintManifestPageWrapper />
+      </DataProvider>
     )
 }
