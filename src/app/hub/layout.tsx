@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button';
 import { useAuth } from '@/hooks/useAuth.tsx';
 import { useRouter } from 'next/navigation';
 import { Loader2 } from 'lucide-react';
+import { useToast } from '@/hooks/use-toast';
 
 function NavLinks({ onLinkClick }: { onLinkClick?: () => void }) {
     const { logout, user } = useAuth();
@@ -71,19 +72,24 @@ function HubLayoutContent({
   const [isSheetOpen, setIsSheetOpen] = useState(false);
   const { user, isLoading } = useAuth();
   const router = useRouter();
-
+  const { toast } = useToast();
 
   useEffect(() => {
     setYear(new Date().getFullYear());
   }, []);
   
   useEffect(() => {
-    if (!isLoading && !user) {
-        router.replace('/login');
+    if (!isLoading) {
+        if (!user) {
+            router.replace('/login');
+        } else if (user.role !== 'admin' && !user.roles?.includes('hub')) {
+            toast({ title: "Access Denied", description: "You don't have permission to access the hub module.", variant: "destructive" });
+            router.replace('/dashboard');
+        }
     }
-  }, [user, isLoading, router]);
+  }, [user, isLoading, router, toast]);
 
-  if (isLoading || !user) {
+  if (isLoading || !user || (user.role !== 'admin' && !user.roles?.includes('hub'))) {
       return (
            <div className="flex justify-center items-center h-screen">
                 <Loader2 className="h-16 w-16 animate-spin text-primary" />

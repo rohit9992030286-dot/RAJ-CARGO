@@ -1,8 +1,8 @@
 
 'use client';
-import { useAuth } from '@/hooks/useAuth';
+import { useAuth, User } from '@/hooks/useAuth.tsx';
 import { useRouter } from 'next/navigation';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -10,9 +10,9 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter }
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Checkbox } from '@/components/ui/checkbox';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Loader2, UserPlus, Trash2, User, KeyRound, Shield, Briefcase } from 'lucide-react';
+import { Loader2, UserPlus, Trash2, User, KeyRound, Shield, Briefcase, BookCopy, Cpu, Truck } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { Badge } from '@/components/ui/badge';
 import {
@@ -31,11 +31,18 @@ import {
 const userFormSchema = z.object({
   username: z.string().min(3, 'Username must be at least 3 characters.'),
   password: z.string().min(6, 'Password must be at least 6 characters.'),
-  role: z.enum(['admin', 'staff']),
   partnerCode: z.string().min(1, 'Partner code is required.'),
+  roles: z.array(z.string()).refine((value) => value.some((item) => item), {
+    message: 'You have to select at least one role.',
+  }),
 });
 
 type UserFormData = z.infer<typeof userFormSchema>;
+const roles = [
+    { id: 'booking', label: 'Booking', icon: BookCopy },
+    { id: 'hub', label: 'Hub', icon: Cpu },
+    { id: 'delivery', label: 'Delivery', icon: Truck },
+];
 
 export default function UserManagementPage() {
   const { user, users, addUser, deleteUser, isLoading } = useAuth();
@@ -47,8 +54,8 @@ export default function UserManagementPage() {
     defaultValues: {
       username: '',
       password: '',
-      role: 'staff',
       partnerCode: '',
+      roles: [],
     },
   });
 
@@ -60,7 +67,13 @@ export default function UserManagementPage() {
   }, [user, isLoading, router, toast]);
 
   const onSubmit = (data: UserFormData) => {
-    const success = addUser(data);
+    const newUser = {
+        ...data,
+        role: 'staff' as 'staff',
+        roles: data.roles as ('booking' | 'hub' | 'delivery')[],
+    };
+
+    const success = addUser(newUser);
     if (success) {
       toast({ title: 'User Created', description: `User "${data.username}" has been added.` });
       form.reset();
@@ -95,8 +108,8 @@ export default function UserManagementPage() {
            <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)}>
                 <CardHeader>
-                    <CardTitle>Create New User</CardTitle>
-                    <CardDescription>Add a new user and assign a role and partner code.</CardDescription>
+                    <CardTitle>Create New Staff User</CardTitle>
+                    <CardDescription>Add a new user and assign roles and a partner code.</CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
                      <FormField
@@ -143,28 +156,48 @@ export default function UserManagementPage() {
                     />
                      <FormField
                         control={form.control}
-                        name="role"
-                        render={({ field }) => (
+                        name="roles"
+                        render={() => (
                             <FormItem>
-                                <FormLabel>Role</FormLabel>
-                                 <Select onValueChange={field.onChange} defaultValue={field.value}>
-                                    <FormControl>
-                                        <div className="relative">
-                                            <SelectTrigger className="pl-10">
-                                                <SelectValue placeholder="Select a role" />
-                                            </SelectTrigger>
-                                            <Shield className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
-                                        </div>
-                                    </FormControl>
-                                    <SelectContent>
-                                        <SelectItem value="staff">Staff</SelectItem>
-                                        <SelectItem value="admin">Admin</SelectItem>
-                                    </SelectContent>
-                                </Select>
+                                <FormLabel>Module Access</FormLabel>
+                                <div className="space-y-2">
+                                {roles.map((item) => (
+                                    <FormField
+                                        key={item.id}
+                                        control={form.control}
+                                        name="roles"
+                                        render={({ field }) => {
+                                            const Icon = item.icon;
+                                            return (
+                                            <FormItem key={item.id} className="flex flex-row items-start space-x-3 space-y-0">
+                                                <FormControl>
+                                                <Checkbox
+                                                    checked={field.value?.includes(item.id)}
+                                                    onCheckedChange={(checked) => {
+                                                    return checked
+                                                        ? field.onChange([...(field.value || []), item.id])
+                                                        : field.onChange(
+                                                            field.value?.filter(
+                                                                (value) => value !== item.id
+                                                            )
+                                                        )
+                                                    }}
+                                                />
+                                                </FormControl>
+                                                <FormLabel className="font-normal flex items-center gap-2">
+                                                    <Icon className="h-4 w-4 text-muted-foreground" />
+                                                    {item.label}
+                                                </FormLabel>
+                                            </FormItem>
+                                            )
+                                        }}
+                                    />
+                                ))}
+                                </div>
                                 <FormMessage />
                             </FormItem>
                         )}
-                    />
+                        />
                 </CardContent>
                 <CardFooter>
                     <Button type="submit" className="w-full">
@@ -186,7 +219,7 @@ export default function UserManagementPage() {
                         <TableRow>
                             <TableHead>Username</TableHead>
                             <TableHead>Partner Code</TableHead>
-                            <TableHead>Role</TableHead>
+                            <TableHead>Roles</TableHead>
                             <TableHead className="text-right">Action</TableHead>
                         </TableRow>
                     </TableHeader>
@@ -195,7 +228,14 @@ export default function UserManagementPage() {
                             <TableRow key={u.username}>
                                 <TableCell>{u.username}</TableCell>
                                 <TableCell><Badge variant="outline">{u.partnerCode}</Badge></TableCell>
-                                <TableCell><Badge variant={u.role === 'admin' ? 'default' : 'secondary'}>{u.role}</Badge></TableCell>
+                                <TableCell>
+                                    {u.role === 'admin' 
+                                        ? <Badge variant="default">Admin</Badge>
+                                        : <div className="flex flex-wrap gap-1">
+                                            {u.roles.map(role => <Badge key={role} variant="secondary">{role}</Badge>)}
+                                           </div>
+                                    }
+                                </TableCell>
                                 <TableCell className="text-right">
                                     <AlertDialog>
                                         <AlertDialogTrigger asChild>

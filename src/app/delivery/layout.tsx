@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button';
 import { useAuth } from '@/hooks/useAuth.tsx';
 import { useRouter } from 'next/navigation';
 import { Loader2 } from 'lucide-react';
+import { useToast } from '@/hooks/use-toast';
 
 function NavLinks({ onLinkClick }: { onLinkClick?: () => void }) {
     const { logout } = useAuth();
@@ -57,6 +58,7 @@ function DeliveryLayoutContent({
   const [isSheetOpen, setIsSheetOpen] = useState(false);
   const { user, isLoading } = useAuth();
   const router = useRouter();
+  const { toast } = useToast();
 
 
   useEffect(() => {
@@ -64,12 +66,17 @@ function DeliveryLayoutContent({
   }, []);
 
   useEffect(() => {
-    if (!isLoading && !user) {
-        router.replace('/login');
+    if (!isLoading) {
+        if (!user) {
+            router.replace('/login');
+        } else if (user.role !== 'admin' && !user.roles?.includes('delivery')) {
+            toast({ title: "Access Denied", description: "You don't have permission to access the delivery module.", variant: "destructive" });
+            router.replace('/dashboard');
+        }
     }
-  }, [user, isLoading, router]);
+  }, [user, isLoading, router, toast]);
 
-  if (isLoading || !user) {
+  if (isLoading || !user || (user.role !== 'admin' && !user.roles?.includes('delivery'))) {
       return (
            <div className="flex justify-center items-center h-screen">
                 <Loader2 className="h-16 w-16 animate-spin text-primary" />

@@ -10,7 +10,8 @@ export const USERS_STORAGE_KEY = 'rajcargo-users';
 export interface User {
   username: string;
   role: 'admin' | 'staff';
-  partnerCode?: string; // Admins might not have one, or a special one
+  roles: ('booking' | 'hub' | 'delivery')[];
+  partnerCode?: string;
 }
 
 export interface NewUser extends User {
@@ -26,6 +27,7 @@ export interface AuthContextType {
   logout: () => void;
   addUser: (newUser: NewUser) => boolean;
   deleteUser: (username: string) => void;
+  updateUser: (updatedUser: NewUser) => boolean;
 }
 
 export const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -34,7 +36,8 @@ export const DEFAULT_ADMIN_USER: NewUser = {
   username: 'admin',
   password: 'admin',
   role: 'admin' as 'admin',
-  partnerCode: 'ALL_ACCESS', // Special code for admin to see all data
+  roles: ['booking', 'hub', 'delivery'],
+  partnerCode: 'ALL_ACCESS',
 };
 
 export function useProvideAuth() {
@@ -50,7 +53,13 @@ export function useProvideAuth() {
         localStorage.setItem(USERS_STORAGE_KEY, JSON.stringify([DEFAULT_ADMIN_USER]));
         setUsers([DEFAULT_ADMIN_USER]);
       } else {
-        setUsers(JSON.parse(storedUsers));
+        const parsedUsers = JSON.parse(storedUsers);
+        // Ensure all users have a roles array for backward compatibility
+        const migratedUsers = parsedUsers.map((u: NewUser) => ({
+          ...u,
+          roles: u.roles || (u.role === 'admin' ? ['booking', 'hub', 'delivery'] : [])
+        }));
+        setUsers(migratedUsers);
       }
 
       const storedAuth = localStorage.getItem(AUTH_STORAGE_KEY);
@@ -79,6 +88,7 @@ export function useProvideAuth() {
       const loggedInUser: User = { 
         username: userToLogin.username, 
         role: userToLogin.role,
+        roles: userToLogin.roles || [],
         partnerCode: userToLogin.partnerCode
       };
       localStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify(loggedInUser));
@@ -103,6 +113,16 @@ export function useProvideAuth() {
     syncUsersToStorage(updatedUsers);
     return true;
   }, []);
+
+  const updateUser = useCallback((updatedUser: NewUser): boolean => {
+    const currentUsers = JSON.parse(localStorage.getItem(USERS_STORAGE_KEY) || '[]');
+    if (!currentUsers.some((u: NewUser) => u.username === updatedUser.username)) {
+        return false; // User not found
+    }
+    const updatedUsers = currentUsers.map((u: NewUser) => u.username === updatedUser.username ? updatedUser : u);
+    syncUsersToStorage(updatedUsers);
+    return true;
+  }, []);
   
   const deleteUser = useCallback((username: string) => {
     if (username === DEFAULT_ADMIN_USER.username) return;
@@ -120,16 +140,8 @@ export function useProvideAuth() {
     logout,
     addUser,
     deleteUser,
+    updateUser,
   };
-}
-
-export function AuthProvider({ children }: { children: ReactNode }) {
-    const auth = useProvideAuth();
-    return (
-        <AuthContext.Provider value={auth}>
-            {children}
-        </AuthContext.Provider>
-    );
 }
 
 export const useAuth = () => {
@@ -139,3 +151,12 @@ export const useAuth = () => {
   }
   return context;
 };
+
+export function AuthProvider({ children }: { children: ReactNode }) {
+    const auth = useProvideAuth();
+    return (
+        <AuthContext.Provider value={auth}>
+            {children}
+        </AuthContext.Provider>
+    );
+}
