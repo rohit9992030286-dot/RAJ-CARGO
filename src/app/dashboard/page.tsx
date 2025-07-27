@@ -7,22 +7,24 @@ import { ArrowRight, BookCopy, Cpu, Truck, Shield, Loader2, LogOut } from 'lucid
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/hooks/useAuth';
 import { useRouter } from 'next/navigation';
+import { useEffect } from 'react';
 
 export default function DashboardPage() {
     const { user, logout, isLoading } = useAuth();
     const router = useRouter();
 
-    if (isLoading) {
+    useEffect(() => {
+        if (!isLoading && !user) {
+            router.replace('/login');
+        }
+    }, [isLoading, user, router]);
+
+    if (isLoading || !user) {
         return (
             <div className="flex justify-center items-center h-screen">
                 <Loader2 className="h-16 w-16 animate-spin text-primary" />
             </div>
         )
-    }
-
-    if (!user) {
-        router.replace('/login');
-        return null;
     }
 
   return (
