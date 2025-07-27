@@ -28,7 +28,7 @@ function TrackingResult({ waybill }: { waybill: Waybill }) {
     const Icon = currentStatus.icon;
 
     return (
-        <Card className="mt-8 bg-white/90 backdrop-blur-sm">
+        <Card className="mt-8 bg-card/90 backdrop-blur-sm">
             <CardHeader>
                 <CardTitle className="flex items-center gap-4">
                     <Icon className={`h-8 w-8 ${currentStatus.color}`} />
@@ -86,7 +86,7 @@ function TrackingPageContent() {
 
     return (
         <div className="w-full max-w-2xl mx-auto py-12 px-4">
-            <Card className="bg-white/90 backdrop-blur-sm">
+            <Card className="bg-card/90 backdrop-blur-sm">
                 <CardHeader className="text-center">
                     <div className="mx-auto">
                         <Logo />
@@ -110,12 +110,12 @@ function TrackingPageContent() {
             </Card>
 
             {foundWaybill === undefined && !error && (
-                 <div className="text-center p-8 text-white/80 bg-black/20 rounded-lg mt-8">
+                 <div className="text-center p-8 text-foreground/80 bg-black/10 rounded-lg mt-8 backdrop-blur-sm">
                     <p>Your shipment status will appear here.</p>
                 </div>
             )}
             
-            {error && <p className="text-red-200 bg-red-900/80 p-3 rounded-md text-center mt-4">{error}</p>}
+            {error && <p className="text-destructive-foreground bg-destructive/80 p-3 rounded-md text-center mt-4">{error}</p>}
 
             {foundWaybill && <TrackingResult waybill={foundWaybill} />}
         </div>
@@ -126,20 +126,20 @@ function TrackingPageContent() {
 export default function Home() {
   return (
     <DataProvider>
-      <div className="min-h-screen flex flex-col bg-gray-50 dark:bg-gray-900">
-        <div className="fixed inset-0 -z-10">
-           <Image
-                src="https://placehold.co/2000x1333.png"
-                alt="Highway with trucks"
-                fill
-                className="object-cover"
-                quality={75}
-                data-ai-hint="highway trucks"
+      <div className="min-h-screen flex flex-col bg-background">
+        <div className="fixed inset-0 -z-10 flex items-center justify-center overflow-hidden">
+            <Image
+                src="/logo.png"
+                alt="RAJ CARGO Logo Background"
+                width={800}
+                height={800}
+                className="object-contain opacity-5 dark:opacity-[0.02]"
+                quality={100}
+                priority
             />
-            <div className="absolute inset-0 bg-black/50" />
         </div>
        
-        <header className="w-full bg-white/90 dark:bg-gray-900/90 backdrop-blur-sm z-10">
+        <header className="w-full bg-card/80 dark:bg-background/80 backdrop-blur-sm z-10 border-b">
             <nav className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div className="flex justify-between items-center h-16">
                     <div className="flex-shrink-0 flex items-center gap-2">
