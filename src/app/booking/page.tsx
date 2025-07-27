@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { useWaybills } from '@/hooks/useWaybills';
 import { Card, CardHeader, CardTitle, CardContent, CardDescription, CardFooter } from '@/components/ui/card';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Legend, ResponsiveContainer } from 'recharts';
-import { Truck, CheckCircle, BookCopy, Loader2, Package, XCircleIcon, IndianRupee, ArrowRight, PlusCircle } from 'lucide-react';
+import { Truck, CheckCircle, BookCopy, Loader2, Package, XCircleIcon, ArrowRight, PlusCircle } from 'lucide-react';
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from '@/components/ui/chart';
 import { format } from 'date-fns';
 import { useMemo } from 'react';
@@ -51,12 +51,6 @@ export default function DashboardPage() {
     const pendingWaybills = todaysWaybills.filter(w => w.status === 'Pending').length;
     const cancelledWaybills = todaysWaybills.filter(w => w.status === 'Cancelled').length;
 
-    const totalSales = todaysWaybills.reduce((total, waybill) => {
-        const baseCharge = 150;
-        const weightCharge = waybill.packageWeight * 10;
-        return total + baseCharge + weightCharge;
-    }, 0);
-
     const chartData = [
         { status: 'Total', count: totalWaybills, fill: 'var(--color-total)' },
         { status: 'Pending', count: pendingWaybills, fill: 'var(--color-pending)' },
@@ -69,7 +63,6 @@ export default function DashboardPage() {
         totalWaybills,
         deliveredWaybills,
         inTransitWaybills,
-        totalSales,
         chartData
     };
   }, [waybills]);
@@ -89,7 +82,7 @@ export default function DashboardPage() {
         <p className="text-muted-foreground">Here's a summary of your shipping activity for {format(new Date(), 'PPP')}.</p>
       </div>
 
-      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4 mb-8">
+      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 mb-8">
           <Card className="flex flex-col">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">Today's Waybills</CardTitle>
@@ -100,19 +93,6 @@ export default function DashboardPage() {
             </CardContent>
             <CardFooter className="mt-auto">
                <p className="text-xs text-muted-foreground">Total waybills for today</p>
-            </CardFooter>
-          </Card>
-          
-          <Card className="flex flex-col">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Today's Sales</CardTitle>
-              <IndianRupee className="h-5 w-5 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">₹{todaysStats.totalSales.toLocaleString('en-IN')}</div>
-            </CardContent>
-             <CardFooter className="mt-auto">
-               <p className="text-xs text-muted-foreground">Total sales for today</p>
             </CardFooter>
           </Card>
           
