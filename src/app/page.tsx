@@ -26,7 +26,7 @@ function TrackingResult({ waybill }: { waybill: Waybill }) {
     const Icon = currentStatus.icon;
 
     return (
-        <Card className="mt-8">
+        <Card className="mt-8 bg-white/90 backdrop-blur-sm">
             <CardHeader>
                 <CardTitle className="flex items-center gap-4">
                     <Icon className={`h-8 w-8 ${currentStatus.color}`} />
@@ -84,7 +84,7 @@ function TrackingPageContent() {
 
     return (
         <div className="w-full max-w-2xl mx-auto py-12 px-4">
-            <Card>
+            <Card className="bg-white/90 backdrop-blur-sm">
                 <CardHeader className="text-center">
                     <Package className="h-12 w-12 mx-auto text-primary" />
                     <CardTitle className="text-3xl font-bold mt-4">Track Your Shipment</CardTitle>
@@ -106,12 +106,12 @@ function TrackingPageContent() {
             </Card>
 
             {foundWaybill === undefined && !error && (
-                 <div className="text-center p-8 text-muted-foreground">
+                 <div className="text-center p-8 text-white/80 bg-black/20 rounded-lg mt-8">
                     <p>Your shipment status will appear here.</p>
                 </div>
             )}
             
-            {error && <p className="text-red-500 text-center mt-4">{error}</p>}
+            {error && <p className="text-red-200 bg-red-900/80 p-3 rounded-md text-center mt-4">{error}</p>}
 
             {foundWaybill && <TrackingResult waybill={foundWaybill} />}
         </div>
@@ -122,8 +122,13 @@ function TrackingPageContent() {
 export default function Home() {
   return (
     <DataProvider>
-    <div className="min-h-screen flex flex-col bg-gray-50 dark:bg-gray-900">
-        <header className="w-full bg-card shadow-sm">
+    <div 
+        className="min-h-screen flex flex-col bg-gray-50 dark:bg-gray-900 bg-cover bg-center"
+        style={{backgroundImage: "url('https://placehold.co/1920x1080.png')", backgroundAttachment: 'fixed'}}
+        data-ai-hint="trucks highway"
+    >
+        <div className="absolute inset-0 bg-black/50 z-0"></div>
+        <header className="w-full bg-white/90 dark:bg-gray-900/90 backdrop-blur-sm shadow-sm z-10">
             <nav className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div className="flex justify-between items-center h-16">
                     <div className="flex-shrink-0 flex items-center gap-2">
@@ -141,7 +146,7 @@ export default function Home() {
                 </div>
             </nav>
         </header>
-        <main className="flex-grow flex items-center justify-center">
+        <main className="flex-grow flex items-center justify-center relative z-10">
             <TrackingPageContent />
         </main>
     </div>
