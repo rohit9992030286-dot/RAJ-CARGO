@@ -107,7 +107,7 @@ export default function PartnerManagementPage() {
         );
     }
     
-    const allPartnerCodes = users.map(u => u.partnerCode).filter((code): code is string => !!code);
+    const allPartnerCodes = [...new Set(users.map(u => u.partnerCode).filter((code): code is string => !!code))];
     const hubPartners = Object.keys(associations);
     
     const availableBookingPartners = allPartnerCodes.filter(code => 
