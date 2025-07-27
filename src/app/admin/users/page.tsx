@@ -12,7 +12,7 @@ import { Input } from '@/components/ui/input';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Loader2, UserPlus, Trash2, User as UserIcon, KeyRound, Shield, Briefcase, BookCopy, Cpu, Truck } from 'lucide-react';
+import { Loader2, UserPlus, Trash2, User as UserIcon, KeyRound, Shield, Briefcase, BookCopy, Cpu, Truck, Pencil, XCircle } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { Badge } from '@/components/ui/badge';
 import {
@@ -45,9 +45,10 @@ const roles = [
 ];
 
 export default function UserManagementPage() {
-  const { user, users, addUser, deleteUser, isLoading } = useAuth();
+  const { user, users, addUser, deleteUser, updateUser, isLoading } = useAuth();
   const router = useRouter();
   const { toast } = useToast();
+  const [editingUser, setEditingUser] = useState<NewUser | null>(null);
 
   const form = useForm<UserFormData>({
     resolver: zodResolver(userFormSchema),
@@ -58,6 +59,20 @@ export default function UserManagementPage() {
       roles: [],
     },
   });
+  
+  useEffect(() => {
+    if (editingUser) {
+        form.reset({
+            username: editingUser.username,
+            password: editingUser.password,
+            partnerCode: editingUser.partnerCode,
+            roles: editingUser.roles,
+        });
+    } else {
+        form.reset({ username: '', password: '', partnerCode: '', roles: [] });
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [editingUser]);
 
   useEffect(() => {
     if (!isLoading && user?.role !== 'admin') {
@@ -67,18 +82,36 @@ export default function UserManagementPage() {
   }, [user, isLoading, router, toast]);
 
   const onSubmit = (data: UserFormData) => {
-    const newUser: NewUser = {
-        ...data,
-        role: 'staff' as 'staff',
-        roles: data.roles as ('booking' | 'hub' | 'delivery')[],
-    };
-
-    const success = addUser(newUser);
-    if (success) {
-      toast({ title: 'User Created', description: `User "${data.username}" has been added.` });
-      form.reset();
+    
+    if(editingUser) {
+        const userToUpdate: NewUser = {
+            ...editingUser,
+            ...data,
+            roles: data.roles as ('booking' | 'hub' | 'delivery')[],
+        };
+        const success = updateUser(userToUpdate);
+         if (success) {
+            toast({ title: 'User Updated', description: `User "${data.username}" has been updated.` });
+            setEditingUser(null);
+            form.reset();
+        } else {
+            // This case should ideally not happen if we are editing
+            toast({ title: 'Update Failed', description: 'Could not find user to update.', variant: 'destructive' });
+        }
     } else {
-      toast({ title: 'Creation Failed', description: `User "${data.username}" already exists.`, variant: 'destructive' });
+        const newUser: NewUser = {
+            ...data,
+            role: 'staff' as 'staff',
+            roles: data.roles as ('booking' | 'hub' | 'delivery')[],
+        };
+
+        const success = addUser(newUser);
+        if (success) {
+            toast({ title: 'User Created', description: `User "${data.username}" has been added.` });
+            form.reset();
+        } else {
+            toast({ title: 'Creation Failed', description: `User "${data.username}" already exists.`, variant: 'destructive' });
+        }
     }
   };
   
@@ -86,6 +119,14 @@ export default function UserManagementPage() {
     deleteUser(username);
     toast({ title: 'User Deleted', description: `User "${username}" has been removed.` });
   };
+  
+  const handleEditUser = (userToEdit: NewUser) => {
+    setEditingUser(userToEdit);
+  }
+  
+  const handleCancelEdit = () => {
+    setEditingUser(null);
+  }
 
 
   if (isLoading || user?.role !== 'admin') {
@@ -108,8 +149,8 @@ export default function UserManagementPage() {
            <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)}>
                 <CardHeader>
-                    <CardTitle>Create New Staff User</CardTitle>
-                    <CardDescription>Add a new user and assign roles and a partner code.</CardDescription>
+                    <CardTitle>{editingUser ? 'Update User' : 'Create New Staff User'}</CardTitle>
+                    <CardDescription>{editingUser ? `Editing details for ${editingUser.username}` : 'Add a new user and assign roles.'}</CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
                      <FormField
@@ -119,7 +160,7 @@ export default function UserManagementPage() {
                             <FormItem>
                                 <FormLabel>Username</FormLabel>
                                 <div className="relative">
-                                    <FormControl><Input {...field} placeholder="e.g., john.doe" className="pl-10" /></FormControl>
+                                    <FormControl><Input {...field} placeholder="e.g., john.doe" className="pl-10" disabled={!!editingUser} /></FormControl>
                                     <UserIcon className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
                                 </div>
                                 <FormMessage />
@@ -199,10 +240,15 @@ export default function UserManagementPage() {
                         )}
                         />
                 </CardContent>
-                <CardFooter>
+                <CardFooter className="flex flex-col gap-2">
                     <Button type="submit" className="w-full">
-                        <UserPlus className="mr-2 h-4 w-4" /> Create User
+                        {editingUser ? 'Update User' : <><UserPlus className="mr-2 h-4 w-4" /> Create User</>}
                     </Button>
+                    {editingUser && (
+                        <Button variant="outline" className="w-full" onClick={handleCancelEdit}>
+                            <XCircle className="mr-2 h-4 w-4" /> Cancel Edit
+                        </Button>
+                    )}
                 </CardFooter>
             </form>
            </Form>
@@ -239,27 +285,34 @@ export default function UserManagementPage() {
                                     }
                                 </TableCell>
                                 <TableCell className="text-right">
-                                    <AlertDialog>
-                                        <AlertDialogTrigger asChild>
-                                            <Button variant="ghost" size="icon" disabled={u.username === user.username}>
-                                                <Trash2 className="h-4 w-4 text-destructive" />
-                                            </Button>
-                                        </AlertDialogTrigger>
-                                        <AlertDialogContent>
-                                            <AlertDialogHeader>
-                                                <AlertDialogTitle>Are you sure?</AlertDialogTitle>
-                                                <AlertDialogDescription>
-                                                    This will permanently delete the user "{u.username}". This action cannot be undone.
-                                                </AlertDialogDescription>
-                                            </AlertDialogHeader>
-                                            <AlertDialogFooter>
-                                                <AlertDialogCancel>Cancel</AlertDialogCancel>
-                                                <AlertDialogAction onClick={() => handleDeleteUser(u.username)}>
-                                                    Yes, delete user
-                                                </AlertDialogAction>
-                                            </AlertDialogFooter>
-                                        </AlertDialogContent>
-                                    </AlertDialog>
+                                    {u.role !== 'admin' && (
+                                    <>
+                                        <Button variant="ghost" size="icon" onClick={() => handleEditUser(u)}>
+                                            <Pencil className="h-4 w-4" />
+                                        </Button>
+                                        <AlertDialog>
+                                            <AlertDialogTrigger asChild>
+                                                <Button variant="ghost" size="icon" disabled={u.username === user.username}>
+                                                    <Trash2 className="h-4 w-4 text-destructive" />
+                                                </Button>
+                                            </AlertDialogTrigger>
+                                            <AlertDialogContent>
+                                                <AlertDialogHeader>
+                                                    <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+                                                    <AlertDialogDescription>
+                                                        This will permanently delete the user "{u.username}". This action cannot be undone.
+                                                    </AlertDialogDescription>
+                                                </AlertDialogHeader>
+                                                <AlertDialogFooter>
+                                                    <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                                    <AlertDialogAction onClick={() => handleDeleteUser(u.username)}>
+                                                        Yes, delete user
+                                                    </AlertDialogAction>
+                                                </AlertDialogFooter>
+                                            </AlertDialogContent>
+                                        </AlertDialog>
+                                    </>
+                                    )}
                                 </TableCell>
                             </TableRow>
                         ))}
