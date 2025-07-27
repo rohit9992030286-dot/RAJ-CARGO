@@ -124,15 +124,18 @@ export default function Home() {
   return (
     <DataProvider>
       <div className="min-h-screen flex flex-col bg-gray-50 dark:bg-gray-900">
-         <Image
-            src="https://images.unsplash.com/photo-1616431993546-0272b3f41632?q=80&w=2070&auto=format&fit=crop"
-            alt="Highway with trucks"
-            fill
-            className="object-cover -z-10"
-            quality={75}
-            data-ai-hint="highway trucks"
-        />
-        <div className="absolute inset-0 bg-black/50 -z-10" />
+        <div className="fixed inset-0 -z-10">
+           <Image
+                src="https://images.unsplash.com/photo-1616431993546-0272b3f41632?q=80&w=2070&auto=format&fit=crop"
+                alt="Highway with trucks"
+                fill
+                className="object-cover"
+                quality={75}
+                data-ai-hint="highway trucks"
+            />
+            <div className="absolute inset-0 bg-black/50" />
+        </div>
+       
         <header className="w-full bg-white/90 dark:bg-gray-900/90 backdrop-blur-sm z-10">
             <nav className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div className="flex justify-between items-center h-16">
