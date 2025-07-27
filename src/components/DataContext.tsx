@@ -162,24 +162,22 @@ export function DataProvider({ children }: { children: ReactNode }) {
   }, [toast]);
 
   const deleteWaybill = useCallback((id: string) => {
-    setWaybillsData(prev => {
-        const waybillToDelete = prev.find(w => w.id === id);
-        if (waybillToDelete) {
-             toast({
-                title: 'Waybill Deleted',
-                description: `Waybill #${waybillToDelete.waybillNumber} deleted.`,
-            });
-            // Add back to inventory if deleted
-            setWaybillInventoryData(prevInv => {
-                if (!prevInv.includes(waybillToDelete.waybillNumber)) {
-                    return [...prevInv, waybillToDelete.waybillNumber].sort((a, b) => a.localeCompare(b, undefined, { numeric: true }));
-                }
-                return prevInv;
-            });
-        }
-        return prev.filter(w => w.id !== id);
-    });
-  }, [toast]);
+    const waybillToDelete = waybillsData.find(w => w.id === id);
+    if (waybillToDelete) {
+        toast({
+            title: 'Waybill Deleted',
+            description: `Waybill #${waybillToDelete.waybillNumber} deleted.`,
+        });
+        // Add back to inventory if deleted
+        setWaybillInventoryData(prevInv => {
+            if (!prevInv.includes(waybillToDelete.waybillNumber)) {
+                return [...prevInv, waybillToDelete.waybillNumber].sort((a, b) => a.localeCompare(b, undefined, { numeric: true }));
+            }
+            return prevInv;
+        });
+    }
+    setWaybillsData(prev => prev.filter(w => w.id !== id));
+  }, [toast, waybillsData]);
 
   const getWaybillById = useCallback((id: string) => {
     return waybillsData.find(w => w.id === id);
@@ -207,17 +205,15 @@ export function DataProvider({ children }: { children: ReactNode }) {
   }, [toast]);
 
   const deleteManifest = useCallback((id: string) => {
-    setManifestsData(prev => {
-        const manifestToDelete = prev.find(m => m.id === id);
-        if (manifestToDelete) {
-             toast({
-                title: 'Manifest Deleted',
-                description: `The manifest has been deleted.`,
-            });
-        }
-        return prev.filter(m => m.id !== id);
-    });
-  }, [toast]);
+    const manifestToDelete = manifestsData.find(m => m.id === id);
+    if (manifestToDelete) {
+        toast({
+            title: 'Manifest Deleted',
+            description: `The manifest has been deleted.`,
+        });
+    }
+    setManifestsData(prev => prev.filter(m => m.id !== id));
+  }, [toast, manifestsData]);
 
   const getManifestById = useCallback((id: string) => {
     return manifestsData.find(m => m.id === id);
