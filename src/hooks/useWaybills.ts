@@ -15,10 +15,11 @@ export function useWaybills() {
   }
 
   const filteredWaybills = useMemo(() => {
-    if (!user) return [];
-    if (user.role === 'admin' && user.partnerCode === 'ALL_ACCESS') {
-      return context.waybills; // Admin with special code sees all
+    // If no user is logged in (public page), or if the user is a super admin, return all waybills
+    if (!user || (user.role === 'admin' && user.partnerCode === 'ALL_ACCESS')) {
+      return context.waybills; 
     }
+    // Otherwise, filter waybills by the logged-in user's partner code
     return context.waybills.filter(w => w.partnerCode === user.partnerCode);
   }, [context.waybills, user]);
 
