@@ -124,17 +124,15 @@ export default function Home() {
   return (
     <DataProvider>
       <div className="min-h-screen flex flex-col bg-gray-50 dark:bg-gray-900 relative">
-        <div className="absolute inset-0 -z-10">
-            <Image
-                src="https://images.unsplash.com/photo-1587293852726-70cdb1e89408"
-                alt="Team of delivery workers handling packages in a city street"
-                fill
-                style={{objectFit: 'cover'}}
-                quality={75}
-                data-ai-hint="delivery workers packages"
-            />
-            <div className="absolute inset-0 bg-black/50" />
-        </div>
+        <Image
+            src="https://images.unsplash.com/photo-1587293852726-70cdb1e89408"
+            alt="Team of delivery workers handling packages in a city street"
+            fill
+            className="object-cover -z-10"
+            quality={75}
+            data-ai-hint="delivery workers packages"
+        />
+        <div className="absolute inset-0 bg-black/50 -z-10" />
         <header className="w-full bg-white/90 dark:bg-gray-900/90 backdrop-blur-sm z-10">
             <nav className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div className="flex justify-between items-center h-16">
