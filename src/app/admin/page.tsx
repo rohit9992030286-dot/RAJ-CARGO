@@ -2,7 +2,7 @@
 'use client';
 import Link from 'next/link';
 import { Card, CardHeader, CardTitle, CardContent, CardDescription, CardFooter } from '@/components/ui/card';
-import { Users, Shield, ArrowRight, Activity } from 'lucide-react';
+import { Users, Shield, ArrowRight, Activity, Link2 } from 'lucide-react';
 
 export default function AdminDashboardPage() {
   return (
@@ -12,7 +12,7 @@ export default function AdminDashboardPage() {
         <p className="text-muted-foreground">Welcome to the central control panel.</p>
       </div>
 
-      <div className="grid md:grid-cols-2 gap-6">
+      <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
         <Card className="flex flex-col">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
@@ -33,6 +33,26 @@ export default function AdminDashboardPage() {
           </CardFooter>
         </Card>
         
+        <Card className="flex flex-col">
+            <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                <Link2 className="h-6 w-6" />
+                <span>Partner Management</span>
+                </CardTitle>
+                <CardDescription>Link Hub partners with their corresponding Booking partners.</CardDescription>
+            </CardHeader>
+            <CardContent>
+                <p>Define the relationships between your operational hubs and booking offices to ensure correct manifest routing.</p>
+            </CardContent>
+            <CardFooter className="mt-auto">
+                <Link href="/admin/partners" className="w-full">
+                    <button className="w-full inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-primary text-primary-foreground hover:bg-primary/90 h-10 px-4 py-2">
+                        Manage Partners <ArrowRight className="h-4 w-4" />
+                    </button>
+                </Link>
+            </CardFooter>
+        </Card>
+
         <Card className="flex flex-col">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
