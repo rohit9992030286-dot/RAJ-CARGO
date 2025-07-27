@@ -16,16 +16,18 @@ import { Waybill } from '@/types/waybill';
 import { Manifest } from '@/types/manifest';
 import { useToast } from '@/hooks/use-toast';
 import { format } from 'date-fns';
+import { useAuth } from '@/hooks/useAuth';
 
 export default function EditManifestPage() {
   const router = useRouter();
   const params = useParams();
   const { toast } = useToast();
+  const { user } = useAuth();
   
   const manifestId = Array.isArray(params.id) ? params.id[0] : params.id;
   
   const { getManifestById, updateManifest, isLoaded: manifestsLoaded } = useManifests();
-  const { waybills, updateWaybill, getWaybillById, isLoaded: waybillsLoaded } = useWaybills();
+  const { allWaybills, waybills, updateWaybill, getWaybillById, isLoaded: waybillsLoaded } = useWaybills();
   
   const [manifest, setManifest] = useState<Manifest | null>(null);
   const [waybillNumber, setWaybillNumber] = useState('');
@@ -52,9 +54,10 @@ export default function EditManifestPage() {
       setError('Please enter a waybill number.');
       return;
     }
-    const waybill = waybills.find(w => w.waybillNumber === waybillNumber);
+    // Search in all waybills, not just filtered ones
+    const waybill = allWaybills.find(w => w.waybillNumber === waybillNumber && w.partnerCode === user?.partnerCode);
     if (!waybill) {
-      setError('Waybill not found.');
+      setError('Waybill not found for your partner code.');
       return;
     }
     if (waybill.status !== 'Pending') {

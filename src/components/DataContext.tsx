@@ -6,6 +6,7 @@ import { Waybill, waybillSchema } from '@/types/waybill';
 import { Manifest, manifestSchema } from '@/types/manifest';
 import { useToast } from '@/hooks/use-toast';
 import { Loader2 } from 'lucide-react';
+import { useAuth } from '@/hooks/useAuth';
 
 const WAYBILL_STORAGE_KEY = 'rajcargo-waybills';
 const MANIFEST_STORAGE_KEY = 'rajcargo-manifests';
@@ -20,7 +21,7 @@ interface DataContextType {
   updateWaybill: (updatedWaybill: Waybill) => void;
   deleteWaybill: (id: string) => void;
   getWaybillById: (id: string) => Waybill | undefined;
-  addManifest: (manifest: Manifest) => string;
+  addManifest: (manifest: Omit<Manifest, 'creatorPartnerCode'>) => string;
   updateManifest: (updatedManifest: Manifest) => void;
   deleteManifest: (id: string) => void;
   getManifestById: (id: string) => Manifest | undefined;
@@ -36,6 +37,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
   const [waybillInventoryData, setWaybillInventoryData] = useState<string[]>([]);
   const [isLoaded, setIsLoaded] = useState(false);
   const { toast } = useToast();
+  const { user } = useAuth();
 
   useEffect(() => {
     try {
@@ -51,7 +53,9 @@ export function DataProvider({ children }: { children: ReactNode }) {
       if (manifestItems) {
         const parsedManifests = JSON.parse(manifestItems);
         if (Array.isArray(parsedManifests)) {
-          setManifestsData(parsedManifests);
+          // migration for creatorPartnerCode
+          const migratedManifests = parsedManifests.map(m => ({ ...m, creatorPartnerCode: m.creatorPartnerCode || m.partnerCode || '' }));
+          setManifestsData(migratedManifests);
         }
       }
 
@@ -181,14 +185,18 @@ export function DataProvider({ children }: { children: ReactNode }) {
     return waybillsData.find(w => w.id === id);
   }, [waybillsData]);
 
-  const addManifest = useCallback((manifest: Manifest) => {
-    setManifestsData(prev => [manifest, ...prev]);
+  const addManifest = useCallback((manifest: Omit<Manifest, 'creatorPartnerCode'>) => {
+    const manifestToSave: Manifest = {
+        ...manifest,
+        creatorPartnerCode: user?.partnerCode || '',
+    };
+    setManifestsData(prev => [manifestToSave, ...prev]);
     toast({
         title: 'Manifest Created',
         description: `Manifest M-${manifest.id.substring(0,8)} has been created.`,
     });
     return manifest.id;
-  }, [toast]);
+  }, [toast, user]);
 
   const updateManifest = useCallback((updatedManifest: Manifest) => {
     setManifestsData(prev => prev.map(m => (m.id === updatedManifest.id ? updatedManifest : m)));

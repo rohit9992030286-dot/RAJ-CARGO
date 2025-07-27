@@ -9,6 +9,7 @@ export const manifestSchema = z.object({
   status: z.enum(['Draft', 'Dispatched', 'Received']).default('Draft'),
   origin: z.enum(['booking', 'hub']).default('booking'),
   deliveryPartnerCode: z.string().optional(),
+  creatorPartnerCode: z.string(),
 });
 
 export type Manifest = z.infer<typeof manifestSchema>;

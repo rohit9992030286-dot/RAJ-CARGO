@@ -15,9 +15,13 @@ export function useWaybills() {
   }
 
   const filteredWaybills = useMemo(() => {
-    // If no user is logged in (public page), or if the user is a super admin, return all waybills
-    if (!user || (user.role === 'admin' && user.partnerCode === 'ALL_ACCESS')) {
+    // Public tracking page or not yet loaded
+    if (!user) {
       return context.waybills; 
+    }
+    // Admin sees everything
+    if (user.role === 'admin') {
+      return context.waybills;
     }
     // Otherwise, filter waybills by the logged-in user's partner code
     return context.waybills.filter(w => w.partnerCode === user.partnerCode);
@@ -25,6 +29,7 @@ export function useWaybills() {
 
   return {
     waybills: filteredWaybills,
+    allWaybills: context.waybills,
     addWaybill: (waybill: Waybill, silent?: boolean) => context.addWaybill(waybill, silent),
     updateWaybill: context.updateWaybill,
     deleteWaybill: context.deleteWaybill,
