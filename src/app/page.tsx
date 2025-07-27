@@ -9,7 +9,7 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { useWaybills } from '@/hooks/useWaybills';
 import { Waybill } from '@/types/waybill';
-import { Search, Package, CheckCircle, Truck, XCircle, Loader2, ArrowRight, LogIn, Send } from 'lucide-react';
+import { Search, Package, CheckCircle, Truck, XCircle, Loader2, ArrowRight, LogIn } from 'lucide-react';
 import { DataProvider } from '@/components/DataContext';
 import { format } from 'date-fns';
 
@@ -137,8 +137,7 @@ export default function Home() {
             <nav className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div className="flex justify-between items-center h-16">
                     <div className="flex-shrink-0 flex items-center gap-2">
-                        <Send className="h-8 w-8 text-primary"/>
-                        <span className="text-2xl font-bold text-primary">RAJ CARGO</span>
+                        <Image src="/logo.png" alt="RAJ CARGO Logo" width={120} height={120} />
                     </div>
                     <div className="flex items-center">
                         <Link href="/login">

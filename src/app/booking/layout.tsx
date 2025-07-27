@@ -2,7 +2,8 @@
 'use client';
 import { useState, useEffect, ReactNode } from 'react';
 import Link from 'next/link';
-import { Send, Home, BookCopy, PlusCircle, ScanLine, Menu, Settings, Settings2, Truck, Cpu, LayoutDashboard, IndianRupee, CheckCircle, LogOut } from 'lucide-react';
+import Image from 'next/image';
+import { Home, BookCopy, PlusCircle, ScanLine, Menu, Settings, Settings2, Truck, Cpu, LayoutDashboard, CheckCircle, LogOut } from 'lucide-react';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/hooks/useAuth.tsx';
@@ -120,9 +121,8 @@ function BookingLayoutContent({
     <DataProvider>
       <div className="flex min-h-screen bg-background">
         <aside className="w-64 bg-card border-r hidden lg:flex lg:flex-col">
-          <div className="flex items-center gap-3 p-6 border-b">
-            <Send className="h-8 w-8 text-primary" />
-            <h1 className="text-2xl font-bold text-primary">RAJ CARGO</h1>
+          <div className="flex items-center justify-center p-6 border-b">
+            <Image src="/logo.png" alt="RAJ CARGO Logo" width={150} height={150} />
           </div>
           <NavLinks />
         </aside>
@@ -139,9 +139,8 @@ function BookingLayoutContent({
                       <SheetHeader>
                           <SheetTitle className="sr-only">Navigation Menu</SheetTitle>
                       </SheetHeader>
-                      <div className="flex items-center gap-3 p-4 border-b">
-                          <Send className="h-8 w-8 text-primary" />
-                          <h1 className="text-2xl font-bold text-primary">RAJ CARGO</h1>
+                      <div className="flex items-center justify-center p-4 border-b">
+                          <Image src="/logo.png" alt="RAJ CARGO Logo" width={120} height={120} />
                       </div>
                       <NavLinks onLinkClick={handleLinkClick} />
                   </SheetContent>
