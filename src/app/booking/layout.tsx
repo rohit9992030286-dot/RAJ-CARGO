@@ -9,6 +9,7 @@ import { useAuth } from '@/hooks/useAuth.tsx';
 import { useRouter } from 'next/navigation';
 import { Loader2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { DataProvider } from '@/components/DataContext';
 
 function NavLinks({ onLinkClick }: { onLinkClick?: () => void }) {
     const { logout } = useAuth();
@@ -122,6 +123,7 @@ function BookingLayoutContent({
   };
   
   return (
+    <DataProvider>
       <div className="flex min-h-screen bg-background">
         <aside className="w-64 bg-card border-r hidden lg:flex lg:flex-col">
           <div className="flex items-center gap-3 p-6 border-b">
@@ -162,6 +164,7 @@ function BookingLayoutContent({
           </footer>
         </div>
       </div>
+    </DataProvider>
   );
 }
 
