@@ -2,10 +2,8 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
-import { useForm } from 'react-hook-form';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
-import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import {
   AlertDialog,
@@ -20,7 +18,7 @@ import {
 } from '@/components/ui/alert-dialog';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { useToast } from '@/hooks/use-toast';
-import { Moon, Sun, Trash2, Save, User, KeyRound, Download, Upload, Loader2, Printer, Check } from 'lucide-react';
+import { Moon, Sun, Trash2, Download, Upload, Loader2, Printer } from 'lucide-react';
 import { useWaybillInventory } from '@/hooks/useWaybillInventory';
 import { saveAs } from 'file-saver';
 import { cn } from '@/lib/utils';
