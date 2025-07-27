@@ -3,6 +3,7 @@ import type {Metadata} from 'next';
 // Style Version: 2 - This comment helps ensure style changes are picked up.
 import './globals.css';
 import { Toaster } from "@/components/ui/toaster"
+import { AuthProvider } from '@/hooks/useAuth.tsx';
 
 export const metadata: Metadata = {
   title: 'RAJ CARGO',
@@ -39,7 +40,9 @@ export default function RootLayout({
         />
       </head>
       <body className="font-body antialiased bg-background">
-          {children}
+          <AuthProvider>
+            {children}
+          </AuthProvider>
           <Toaster />
       </body>
     </html>
