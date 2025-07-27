@@ -9,6 +9,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { useRouter } from 'next/navigation';
 import { useEffect } from 'react';
 import Image from 'next/image';
+import { Logo } from '@/components/Logo';
 
 export default function DashboardPage() {
     const { user, logout, isLoading } = useAuth();
@@ -33,7 +34,7 @@ export default function DashboardPage() {
         <header className="bg-card border-b">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex justify-between items-center">
                 <div>
-                     <Image src="/logo.png" alt="SwiftWay Logo" width={150} height={75} />
+                     <Logo />
                 </div>
                 <div className="text-center">
                     <h1 className="text-2xl font-bold text-primary">Welcome, {user?.username}!</h1>

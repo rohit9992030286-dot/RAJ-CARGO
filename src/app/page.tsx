@@ -12,6 +12,7 @@ import { Waybill } from '@/types/waybill';
 import { Search, Package, CheckCircle, Truck, XCircle, Loader2, ArrowRight, LogIn } from 'lucide-react';
 import { DataProvider } from '@/components/DataContext';
 import { format } from 'date-fns';
+import { Logo } from '@/components/Logo';
 
 function TrackingResult({ waybill }: { waybill: Waybill }) {
     const statusInfo = {
@@ -87,7 +88,9 @@ function TrackingPageContent() {
         <div className="w-full max-w-2xl mx-auto py-12 px-4">
             <Card className="bg-white/90 backdrop-blur-sm">
                 <CardHeader className="text-center">
-                    <Image src="/logo.png" alt="SwiftWay Logo" width={200} height={100} className="mx-auto" />
+                    <div className="mx-auto">
+                        <Logo />
+                    </div>
                     <CardTitle className="text-3xl font-bold mt-4">Track Your Shipment</CardTitle>
                     <CardDescription>Enter your waybill number below to see the status of your package.</CardDescription>
                 </CardHeader>
@@ -126,7 +129,7 @@ export default function Home() {
       <div className="min-h-screen flex flex-col bg-gray-50 dark:bg-gray-900">
         <div className="fixed inset-0 -z-10">
            <Image
-                src="https://images.unsplash.com/photo-1616431993546-0272b3f41632?q=80&w=2070&auto=format&fit=crop"
+                src="https://placehold.co/2000x1333.png"
                 alt="Highway with trucks"
                 fill
                 className="object-cover"
@@ -140,7 +143,7 @@ export default function Home() {
             <nav className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div className="flex justify-between items-center h-16">
                     <div className="flex-shrink-0 flex items-center gap-2">
-                        <Image src="/logo.png" alt="SwiftWay Logo" width={120} height={60} />
+                        <Logo />
                     </div>
                     <div className="flex items-center">
                         <Link href="/login">

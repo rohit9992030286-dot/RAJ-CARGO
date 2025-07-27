@@ -10,6 +10,7 @@ import { useAuth } from '@/hooks/useAuth.tsx';
 import { useRouter } from 'next/navigation';
 import { Loader2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { Logo } from '@/components/Logo';
 
 function NavLinks({ onLinkClick }: { onLinkClick?: () => void }) {
     const { logout, user } = useAuth();
@@ -106,7 +107,7 @@ function HubLayoutContent({
       <div className="flex min-h-screen bg-background">
         <aside className="w-64 bg-card border-r hidden lg:flex lg:flex-col">
           <div className="flex items-center justify-center p-6 border-b">
-            <Image src="/logo.png" alt="SwiftWay Logo" width={150} height={75} />
+            <Logo />
           </div>
           <NavLinks />
         </aside>
@@ -124,7 +125,7 @@ function HubLayoutContent({
                           <SheetTitle className="sr-only">Navigation Menu</SheetTitle>
                       </SheetHeader>
                       <div className="flex items-center justify-center p-4 border-b">
-                          <Image src="/logo.png" alt="SwiftWay Logo" width={120} height={60} />
+                          <Logo />
                       </div>
                       <NavLinks onLinkClick={handleLinkClick} />
                   </SheetContent>
