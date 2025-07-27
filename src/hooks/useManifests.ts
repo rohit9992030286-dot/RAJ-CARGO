@@ -29,7 +29,7 @@ export function useManifests() {
   }
 
   const filteredManifests = useMemo(() => {
-    if (!user || !context.isLoaded) return context.manifests;
+    if (!user || !context.isLoaded) return [];
 
     // Admin with ALL_ACCESS sees everything
     if (user.role === 'admin' && user.partnerCode === 'ALL_ACCESS') {
@@ -39,29 +39,44 @@ export function useManifests() {
     const userIsBooking = user.roles.includes('booking');
     const userIsHub = user.roles.includes('hub');
 
+    // Scenario 1: User is ONLY a booking agent
     if (userIsBooking && !userIsHub) {
-        // Booking users only see manifests they created
         return context.manifests.filter(m => m.origin === 'booking' && m.creatorPartnerCode === user.partnerCode);
     }
     
+    // Scenario 2: User has Hub access (could also have booking access)
     if (userIsHub) {
         const associations = getAssociations();
-        const associatedBookingPartners = associations[user.partnerCode || ''] || [];
-        
+        const hubPartnerCode = user.partnerCode || '';
+        const associatedBookingPartners = associations[hubPartnerCode] || [];
+        const hasSpecificAssociations = associatedBookingPartners.length > 0;
+
         return context.manifests.filter(manifest => {
-            // Hub users see manifests they created (outbound)
-            if (manifest.origin === 'hub' && manifest.creatorPartnerCode === user.partnerCode) {
+            // Rule 1: Hub users always see outbound manifests they created themselves.
+            if (manifest.origin === 'hub' && manifest.creatorPartnerCode === hubPartnerCode) {
                 return true;
             }
-            // Hub users see incoming manifests from their associated booking partners
-            if (manifest.origin === 'booking' && (manifest.status === 'Dispatched' || manifest.status === 'Received') && associatedBookingPartners.includes(manifest.creatorPartnerCode)) {
-                return true;
+
+            // Rule 2: Filter incoming booking manifests.
+            if (manifest.origin === 'booking') {
+                 // Ignore drafts from booking
+                if (manifest.status === 'Draft') return false;
+
+                // If associations exist, only show manifests from linked partners.
+                if (hasSpecificAssociations) {
+                    return associatedBookingPartners.includes(manifest.creatorPartnerCode);
+                } else {
+                    // If NO associations exist, show all booking manifests.
+                    return true;
+                }
             }
+
             return false;
         });
     }
 
-    return context.manifests;
+    // Default: if user has no specific roles that grant visibility, show nothing.
+    return [];
 
   }, [context.manifests, user, context.isLoaded]);
 

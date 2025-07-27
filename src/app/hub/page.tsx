@@ -18,8 +18,8 @@ export default function HubPage() {
   const { manifests, isLoaded: manifestsLoaded } = useManifests();
   const { waybills, isLoaded: waybillsLoaded } = useWaybills();
   
-  const dispatchedManifests = useMemo(() => {
-    return manifests.filter(m => m.status === 'Dispatched' || m.status === 'Received');
+  const incomingManifests = useMemo(() => {
+    return manifests.filter(m => m.origin === 'booking' && (m.status === 'Dispatched' || m.status === 'Received'));
   }, [manifests]);
 
   const getManifestDetails = useMemo(() => {
@@ -63,7 +63,7 @@ export default function HubPage() {
         <CardHeader>
           <CardTitle>Incoming Manifests</CardTitle>
           <CardDescription>
-            There are {dispatchedManifests.filter(m => m.status === 'Dispatched').length} dispatched manifest(s) awaiting verification at the hub.
+            There are {incomingManifests.filter(m => m.status === 'Dispatched').length} dispatched manifest(s) awaiting verification at the hub.
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -72,7 +72,7 @@ export default function HubPage() {
               <TableRow>
                 <TableHead>Manifest ID</TableHead>
                 <TableHead>Date</TableHead>
-                <TableHead>Destinations</TableHead>
+                <TableHead>Origin</TableHead>
                 <TableHead>Vehicle No.</TableHead>
                 <TableHead className="text-center">Waybills</TableHead>
                 <TableHead className="text-center">Boxes</TableHead>
@@ -80,14 +80,14 @@ export default function HubPage() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {dispatchedManifests.length > 0 ? (
-                dispatchedManifests.map((manifest) => {
+              {incomingManifests.length > 0 ? (
+                incomingManifests.map((manifest) => {
                   const details = getManifestDetails(manifest);
                   return (
                     <TableRow key={manifest.id}>
                       <TableCell className="font-medium truncate" style={{maxWidth: '100px'}}>M-{manifest.id.substring(0, 8)}</TableCell>
                       <TableCell>{format(new Date(manifest.date), 'PPP')}</TableCell>
-                      <TableCell className="truncate" style={{maxWidth: '150px'}}>{details.destinations}</TableCell>
+                      <TableCell><Badge variant="outline">{manifest.creatorPartnerCode || 'N/A'}</Badge></TableCell>
                       <TableCell>{manifest.vehicleNo || 'N/A'}</TableCell>
                       <TableCell className="text-center">{details.waybillCount}</TableCell>
                       <TableCell className="text-center">{details.boxCount}</TableCell>
@@ -112,7 +112,7 @@ export default function HubPage() {
                     <div className="text-center py-8">
                         <Truck className="mx-auto h-12 w-12 text-muted-foreground" />
                         <h3 className="mt-4 text-lg font-semibold">No Incoming Manifests</h3>
-                        <p className="mt-1 text-sm text-muted-foreground">There are currently no manifests marked as 'Dispatched'.</p>
+                        <p className="mt-1 text-sm text-muted-foreground">There are currently no manifests marked as 'Dispatched' from booking partners.</p>
                     </div>
                   </TableCell>
                 </TableRow>
