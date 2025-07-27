@@ -9,7 +9,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Checkbox } from '@/components/ui/checkbox';
-import { Loader2, Package, Truck, PlusCircle } from 'lucide-react';
+import { Loader2, Package, Truck, PlusCircle, Briefcase } from 'lucide-react';
 import { Waybill } from '@/types/waybill';
 import {
   AlertDialog,
@@ -25,14 +25,20 @@ import {
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
+import { useAuth } from '@/hooks/useAuth.tsx';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 
 export default function HubDispatchPage() {
   const router = useRouter();
   const { manifests, addManifest, updateManifest, isLoaded: manifestsLoaded } = useManifests();
   const { waybills, getWaybillById, updateWaybill, isLoaded: waybillsLoaded } = useWaybills();
+  const { users, isLoading: usersLoading } = useAuth();
+  
   const [selectedWaybillIds, setSelectedWaybillIds] = useState<string[]>([]);
   const [vehicleNo, setVehicleNo] = useState('');
+  const [deliveryPartnerCode, setDeliveryPartnerCode] = useState<string | null>(null);
+
   const { toast } = useToast();
   
   const waybillsReadyForDispatch = useMemo(() => {
@@ -77,6 +83,10 @@ export default function HubDispatchPage() {
         toast({ title: 'Vehicle Number Required', description: 'Please enter a vehicle number to create the manifest.', variant: 'destructive' });
         return;
     }
+    if (!deliveryPartnerCode) {
+        toast({ title: 'Delivery Partner Required', description: 'Please select a delivery partner for this manifest.', variant: 'destructive' });
+        return;
+    }
     
     const selectedWaybills = selectedWaybillIds.map(id => getWaybillById(id)).filter(w => w) as Waybill[];
 
@@ -87,6 +97,7 @@ export default function HubDispatchPage() {
         status: 'Dispatched' as 'Dispatched',
         vehicleNo: vehicleNo.trim(),
         origin: 'hub' as 'hub',
+        deliveryPartnerCode: deliveryPartnerCode,
     };
     
     addManifest(newManifest);
@@ -101,13 +112,18 @@ export default function HubDispatchPage() {
         description: `Manifest with ${selectedWaybills.length} waybills is now in transit.`
     });
     
-    // Reset selection and vehicle number
+    // Reset selection and form
     setSelectedWaybillIds([]);
     setVehicleNo('');
+    setDeliveryPartnerCode(null);
   };
 
+  const deliveryPartners = useMemo(() => {
+    return users.filter(u => u.role === 'staff' && u.partnerCode);
+  }, [users]);
 
-  if (!manifestsLoaded || !waybillsLoaded) {
+
+  if (!manifestsLoaded || !waybillsLoaded || usersLoading) {
     return (
       <div className="flex justify-center items-center h-64">
         <Loader2 className="h-16 w-16 animate-spin text-primary" />
@@ -146,20 +162,40 @@ export default function HubDispatchPage() {
                         <AlertDialogHeader>
                             <AlertDialogTitle>Create New Outbound Manifest</AlertDialogTitle>
                             <AlertDialogDescription>
-                                Enter the vehicle number for this manifest. This cannot be changed later.
+                                Enter vehicle number and select a delivery partner for this manifest.
                             </AlertDialogDescription>
                         </AlertDialogHeader>
-                        <div className="py-4">
-                           <Label htmlFor="vehicle-no-dialog">Vehicle Number</Label>
-                           <Input 
-                             id="vehicle-no-dialog"
-                             value={vehicleNo}
-                             onChange={(e) => setVehicleNo(e.target.value)}
-                             placeholder="e.g., MH-12-AB-1234"
-                           />
+                        <div className="py-4 space-y-4">
+                           <div>
+                             <Label htmlFor="vehicle-no-dialog">Vehicle Number</Label>
+                             <Input 
+                               id="vehicle-no-dialog"
+                               value={vehicleNo}
+                               onChange={(e) => setVehicleNo(e.target.value)}
+                               placeholder="e.g., MH-12-AB-1234"
+                             />
+                           </div>
+                           <div>
+                               <Label htmlFor="delivery-partner-dialog">Delivery Partner</Label>
+                                <Select onValueChange={setDeliveryPartnerCode} value={deliveryPartnerCode || ''}>
+                                    <SelectTrigger id="delivery-partner-dialog">
+                                        <SelectValue placeholder="Select a delivery partner" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        {deliveryPartners.map(p => (
+                                            <SelectItem key={p.partnerCode} value={p.partnerCode!}>
+                                                <div className="flex items-center gap-2">
+                                                    <Briefcase className="h-4 w-4 text-muted-foreground" />
+                                                    {p.partnerCode} ({p.username})
+                                                </div>
+                                            </SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
+                           </div>
                         </div>
                         <AlertDialogFooter>
-                            <AlertDialogCancel onClick={() => setVehicleNo('')}>Cancel</AlertDialogCancel>
+                            <AlertDialogCancel onClick={() => { setVehicleNo(''); setDeliveryPartnerCode(null); }}>Cancel</AlertDialogCancel>
                             <AlertDialogAction onClick={handleCreateAndDispatchManifest}>
                                 Create & Dispatch
                             </AlertDialogAction>

@@ -19,6 +19,7 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { Badge } from '@/components/ui/badge';
 import { format } from 'date-fns';
+import { useAuth } from '@/hooks/useAuth.tsx';
 
 const statusVariantMap: { [key: string]: 'default' | 'secondary' | 'destructive' | 'outline' } = {
   Delivered: 'default',
@@ -34,18 +35,22 @@ const statusOptions: Waybill['status'][] = ['Out for Delivery', 'Delivered', 'Re
 export default function DeliveryPage() {
   const { manifests, isLoaded: manifestsLoaded } = useManifests();
   const { waybills, updateWaybill, getWaybillById, isLoaded: waybillsLoaded } = useWaybills();
+  const { user, isLoading: isAuthLoading } = useAuth();
 
   const waybillsForDelivery = useMemo(() => {
+    if (!user || isAuthLoading) return [];
+    
     // Get IDs of all waybills from dispatched manifests originating from the hub
+    // that are assigned to the current delivery partner.
     const dispatchedHubManifestWaybillIds = manifests
-      .filter(m => m.origin === 'hub' && m.status === 'Dispatched')
+      .filter(m => m.origin === 'hub' && m.status === 'Dispatched' && m.deliveryPartnerCode === user.partnerCode)
       .flatMap(m => m.waybillIds);
 
     // Get the waybill objects, filtering for those relevant to delivery operations
     return dispatchedHubManifestWaybillIds
       .map(id => getWaybillById(id))
       .filter((w): w is Waybill => !!w && (w.status === 'In Transit' || w.status === 'Out for Delivery' || w.status === 'Returned'));
-  }, [manifests, getWaybillById]);
+  }, [manifests, getWaybillById, user, isAuthLoading]);
   
   const handleUpdateStatus = (id: string, status: Waybill['status']) => {
     const waybill = waybills.find(w => w.id === id);
@@ -55,7 +60,7 @@ export default function DeliveryPage() {
   };
 
 
-  if (!manifestsLoaded || !waybillsLoaded) {
+  if (!manifestsLoaded || !waybillsLoaded || isAuthLoading) {
     return (
       <div className="flex justify-center items-center h-64">
         <Loader2 className="h-16 w-16 animate-spin text-primary" />
@@ -74,7 +79,7 @@ export default function DeliveryPage() {
         <CardHeader>
           <CardTitle>Waybills for Delivery</CardTitle>
           <CardDescription>
-            There are {waybillsForDelivery.length} waybill(s) assigned for delivery.
+            There are {waybillsForDelivery.length} waybill(s) assigned to you for delivery.
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -127,7 +132,7 @@ export default function DeliveryPage() {
               <Package className="mx-auto h-12 w-12 text-muted-foreground" />
               <h3 className="mt-4 text-lg font-semibold">No Active Waybills for Delivery</h3>
               <p className="mt-1 text-sm text-muted-foreground">
-                Dispatch a manifest from the hub to see waybills here.
+                There are currently no manifests assigned to you.
               </p>
             </div>
           )}
