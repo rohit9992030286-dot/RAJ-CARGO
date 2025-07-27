@@ -2,10 +2,11 @@
 'use client';
 import { useState, useEffect, ReactNode } from 'react';
 import Link from 'next/link';
-import { Send, Menu, Settings, Cpu, LayoutDashboard, Shield, Users } from 'lucide-react';
+import { Send, Menu, Settings, Cpu, LayoutDashboard, Shield, Users, LogOut, Loader2 } from 'lucide-react';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
 import { Button } from '@/components/ui/button';
-import { DataProvider } from '@/components/DataContext';
+import { useAuth } from '@/hooks/useAuth.tsx';
+import { useRouter } from 'next/navigation';
 
 function AdminLayout({
   children,
@@ -14,10 +15,30 @@ function AdminLayout({
 }) {
   const [year, setYear] = useState<number | null>(null);
   const [isSheetOpen, setIsSheetOpen] = useState(false);
-
+  const { user, isLoading, logout } = useAuth();
+  const router = useRouter();
+  
   useEffect(() => {
     setYear(new Date().getFullYear());
   }, []);
+  
+  useEffect(() => {
+    if (!isLoading) {
+        if (!user) {
+            router.replace('/login');
+        } else if (user.role !== 'admin') {
+            router.replace('/dashboard');
+        }
+    }
+  }, [user, isLoading, router]);
+
+  if (isLoading || !user || user.role !== 'admin') {
+      return (
+           <div className="flex justify-center items-center h-screen">
+                <Loader2 className="h-16 w-16 animate-spin text-primary" />
+            </div>
+      )
+  }
   
   const handleLinkClick = () => {
     setIsSheetOpen(false);
@@ -51,12 +72,15 @@ function AdminLayout({
             <Settings className="h-5 w-5" />
             <span>Settings</span>
         </Link>
+        <Button variant="ghost" onClick={() => logout()} className="w-full justify-start flex items-center gap-3 p-3 rounded-lg hover:bg-destructive/10 hover:text-destructive transition-colors text-base">
+            <LogOut className="h-5 w-5" />
+            <span>Logout</span>
+        </Button>
       </div>
     </nav>
   );
 
   return (
-      <DataProvider>
       <div className="flex min-h-screen bg-background">
           <aside className="w-64 bg-card border-r hidden lg:flex lg:flex-col">
           <div className="flex items-center gap-3 p-6 border-b">
@@ -97,7 +121,6 @@ function AdminLayout({
           </footer>
           </div>
       </div>
-      </DataProvider>
   );
 }
 

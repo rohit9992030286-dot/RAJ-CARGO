@@ -5,7 +5,6 @@ import Link from 'next/link';
 import { Send, Menu, Settings, Cpu, LayoutDashboard, ScanLine, Truck, LogOut, Link2 } from 'lucide-react';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
 import { Button } from '@/components/ui/button';
-import { DataProvider } from '@/components/DataContext';
 import { useAuth } from '@/hooks/useAuth.tsx';
 import { useRouter } from 'next/navigation';
 import { Loader2 } from 'lucide-react';
@@ -97,7 +96,6 @@ function HubLayoutContent({
   };
   
   return (
-    <DataProvider>
       <div className="flex min-h-screen bg-background">
         <aside className="w-64 bg-card border-r hidden lg:flex lg:flex-col">
           <div className="flex items-center gap-3 p-6 border-b">
@@ -138,7 +136,6 @@ function HubLayoutContent({
           </footer>
         </div>
       </div>
-    </DataProvider>
   );
 }
 
