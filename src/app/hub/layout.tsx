@@ -2,16 +2,16 @@
 'use client';
 import { useState, useEffect, ReactNode } from 'react';
 import Link from 'next/link';
-import { Send, Menu, Settings, Cpu, LayoutDashboard, ScanLine, Truck, LogOut } from 'lucide-react';
+import { Send, Menu, Settings, Cpu, LayoutDashboard, ScanLine, Truck, LogOut, Link2 } from 'lucide-react';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
 import { Button } from '@/components/ui/button';
 import { DataProvider } from '@/components/DataContext';
-import { useAuth } from '@/hooks/useAuth';
+import { useAuth } from '@/hooks/useAuth.tsx';
 import { useRouter } from 'next/navigation';
 import { Loader2 } from 'lucide-react';
 
 function NavLinks({ onLinkClick }: { onLinkClick?: () => void }) {
-    const { logout } = useAuth();
+    const { logout, user } = useAuth();
     return (
         <nav className="p-4 flex flex-col h-full">
             <ul className="space-y-2 flex-grow">
@@ -40,6 +40,14 @@ function NavLinks({ onLinkClick }: { onLinkClick?: () => void }) {
                     <span>Outbound Dispatch</span>
                 </Link>
                 </li>
+                {user?.role === 'admin' && (
+                  <li>
+                    <Link href="/hub/partners" onClick={onLinkClick} className="flex items-center gap-3 p-3 rounded-lg hover:bg-primary/10 hover:text-primary transition-colors">
+                        <Link2 className="h-5 w-5" />
+                        <span>Partner Management</span>
+                    </Link>
+                  </li>
+                )}
             </ul>
             <div className="space-y-2 border-t pt-4">
                 <Link href="/booking/settings" onClick={onLinkClick} className="flex items-center gap-3 p-3 rounded-lg hover:bg-primary/10 hover:text-primary transition-colors">
