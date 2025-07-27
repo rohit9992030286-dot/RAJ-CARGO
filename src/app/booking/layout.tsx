@@ -147,14 +147,14 @@ function BookingLayoutContent({
                   </SheetContent>
               </Sheet>
               <div className="flex-1">
-                   <h1 className="font-semibold text-xl text-primary">SWIFTWAY - BOOKING</h1>
+                   <h1 className="font-semibold text-xl text-primary">RAJ CARGO - BOOKING</h1>
               </div>
           </header>
           <main className="flex-1 p-4 md:p-8 bg-background">
               {children}
           </main>
           <footer className="text-center p-4 text-sm text-muted-foreground border-t bg-card">
-            {year && <p>&copy; {year} SwiftWay. All rights reserved.</p>}
+            {year && <p>&copy; {year} RAJ CARGO. All rights reserved.</p>}
           </footer>
         </div>
       </div>

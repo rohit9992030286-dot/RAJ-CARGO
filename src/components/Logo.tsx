@@ -13,7 +13,7 @@ export function Logo({ className }: LogoProps) {
                 <Truck className="h-10 w-10 text-primary filter drop-shadow-md" />
             </div>
             <span className="text-3xl font-extrabold tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-primary to-cyan-400">
-                SWIFTWAY
+                RAJ CARGO
             </span>
         </div>
     )
