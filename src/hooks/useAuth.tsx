@@ -20,7 +20,7 @@ export interface NewUser extends User {
 
 export interface AuthContextType {
   user: User | null;
-  users: User[];
+  users: NewUser[];
   isAuthenticated: boolean;
   isLoading: boolean;
   login: (username: string, password: string) => boolean;
@@ -133,7 +133,7 @@ export function useProvideAuth() {
 
   return {
     user,
-    users: users.map(({password, ...user}) => user),
+    users: users,
     isAuthenticated: !!user,
     isLoading,
     login,

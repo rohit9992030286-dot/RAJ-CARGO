@@ -1,6 +1,6 @@
 
 'use client';
-import { useAuth, User } from '@/hooks/useAuth.tsx';
+import { useAuth, User, NewUser } from '@/hooks/useAuth.tsx';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
@@ -67,7 +67,7 @@ export default function UserManagementPage() {
   }, [user, isLoading, router, toast]);
 
   const onSubmit = (data: UserFormData) => {
-    const newUser = {
+    const newUser: NewUser = {
         ...data,
         role: 'staff' as 'staff',
         roles: data.roles as ('booking' | 'hub' | 'delivery')[],
@@ -218,6 +218,7 @@ export default function UserManagementPage() {
                     <TableHeader>
                         <TableRow>
                             <TableHead>Username</TableHead>
+                            <TableHead>Password</TableHead>
                             <TableHead>Partner Code</TableHead>
                             <TableHead>Roles</TableHead>
                             <TableHead className="text-right">Action</TableHead>
@@ -227,6 +228,7 @@ export default function UserManagementPage() {
                         {users.map((u) => (
                             <TableRow key={u.username}>
                                 <TableCell>{u.username}</TableCell>
+                                <TableCell>{u.password}</TableCell>
                                 <TableCell><Badge variant="outline">{u.partnerCode}</Badge></TableCell>
                                 <TableCell>
                                     {u.role === 'admin' 
