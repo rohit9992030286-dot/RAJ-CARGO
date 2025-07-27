@@ -3,6 +3,7 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -122,11 +123,16 @@ function TrackingPageContent() {
 export default function Home() {
   return (
     <DataProvider>
-    <div 
-        className="min-h-screen flex flex-col bg-gray-50 dark:bg-gray-900 bg-cover bg-center"
-        style={{backgroundImage: "url('https://placehold.co/1920x1080.png')", backgroundAttachment: 'fixed'}}
-        data-ai-hint="trucks highway"
-    >
+    <div className="min-h-screen flex flex-col bg-gray-50 dark:bg-gray-900">
+        <Image
+            src="https://images.unsplash.com/photo-1578575437130-5278ce68f69b"
+            alt="Trucks on a highway"
+            layout="fill"
+            objectFit="cover"
+            quality={75}
+            className="-z-10"
+            data-ai-hint="trucks highway"
+        />
         <div className="absolute inset-0 bg-black/50 z-0"></div>
         <header className="w-full bg-white/90 dark:bg-gray-900/90 backdrop-blur-sm shadow-sm z-10">
             <nav className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
