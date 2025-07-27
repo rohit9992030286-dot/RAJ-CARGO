@@ -14,6 +14,7 @@ import { User, Phone, Package, Weight, Calendar, ListChecks, Save, XCircle, MapP
 import { Textarea } from './ui/textarea';
 import { useState, useEffect } from 'react';
 import { useWaybillInventory } from '@/hooks/useWaybillInventory';
+import { useAuth } from '@/hooks/useAuth';
 
 interface WaybillFormProps {
   initialData?: Waybill;
@@ -43,6 +44,7 @@ const getInitialValues = (initialData?: Waybill): WaybillFormData => {
         shippingDate: new Date().toISOString().split('T')[0],
         shippingTime: '10:00',
         status: 'Pending' as 'Pending',
+        partnerCode: '',
     };
     
     if (initialData) {
@@ -56,6 +58,7 @@ const getInitialValues = (initialData?: Waybill): WaybillFormData => {
 export function WaybillForm({ initialData, onSave, onCancel }: WaybillFormProps) {
   const { toast } = useToast();
   const { removeWaybillFromInventory } = useWaybillInventory();
+  const { user } = useAuth();
 
   const form = useForm<WaybillFormData>({
     resolver: zodResolver(waybillFormSchema),
@@ -90,6 +93,7 @@ export function WaybillForm({ initialData, onSave, onCancel }: WaybillFormProps)
     const waybillToSave: Waybill = {
         ...data,
         id: initialData?.id || crypto.randomUUID(),
+        partnerCode: user?.partnerCode
     };
 
     const success = onSave(waybillToSave);

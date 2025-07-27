@@ -10,6 +10,7 @@ export const USERS_STORAGE_KEY = 'rajcargo-users';
 export interface User {
   username: string;
   role: 'admin' | 'staff';
+  partnerCode?: string; // Admins might not have one, or a special one
 }
 
 export interface NewUser extends User {
@@ -29,10 +30,11 @@ export interface AuthContextType {
 
 export const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-export const DEFAULT_ADMIN_USER = {
+export const DEFAULT_ADMIN_USER: NewUser = {
   username: 'admin',
   password: 'admin',
   role: 'admin' as 'admin',
+  partnerCode: 'ALL_ACCESS', // Special code for admin to see all data
 };
 
 export const useAuth = () => {

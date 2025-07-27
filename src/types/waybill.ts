@@ -27,6 +27,7 @@ const baseWaybillSchema = z.object({
   shippingTime: z.string().min(1, 'Shipping time is required'),
   
   status: z.enum(['Pending', 'In Transit', 'Out for Delivery', 'Delivered', 'Cancelled', 'Returned']),
+  partnerCode: z.string().optional(), // Added for multi-tenancy
 });
 
 // Schema for the form data, with the superRefine for conditional validation.

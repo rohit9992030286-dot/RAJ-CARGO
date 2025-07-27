@@ -12,7 +12,7 @@ import { Input } from '@/components/ui/input';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Loader2, UserPlus, Trash2, User, KeyRound, Shield } from 'lucide-react';
+import { Loader2, UserPlus, Trash2, User, KeyRound, Shield, Briefcase } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { Badge } from '@/components/ui/badge';
 import {
@@ -32,6 +32,7 @@ const userFormSchema = z.object({
   username: z.string().min(3, 'Username must be at least 3 characters.'),
   password: z.string().min(6, 'Password must be at least 6 characters.'),
   role: z.enum(['admin', 'staff']),
+  partnerCode: z.string().min(1, 'Partner code is required.'),
 });
 
 type UserFormData = z.infer<typeof userFormSchema>;
@@ -47,6 +48,7 @@ export default function UserManagementPage() {
       username: '',
       password: '',
       role: 'staff',
+      partnerCode: '',
     },
   });
 
@@ -94,7 +96,7 @@ export default function UserManagementPage() {
             <form onSubmit={form.handleSubmit(onSubmit)}>
                 <CardHeader>
                     <CardTitle>Create New User</CardTitle>
-                    <CardDescription>Add a new user and assign a role.</CardDescription>
+                    <CardDescription>Add a new user and assign a role and partner code.</CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
                      <FormField
@@ -120,6 +122,20 @@ export default function UserManagementPage() {
                                 <div className="relative">
                                     <FormControl><Input type="password" {...field} className="pl-10" /></FormControl>
                                     <KeyRound className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+                                </div>
+                                <FormMessage />
+                            </FormItem>
+                        )}
+                    />
+                    <FormField
+                        control={form.control}
+                        name="partnerCode"
+                        render={({ field }) => (
+                            <FormItem>
+                                <FormLabel>Partner Code</FormLabel>
+                                <div className="relative">
+                                    <FormControl><Input {...field} placeholder="e.g., PUNE01" className="pl-10" /></FormControl>
+                                    <Briefcase className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
                                 </div>
                                 <FormMessage />
                             </FormItem>
@@ -169,6 +185,7 @@ export default function UserManagementPage() {
                     <TableHeader>
                         <TableRow>
                             <TableHead>Username</TableHead>
+                            <TableHead>Partner Code</TableHead>
                             <TableHead>Role</TableHead>
                             <TableHead className="text-right">Action</TableHead>
                         </TableRow>
@@ -177,6 +194,7 @@ export default function UserManagementPage() {
                         {users.map((u) => (
                             <TableRow key={u.username}>
                                 <TableCell>{u.username}</TableCell>
+                                <TableCell><Badge variant="outline">{u.partnerCode}</Badge></TableCell>
                                 <TableCell><Badge variant={u.role === 'admin' ? 'default' : 'secondary'}>{u.role}</Badge></TableCell>
                                 <TableCell className="text-right">
                                     <AlertDialog>

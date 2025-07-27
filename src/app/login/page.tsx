@@ -61,7 +61,11 @@ function useProvideAuth() {
     const userToLogin = storedUsers.find((u: NewUser) => u.username === username);
 
     if (userToLogin && userToLogin.password === password) {
-      const loggedInUser: User = { username: userToLogin.username, role: userToLogin.role };
+      const loggedInUser: User = { 
+          username: userToLogin.username, 
+          role: userToLogin.role,
+          partnerCode: userToLogin.partnerCode 
+      };
       localStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify(loggedInUser));
       setUser(loggedInUser);
       return true;
