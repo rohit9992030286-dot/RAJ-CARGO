@@ -112,9 +112,7 @@ export default function DashboardPage() {
               <div className="text-2xl font-bold">₹{todaysStats.totalSales.toLocaleString('en-IN')}</div>
             </CardContent>
              <CardFooter className="mt-auto">
-               <Link href="/booking/sales" className="text-xs text-muted-foreground hover:text-primary flex items-center">
-                View Sales Report <ArrowRight className="h-3 w-3 ml-1" />
-               </Link>
+               <p className="text-xs text-muted-foreground">Total sales for today</p>
             </CardFooter>
           </Card>
           
