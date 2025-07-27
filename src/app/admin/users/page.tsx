@@ -12,7 +12,7 @@ import { Input } from '@/components/ui/input';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Loader2, UserPlus, Trash2, User, KeyRound, Shield, Briefcase, BookCopy, Cpu, Truck } from 'lucide-react';
+import { Loader2, UserPlus, Trash2, User as UserIcon, KeyRound, Shield, Briefcase, BookCopy, Cpu, Truck } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { Badge } from '@/components/ui/badge';
 import {
@@ -120,7 +120,7 @@ export default function UserManagementPage() {
                                 <FormLabel>Username</FormLabel>
                                 <div className="relative">
                                     <FormControl><Input {...field} placeholder="e.g., john.doe" className="pl-10" /></FormControl>
-                                    <User className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+                                    <UserIcon className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
                                 </div>
                                 <FormMessage />
                             </FormItem>
