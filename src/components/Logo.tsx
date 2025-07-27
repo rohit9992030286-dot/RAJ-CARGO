@@ -9,8 +9,12 @@ interface LogoProps {
 export function Logo({ className }: LogoProps) {
     return (
         <div className={cn("flex items-center gap-2", className)}>
-            <Truck className="h-8 w-8 text-primary" />
-            <span className="text-2xl font-bold text-primary tracking-tight">SWIFTWAY</span>
+            <div className="relative">
+                <Truck className="h-10 w-10 text-primary filter drop-shadow-md" />
+            </div>
+            <span className="text-3xl font-extrabold tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-primary to-cyan-400">
+                SWIFTWAY
+            </span>
         </div>
     )
 }
