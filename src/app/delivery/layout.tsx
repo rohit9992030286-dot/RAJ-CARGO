@@ -93,7 +93,7 @@ function DeliveryLayoutContent({
       <div className="flex min-h-screen bg-background">
         <aside className="w-64 bg-card border-r hidden lg:flex lg:flex-col">
           <div className="flex items-center justify-center p-6 border-b">
-            <Image src="/logo.png" alt="RAJ CARGO Logo" width={150} height={150} />
+            <Image src="/logo.png" alt="SwiftWay Logo" width={150} height={75} />
           </div>
           <NavLinks />
         </aside>
@@ -111,20 +111,20 @@ function DeliveryLayoutContent({
                           <SheetTitle className="sr-only">Navigation Menu</SheetTitle>
                       </SheetHeader>
                       <div className="flex items-center justify-center p-4 border-b">
-                          <Image src="/logo.png" alt="RAJ CARGO Logo" width={120} height={120} />
+                          <Image src="/logo.png" alt="SwiftWay Logo" width={120} height={60} />
                       </div>
                       <NavLinks onLinkClick={handleLinkClick} />
                   </SheetContent>
               </Sheet>
               <div className="flex-1">
-                   <h1 className="font-semibold text-xl text-primary">RAJ CARGO - DELIVERY</h1>
+                   <h1 className="font-semibold text-xl text-primary">SWIFTWAY - DELIVERY</h1>
               </div>
           </header>
           <main className="flex-1 p-4 md:p-8 bg-background">
               {children}
           </main>
           <footer className="text-center p-4 text-sm text-muted-foreground border-t bg-card">
-            {year && <p>&copy; {year} RAJ CARGO. All rights reserved.</p>}
+            {year && <p>&copy; {year} SwiftWay. All rights reserved.</p>}
           </footer>
         </div>
       </div>

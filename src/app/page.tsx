@@ -87,7 +87,7 @@ function TrackingPageContent() {
         <div className="w-full max-w-2xl mx-auto py-12 px-4">
             <Card className="bg-white/90 backdrop-blur-sm">
                 <CardHeader className="text-center">
-                    <Package className="h-12 w-12 mx-auto text-primary" />
+                    <Image src="/logo.png" alt="SwiftWay Logo" width={200} height={100} className="mx-auto" />
                     <CardTitle className="text-3xl font-bold mt-4">Track Your Shipment</CardTitle>
                     <CardDescription>Enter your waybill number below to see the status of your package.</CardDescription>
                 </CardHeader>
@@ -123,21 +123,21 @@ function TrackingPageContent() {
 export default function Home() {
   return (
     <DataProvider>
-      <div className="min-h-screen flex flex-col bg-gray-50 dark:bg-gray-900 relative">
-        <Image
-            src="https://images.unsplash.com/photo-1587293852726-70cdb1e89408"
-            alt="Team of delivery workers handling packages in a city street"
+      <div className="min-h-screen flex flex-col bg-gray-50 dark:bg-gray-900">
+         <Image
+            src="https://images.unsplash.com/photo-1616431993546-0272b3f41632?q=80&w=2070&auto=format&fit=crop"
+            alt="Highway with trucks"
             fill
             className="object-cover -z-10"
             quality={75}
-            data-ai-hint="delivery workers packages"
+            data-ai-hint="highway trucks"
         />
         <div className="absolute inset-0 bg-black/50 -z-10" />
         <header className="w-full bg-white/90 dark:bg-gray-900/90 backdrop-blur-sm z-10">
             <nav className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div className="flex justify-between items-center h-16">
                     <div className="flex-shrink-0 flex items-center gap-2">
-                        <Image src="/logo.png" alt="RAJ CARGO Logo" width={120} height={120} />
+                        <Image src="/logo.png" alt="SwiftWay Logo" width={120} height={60} />
                     </div>
                     <div className="flex items-center">
                         <Link href="/login">

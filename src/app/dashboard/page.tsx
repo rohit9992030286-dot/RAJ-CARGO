@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button';
 import { useAuth } from '@/hooks/useAuth';
 import { useRouter } from 'next/navigation';
 import { useEffect } from 'react';
+import Image from 'next/image';
 
 export default function DashboardPage() {
     const { user, logout, isLoading } = useAuth();
@@ -31,8 +32,11 @@ export default function DashboardPage() {
     <div className="flex flex-col min-h-screen bg-gray-50">
         <header className="bg-card border-b">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex justify-between items-center">
+                <div>
+                     <Image src="/logo.png" alt="SwiftWay Logo" width={150} height={75} />
+                </div>
                 <div className="text-center">
-                    <h1 className="text-2xl font-bold text-primary">Welcome to RAJ CARGO, {user?.username}!</h1>
+                    <h1 className="text-2xl font-bold text-primary">Welcome, {user?.username}!</h1>
                     <p className="text-muted-foreground text-md">Please select which system you want to access.</p>
                 </div>
                  <Button variant="outline" onClick={logout}>
