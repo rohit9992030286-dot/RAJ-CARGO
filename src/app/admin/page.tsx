@@ -2,7 +2,7 @@
 'use client';
 import Link from 'next/link';
 import { Card, CardHeader, CardTitle, CardContent, CardDescription, CardFooter } from '@/components/ui/card';
-import { Users, Shield, ArrowRight, Activity, Link2 } from 'lucide-react';
+import { Users, Shield, ArrowRight, Activity, Link2, IndianRupee } from 'lucide-react';
 
 export default function AdminDashboardPage() {
   return (
@@ -48,6 +48,26 @@ export default function AdminDashboardPage() {
                 <Link href="/admin/partners" className="w-full">
                     <button className="w-full inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-primary text-primary-foreground hover:bg-primary/90 h-10 px-4 py-2">
                         Manage Partners <ArrowRight className="h-4 w-4" />
+                    </button>
+                </Link>
+            </CardFooter>
+        </Card>
+
+        <Card className="flex flex-col">
+            <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                <IndianRupee className="h-6 w-6" />
+                <span>Sales Report</span>
+                </CardTitle>
+                <CardDescription>View financial reports for all partners.</CardDescription>
+            </CardHeader>
+            <CardContent>
+                <p>Get a complete overview of all sales transactions across the entire system. Filter by date to analyze revenue.</p>
+            </CardContent>
+            <CardFooter className="mt-auto">
+                <Link href="/admin/sales" className="w-full">
+                    <button className="w-full inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-primary text-primary-foreground hover:bg-primary/90 h-10 px-4 py-2">
+                        View Sales Report <ArrowRight className="h-4 w-4" />
                     </button>
                 </Link>
             </CardFooter>

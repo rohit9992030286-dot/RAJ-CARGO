@@ -12,18 +12,19 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { Calendar } from '@/components/ui/calendar';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
+import { Badge } from '@/components/ui/badge';
 
 export default function SalesReportPage() {
-  const { waybills, isLoaded } = useWaybills();
+  const { allWaybills, isLoaded } = useWaybills();
   const [date, setDate] = useState<Date | undefined>(undefined);
 
   const filteredWaybills = useMemo(() => {
     if (!date) {
-      return waybills;
+      return allWaybills;
     }
     const selectedDate = format(date, 'yyyy-MM-dd');
-    return waybills.filter(w => w.shippingDate === selectedDate);
-  }, [waybills, date]);
+    return allWaybills.filter(w => w.shippingDate === selectedDate);
+  }, [allWaybills, date]);
 
 
   if (!isLoaded) {
@@ -45,8 +46,8 @@ export default function SalesReportPage() {
   return (
     <div className="space-y-8">
       <div>
-        <h1 className="text-3xl font-bold">Sales Report</h1>
-        <p className="text-muted-foreground">A detailed breakdown of charges for each waybill.</p>
+        <h1 className="text-3xl font-bold">Global Sales Report</h1>
+        <p className="text-muted-foreground">A detailed breakdown of charges for all waybills across the system.</p>
       </div>
       
       <Card>
@@ -55,7 +56,7 @@ export default function SalesReportPage() {
             <div>
               <CardTitle>All Transactions</CardTitle>
               <CardDescription>
-                Showing {filteredWaybills.length} of {waybills.length} waybill(s).
+                Showing {filteredWaybills.length} of {allWaybills.length} total waybill(s).
               </CardDescription>
             </div>
             <div className="flex items-center gap-2">
@@ -69,7 +70,7 @@ export default function SalesReportPage() {
                       )}
                       >
                       <CalendarIcon className="mr-2 h-4 w-4" />
-                      {date ? format(date, "PPP") : <span>Pick a date</span>}
+                      {date ? format(date, "PPP") : <span>Filter by date</span>}
                       </Button>
                   </PopoverTrigger>
                   <PopoverContent className="w-auto p-0" align="end">
@@ -90,6 +91,7 @@ export default function SalesReportPage() {
             <TableHeader>
               <TableRow>
                 <TableHead>Waybill #</TableHead>
+                <TableHead>Partner</TableHead>
                 <TableHead>Date</TableHead>
                 <TableHead>Receiver Name</TableHead>
                 <TableHead>Receiver Pincode</TableHead>
@@ -101,6 +103,7 @@ export default function SalesReportPage() {
                 filteredWaybills.map((waybill) => (
                   <TableRow key={waybill.id}>
                     <TableCell className="font-medium">{waybill.waybillNumber}</TableCell>
+                    <TableCell><Badge variant="outline">{waybill.partnerCode || 'N/A'}</Badge></TableCell>
                     <TableCell>{format(new Date(waybill.shippingDate), 'PP')}</TableCell>
                     <TableCell>{waybill.receiverName}</TableCell>
                     <TableCell>{waybill.receiverPincode}</TableCell>
@@ -109,7 +112,7 @@ export default function SalesReportPage() {
                 ))
               ) : (
                 <TableRow>
-                  <TableCell colSpan={5} className="h-24 text-center">
+                  <TableCell colSpan={6} className="h-24 text-center">
                     No sales data available for the selected date.
                   </TableCell>
                 </TableRow>
@@ -117,7 +120,7 @@ export default function SalesReportPage() {
             </TableBody>
             <TableFooter>
                 <TableRow className="font-bold text-lg">
-                    <TableCell colSpan={4}>{date ? 'Total for selected date' : 'Total Sales'}</TableCell>
+                    <TableCell colSpan={5}>{date ? 'Total for selected date' : 'Total Sales'}</TableCell>
                     <TableCell className="text-right font-mono flex items-center justify-end gap-2">
                         <IndianRupee className="h-5 w-5" />
                         {totalSales.toLocaleString('en-IN')}

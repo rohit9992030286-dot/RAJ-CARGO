@@ -44,12 +44,6 @@ function NavLinks({ onLinkClick }: { onLinkClick?: () => void }) {
                     </Link>
                 </li>
                 <li>
-                    <Link href="/dashboard/sales" onClick={onLinkClick} className="flex items-center gap-3 p-3 rounded-lg hover:bg-primary/10 hover:text-primary transition-colors">
-                        <IndianRupee className="h-5 w-5" />
-                        <span>Sales Report</span>
-                    </Link>
-                </li>
-                <li>
                     <Link href="/dashboard/print-sticker" onClick={onLinkClick} className="flex items-center gap-3 p-3 rounded-lg hover:bg-primary/10 hover:text-primary transition-colors">
                         <ScanLine className="h-5 w-5" />
                         <span>Print Sticker</span>
