@@ -19,6 +19,7 @@ import { format, addDays } from 'date-fns';
 import { cn } from '@/lib/utils';
 import { useWaybillInventory } from '@/hooks/useWaybillInventory';
 import { DateRange } from 'react-day-picker';
+import { useAuth } from '@/hooks/useAuth';
 
 function useDebounce(value: string, delay: number): string {
   const [debouncedValue, setDebouncedValue] = useState(value);
@@ -45,6 +46,7 @@ function WaybillsPageContent() {
   const [dateRange, setDateRange] = useState<DateRange | undefined>(undefined);
   const router = useRouter();
   const { toast } = useToast();
+  const { user } = useAuth();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const debouncedSearchTerm = useDebounce(searchTerm, 300);
@@ -117,7 +119,7 @@ function WaybillsPageContent() {
   };
 
   const handleDownloadTemplate = () => {
-    const headers = Object.keys(waybillSchema.shape).filter(key => key !== 'id');
+    const headers = Object.keys(waybillSchema.shape).filter(key => !['id', 'partnerCode'].includes(key));
     const worksheet = XLSX.utils.json_to_sheet([{}], { header: headers });
     const workbook = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(workbook, worksheet, "Waybill Template");
@@ -191,6 +193,7 @@ function WaybillsPageContent() {
                       numberOfBoxes: Number(row.numberOfBoxes || 1),
                       packageWeight: Number(row.packageWeight || 0),
                       shipmentValue: Number(row.shipmentValue || 0),
+                      partnerCode: user?.partnerCode,
                     };
                     
                     // Basic check to avoid blank waybill numbers
@@ -412,3 +415,4 @@ function WaybillsPageContent() {
 export default function WaybillsPage() {
     return <WaybillsPageContent />;
 }
+
