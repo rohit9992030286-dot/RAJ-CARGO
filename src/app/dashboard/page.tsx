@@ -29,6 +29,11 @@ export default function DashboardPage() {
         )
     }
 
+  const hasBookingRole = user.roles?.includes('booking');
+  const hasHubRole = user.roles?.includes('hub');
+  const hasDeliveryRole = user.roles?.includes('delivery');
+  const isAdmin = user.role === 'admin';
+
   return (
     <div className="flex flex-col min-h-screen bg-gray-50">
         <header className="bg-card border-b">
@@ -48,70 +53,76 @@ export default function DashboardPage() {
 
        <div className="flex-grow flex items-center justify-center">
         <div className="grid md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8 max-w-7xl w-full p-8">
-                <Card className="hover:shadow-lg transition-shadow">
-                    <CardHeader>
-                        <div className="flex items-center gap-4">
-                            <BookCopy className="h-10 w-10 text-primary" />
-                            <div>
-                                <CardTitle className="text-2xl">Booking System</CardTitle>
-                                <CardDescription>Manage waybills, manifests, and customers.</CardDescription>
+                {(hasBookingRole || isAdmin) && (
+                    <Card className="hover:shadow-lg transition-shadow">
+                        <CardHeader>
+                            <div className="flex items-center gap-4">
+                                <BookCopy className="h-10 w-10 text-primary" />
+                                <div>
+                                    <CardTitle className="text-2xl">Booking System</CardTitle>
+                                    <CardDescription>Manage waybills, manifests, and customers.</CardDescription>
+                                </div>
                             </div>
-                        </div>
-                    </CardHeader>
-                    <CardContent>
-                        <p>Create new shipments, track existing ones, manage dispatch manifests, and view sales reports. This is your main operational dashboard.</p>
-                    </CardContent>
-                    <CardFooter>
-                        <Link href="/booking">
-                            <Button className="w-full">
-                                Go to Booking <ArrowRight className="ml-2 h-4 w-4" />
-                            </Button>
-                        </Link>
-                    </CardFooter>
-                </Card>
-                <Card className="hover:shadow-lg transition-shadow">
-                    <CardHeader>
-                        <div className="flex items-center gap-4">
-                            <Cpu className="h-10 w-10 text-primary" />
-                            <div>
-                                <CardTitle className="text-2xl">Hub Operations</CardTitle>
-                                <CardDescription>Manage hub-level sorting and scanning.</CardDescription>
+                        </CardHeader>
+                        <CardContent>
+                            <p>Create new shipments, track existing ones, manage dispatch manifests, and view sales reports. This is your main operational dashboard.</p>
+                        </CardContent>
+                        <CardFooter>
+                            <Link href="/booking">
+                                <Button className="w-full">
+                                    Go to Booking <ArrowRight className="ml-2 h-4 w-4" />
+                                </Button>
+                            </Link>
+                        </CardFooter>
+                    </Card>
+                )}
+                {(hasHubRole || isAdmin) && (
+                    <Card className="hover:shadow-lg transition-shadow">
+                        <CardHeader>
+                            <div className="flex items-center gap-4">
+                                <Cpu className="h-10 w-10 text-primary" />
+                                <div>
+                                    <CardTitle className="text-2xl">Hub Operations</CardTitle>
+                                    <CardDescription>Manage hub-level sorting and scanning.</CardDescription>
+                                </div>
                             </div>
-                        </div>
-                    </CardHeader>
-                    <CardContent>
-                        <p>Tools for incoming package scanning, sorting by destination, and managing outbound line haul trucks.</p>
-                    </CardContent>
-                    <CardFooter>
-                        <Link href="/hub">
-                            <Button className="w-full">
-                                Go to Hub <ArrowRight className="ml-2 h-4 w-4" />
-                            </Button>
-                        </Link>
-                    </CardFooter>
-                </Card>
-                <Card className="hover:shadow-lg transition-shadow">
-                    <CardHeader>
-                        <div className="flex items-center gap-4">
-                            <Truck className="h-10 w-10 text-primary" />
-                            <div>
-                                <CardTitle className="text-2xl">Delivery Operations</CardTitle>
-                                <CardDescription>Manage last-mile delivery to customers.</CardDescription>
+                        </CardHeader>
+                        <CardContent>
+                            <p>Tools for incoming package scanning, sorting by destination, and managing outbound line haul trucks.</p>
+                        </CardContent>
+                        <CardFooter>
+                            <Link href="/hub">
+                                <Button className="w-full">
+                                    Go to Hub <ArrowRight className="ml-2 h-4 w-4" />
+                                </Button>
+                            </Link>
+                        </CardFooter>
+                    </Card>
+                )}
+                {(hasDeliveryRole || isAdmin) && (
+                    <Card className="hover:shadow-lg transition-shadow">
+                        <CardHeader>
+                            <div className="flex items-center gap-4">
+                                <Truck className="h-10 w-10 text-primary" />
+                                <div>
+                                    <CardTitle className="text-2xl">Delivery Operations</CardTitle>
+                                    <CardDescription>Manage last-mile delivery to customers.</CardDescription>
+                                </div>
                             </div>
-                        </div>
-                    </CardHeader>
-                    <CardContent>
-                        <p>View waybills ready for final delivery, update their status, and manage your delivery personnel and routes.</p>
-                    </CardContent>
-                    <CardFooter>
-                        <Link href="/delivery">
-                            <Button className="w-full">
-                                Go to Delivery <ArrowRight className="ml-2 h-4 w-4" />
-                            </Button>
-                        </Link>
-                    </CardFooter>
-                </Card>
-                {user?.role === 'admin' && (
+                        </CardHeader>
+                        <CardContent>
+                            <p>View waybills ready for final delivery, update their status, and manage your delivery personnel and routes.</p>
+                        </CardContent>
+                        <CardFooter>
+                            <Link href="/delivery">
+                                <Button className="w-full">
+                                    Go to Delivery <ArrowRight className="ml-2 h-4 w-4" />
+                                </Button>
+                            </Link>
+                        </CardFooter>
+                    </Card>
+                )}
+                {isAdmin && (
                     <Card className="hover:shadow-lg transition-shadow border-primary/50">
                         <CardHeader>
                             <div className="flex items-center gap-4">

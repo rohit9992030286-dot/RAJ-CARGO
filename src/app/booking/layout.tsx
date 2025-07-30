@@ -99,14 +99,14 @@ function BookingLayoutContent({
     if (!isLoading) {
         if (!user) {
             router.replace('/login');
-        } else if (user.role !== 'admin' && !user.roles?.includes('booking')) {
+        } else if (!user.roles?.includes('booking') && user.role !== 'admin') {
             toast({ title: "Access Denied", description: "You don't have permission to access the booking module.", variant: "destructive" });
             router.replace('/dashboard');
         }
     }
   }, [user, isLoading, router, toast]);
 
-  if (isLoading || !user || (user.role !== 'admin' && !user.roles?.includes('booking'))) {
+  if (isLoading || !user || (!user.roles?.includes('booking') && user.role !== 'admin')) {
       return (
            <div className="flex justify-center items-center h-screen">
                 <Loader2 className="h-16 w-16 animate-spin text-primary" />
