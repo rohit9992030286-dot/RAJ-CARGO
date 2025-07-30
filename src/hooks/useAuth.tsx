@@ -23,7 +23,7 @@ export interface AuthContextType {
   users: NewUser[];
   isAuthenticated: boolean;
   isLoading: boolean;
-  login: (username: string, password: string) => boolean;
+  login: (username: string, password: string) => User | null;
   logout: () => void;
   addUser: (newUser: NewUser) => boolean;
   deleteUser: (username: string) => void;
@@ -80,7 +80,7 @@ export function useProvideAuth() {
       localStorage.setItem(USERS_STORAGE_KEY, JSON.stringify(updatedUsers));
   }
 
-  const login = useCallback((username: string, password: string): boolean => {
+  const login = useCallback((username: string, password: string): User | null => {
     const storedUsers = JSON.parse(localStorage.getItem(USERS_STORAGE_KEY) || '[]');
     const userToLogin = storedUsers.find((u: NewUser) => u.username === username);
 
@@ -93,9 +93,9 @@ export function useProvideAuth() {
       };
       localStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify(loggedInUser));
       setUser(loggedInUser);
-      return true;
+      return loggedInUser;
     }
-    return false;
+    return null;
   }, []);
 
   const logout = useCallback(() => {

@@ -5,7 +5,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { useRouter } from 'next/navigation';
-import { useAuth } from '@/hooks/useAuth';
+import { useAuth, User } from '@/hooks/useAuth';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -44,10 +44,23 @@ function LoginPageContent() {
 
 
   const onSubmit = (data: LoginFormValues) => {
-    const success = login(data.username, data.password);
-    if (success) {
+    const user = login(data.username, data.password);
+    if (user) {
       toast({ title: 'Login Successful', description: 'Welcome back!' });
-      router.push('/dashboard');
+      
+      // Smart redirection logic
+      if (user.role === 'admin' || user.roles.length > 1) {
+        router.push('/dashboard');
+      } else if (user.roles.length === 1) {
+        const role = user.roles[0];
+        if (role === 'booking') router.push('/booking');
+        else if (role === 'hub') router.push('/hub');
+        else if (role === 'delivery') router.push('/delivery');
+        else router.push('/dashboard'); // Fallback
+      } else {
+         router.push('/dashboard'); // Fallback for users with no roles
+      }
+
     } else {
       toast({ title: 'Login Failed', description: 'Invalid username or password.', variant: 'destructive' });
     }
