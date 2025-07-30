@@ -5,7 +5,7 @@ import { useState, useMemo } from 'react';
 import { useWaybills } from '@/hooks/useWaybills';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow, TableFooter } from '@/components/ui/table';
-import { IndianRupee, Loader2, Calendar as CalendarIcon } from 'lucide-react';
+import { IndianRupee, Loader2, Calendar as CalendarIcon, FileDown } from 'lucide-react';
 import { Waybill } from '@/types/waybill';
 import { format } from 'date-fns';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
@@ -13,10 +13,18 @@ import { Calendar } from '@/components/ui/calendar';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { Badge } from '@/components/ui/badge';
+import * as XLSX from 'xlsx';
+import { saveAs } from 'file-saver';
 
 export default function SalesReportPage() {
   const { allWaybills, isLoaded } = useWaybills();
   const [date, setDate] = useState<Date | undefined>(undefined);
+
+  const calculateCharge = (waybill: Waybill) => {
+    const baseCharge = 150;
+    const weightCharge = waybill.packageWeight * 10;
+    return baseCharge + weightCharge;
+  };
 
   const filteredWaybills = useMemo(() => {
     if (!date) {
@@ -35,13 +43,35 @@ export default function SalesReportPage() {
     );
   }
 
-  const calculateCharge = (waybill: Waybill) => {
-    const baseCharge = 150;
-    const weightCharge = waybill.packageWeight * 10;
-    return baseCharge + weightCharge;
-  };
-
   const totalSales = filteredWaybills.reduce((total, waybill) => total + calculateCharge(waybill), 0);
+
+  const handleDownloadExcel = () => {
+    if (filteredWaybills.length === 0) {
+      return;
+    }
+
+    const dataToExport = filteredWaybills.map(wb => ({
+        'Waybill #': wb.waybillNumber,
+        'Partner': wb.partnerCode || 'N/A',
+        'Date': format(new Date(wb.shippingDate), 'PP'),
+        'Receiver Name': wb.receiverName,
+        'Receiver Pincode': wb.receiverPincode,
+        'Charge (₹)': calculateCharge(wb),
+    }));
+
+    const worksheet = XLSX.utils.json_to_sheet(dataToExport);
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, "Sales Report");
+
+    // Add a totals row
+    XLSX.utils.sheet_add_aoa(worksheet, [
+        ["", "", "", "", "Total Sales", totalSales]
+    ], { origin: -1 });
+
+    const excelBuffer = XLSX.write(workbook, { bookType: 'xlsx', type: 'array' });
+    const data = new Blob([excelBuffer], {type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;charset=UTF-8'});
+    saveAs(data, `sales_report_${date ? format(date, 'yyyy-MM-dd') : 'all_time'}.xlsx`);
+  };
 
   return (
     <div className="space-y-8">
@@ -83,6 +113,9 @@ export default function SalesReportPage() {
                   </PopoverContent>
               </Popover>
               {date && <Button variant="ghost" size="sm" onClick={() => setDate(undefined)}>Clear</Button>}
+               <Button onClick={handleDownloadExcel} variant="outline" size="sm" disabled={filteredWaybills.length === 0}>
+                    <FileDown className="mr-2 h-4 w-4" /> Export Excel
+                </Button>
             </div>
           </div>
         </CardHeader>
