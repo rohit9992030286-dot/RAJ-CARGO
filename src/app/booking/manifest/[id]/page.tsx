@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { useManifests } from '@/hooks/useManifests';
 import { useWaybills } from '@/hooks/useWaybills';
@@ -11,23 +11,24 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { Printer, Truck, PlusCircle, AlertCircle, Trash2, Box, Save, ArrowLeft, Send, Loader2 } from 'lucide-react';
+import { Printer, Truck, PlusCircle, AlertCircle, Trash2, Box, Save, ArrowLeft, Send, Loader2, Briefcase } from 'lucide-react';
 import { Waybill } from '@/types/waybill';
 import { Manifest } from '@/types/manifest';
 import { useToast } from '@/hooks/use-toast';
 import { format } from 'date-fns';
-import { useAuth } from '@/hooks/useAuth';
+import { useAuth, User } from '@/hooks/useAuth.tsx';
+import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@/components/ui/select';
 
 export default function EditManifestPage() {
   const router = useRouter();
   const params = useParams();
   const { toast } = useToast();
-  const { user } = useAuth();
+  const { user, users } = useAuth();
   
   const manifestId = Array.isArray(params.id) ? params.id[0] : params.id;
   
   const { getManifestById, updateManifest, isLoaded: manifestsLoaded } = useManifests();
-  const { allWaybills, waybills, updateWaybill, getWaybillById, isLoaded: waybillsLoaded } = useWaybills();
+  const { allWaybills, updateWaybill, getWaybillById, isLoaded: waybillsLoaded } = useWaybills();
   
   const [manifest, setManifest] = useState<Manifest | null>(null);
   const [waybillNumber, setWaybillNumber] = useState('');
@@ -47,6 +48,17 @@ export default function EditManifestPage() {
 
   const manifestWaybills = manifest?.waybillIds.map(id => getWaybillById(id)).filter((w): w is Waybill => !!w) || [];
   const isDispatched = manifest?.status === 'Dispatched';
+
+  const deliveryPartners = useMemo(() => {
+    // Get unique partner codes from users who have delivery role
+    const partnerCodes = new Set(
+        users
+        .filter(u => u.roles.includes('delivery') && u.partnerCode)
+        .map(u => u.partnerCode!)
+    );
+    return Array.from(partnerCodes);
+  }, [users]);
+
 
   const handleAddWaybill = () => {
     setError(null);
@@ -86,6 +98,7 @@ export default function EditManifestPage() {
   const handleSaveManifest = () => {
       if (manifest) {
           updateManifest(manifest);
+          toast({ title: 'Draft Saved', description: 'Your manifest has been saved as a draft.' });
       }
   };
 
@@ -108,7 +121,11 @@ export default function EditManifestPage() {
     updateManifest(dispatchedManifest);
     setManifest(dispatchedManifest); // Update local state to reflect change
 
-    toast({ title: "Manifest Dispatched", description: `${manifestWaybills.length} waybills are now in transit.` });
+    const dispatchMessage = manifest.deliveryPartnerCode
+      ? `Dispatched directly to ${manifest.deliveryPartnerCode}.`
+      : 'Dispatched to Hub for processing.';
+
+    toast({ title: "Manifest Dispatched", description: `${manifestWaybills.length} waybills are now in transit. ${dispatchMessage}` });
   };
 
   const handlePrintManifest = () => {
@@ -182,16 +199,42 @@ export default function EditManifestPage() {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="mb-4">
-              <Label htmlFor="vehicle-no">Vehicle No.</Label>
-              <Input
-                id="vehicle-no"
-                placeholder="e.g., MH-12-AB-1234"
-                value={manifest.vehicleNo || ''}
-                onChange={(e) => setManifest({...manifest, vehicleNo: e.target.value})}
-                disabled={isDispatched}
-              />
+            <div className="grid md:grid-cols-2 gap-4 mb-6">
+                <div>
+                    <Label htmlFor="vehicle-no">Vehicle No.</Label>
+                    <Input
+                        id="vehicle-no"
+                        placeholder="e.g., MH-12-AB-1234"
+                        value={manifest.vehicleNo || ''}
+                        onChange={(e) => setManifest({...manifest, vehicleNo: e.target.value})}
+                        disabled={isDispatched}
+                    />
+                </div>
+                <div>
+                    <Label htmlFor="delivery-partner">Direct to Delivery Partner (Optional)</Label>
+                    <Select 
+                      value={manifest.deliveryPartnerCode || ''} 
+                      onValueChange={(value) => setManifest({...manifest, deliveryPartnerCode: value || undefined})}
+                      disabled={isDispatched}
+                    >
+                        <SelectTrigger id="delivery-partner">
+                            <SelectValue placeholder="Route to Hub (Default)" />
+                        </SelectTrigger>
+                        <SelectContent>
+                             <SelectItem value="">Route to Hub (Default)</SelectItem>
+                            {deliveryPartners.map(code => (
+                                <SelectItem key={code} value={code}>
+                                    <div className="flex items-center gap-2">
+                                        <Briefcase className="h-4 w-4 text-muted-foreground" />
+                                        {code}
+                                    </div>
+                                </SelectItem>
+                            ))}
+                        </SelectContent>
+                    </Select>
+                </div>
             </div>
+          
           <Table>
             <TableHeader>
               <TableRow>

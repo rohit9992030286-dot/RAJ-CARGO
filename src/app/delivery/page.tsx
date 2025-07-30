@@ -38,19 +38,17 @@ export default function DeliveryPage() {
   const { user, isLoading: isAuthLoading } = useAuth();
 
   const waybillsForDelivery = useMemo(() => {
-    if (!user || isAuthLoading) return [];
+    if (!user || isAuthLoading || !manifestsLoaded) return [];
     
-    // Get IDs of all waybills from dispatched manifests originating from the hub
-    // that are assigned to the current delivery partner.
-    const dispatchedHubManifestWaybillIds = manifests
-      .filter(m => m.origin === 'hub' && m.status === 'Dispatched' && m.deliveryPartnerCode === user.partnerCode)
-      .flatMap(m => m.waybillIds);
+    // Get IDs of all waybills from manifests assigned to the current delivery partner.
+    const waybillIdsForDelivery = manifests.flatMap(m => m.waybillIds);
+    const uniqueWaybillIds = [...new Set(waybillIdsForDelivery)];
 
     // Get the waybill objects, filtering for those relevant to delivery operations
-    return dispatchedHubManifestWaybillIds
+    return uniqueWaybillIds
       .map(id => getWaybillById(id))
       .filter((w): w is Waybill => !!w && (w.status === 'In Transit' || w.status === 'Out for Delivery' || w.status === 'Returned'));
-  }, [manifests, getWaybillById, user, isAuthLoading]);
+  }, [manifests, getWaybillById, user, isAuthLoading, manifestsLoaded]);
   
   const handleUpdateStatus = (id: string, status: Waybill['status']) => {
     const waybill = waybills.find(w => w.id === id);
