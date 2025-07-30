@@ -6,6 +6,7 @@ import { useWaybills } from '@/hooks/useWaybills';
 import { WaybillForm } from '@/components/WaybillForm';
 import { Waybill } from '@/types/waybill';
 import { Loader2 } from 'lucide-react';
+import { useWaybillInventory } from '@/hooks/useWaybillInventory';
 
 export default function EditWaybillPage() {
   const router = useRouter();

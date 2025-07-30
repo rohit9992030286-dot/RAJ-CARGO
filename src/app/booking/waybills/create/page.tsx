@@ -5,11 +5,12 @@ import { useRouter } from 'next/navigation';
 import { useWaybills } from '@/hooks/useWaybills';
 import { WaybillForm } from '@/components/WaybillForm';
 import { Waybill } from '@/types/waybill';
+import { useWaybillInventory } from '@/hooks/useWaybillInventory';
 
 export default function CreateWaybillPage() {
   const router = useRouter();
   const { addWaybill } = useWaybills();
-
+  
   const handleSave = (waybill: Waybill) => {
     const success = addWaybill(waybill);
     if (success) {

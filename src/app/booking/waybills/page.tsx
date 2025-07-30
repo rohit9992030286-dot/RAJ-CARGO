@@ -39,7 +39,6 @@ function useDebounce(value: string, delay: number): string {
 
 function WaybillsPageContent() {
   const { waybills, deleteWaybill, updateWaybill, isLoaded, addWaybill } = useWaybills();
-  const { addWaybillToInventory } = useWaybillInventory();
   const [selectedWaybillIds, setSelectedWaybillIds] = useState<string[]>([]);
   const [currentPage, setCurrentPage] = useState(1);
   const [searchTerm, setSearchTerm] = useState('');

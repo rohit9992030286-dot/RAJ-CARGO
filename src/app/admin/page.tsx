@@ -2,7 +2,7 @@
 'use client';
 import Link from 'next/link';
 import { Card, CardHeader, CardTitle, CardContent, CardDescription, CardFooter } from '@/components/ui/card';
-import { Users, Shield, ArrowRight, Activity, Link2, IndianRupee, Tags } from 'lucide-react';
+import { Users, Shield, ArrowRight, Activity, Link2, IndianRupee, Tags, List } from 'lucide-react';
 
 export default function AdminDashboardPage() {
   return (
@@ -48,6 +48,26 @@ export default function AdminDashboardPage() {
                 <Link href="/admin/partners" className="w-full">
                     <button className="w-full inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-primary text-primary-foreground hover:bg-primary/90 h-10 px-4 py-2">
                         Manage Partners <ArrowRight className="h-4 w-4" />
+                    </button>
+                </Link>
+            </CardFooter>
+        </Card>
+
+        <Card className="flex flex-col">
+            <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                <List className="h-6 w-6" />
+                <span>Waybill Inventory</span>
+                </CardTitle>
+                <CardDescription>Assign waybill number series to different partners.</CardDescription>
+            </CardHeader>
+            <CardContent>
+                <p>Allocate and manage waybill numbers for each booking partner to ensure unique and trackable shipments across the network.</p>
+            </CardContent>
+            <CardFooter className="mt-auto">
+                <Link href="/admin/inventory" className="w-full">
+                    <button className="w-full inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-primary text-primary-foreground hover:bg-primary/90 h-10 px-4 py-2">
+                        Manage Inventory <ArrowRight className="h-4 w-4" />
                     </button>
                 </Link>
             </CardFooter>

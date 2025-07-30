@@ -2,11 +2,12 @@
 'use client';
 
 import { createContext, useState, useEffect, useCallback, useMemo, ReactNode } from 'react';
-import { Waybill, waybillSchema } from '@/types/waybill';
-import { Manifest, manifestSchema } from '@/types/manifest';
+import { Waybill } from '@/types/waybill';
+import { Manifest } from '@/types/manifest';
 import { useToast } from '@/hooks/use-toast';
 import { Loader2 } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
+import { InventoryItem } from '@/types/inventory';
 
 const WAYBILL_STORAGE_KEY = 'rajcargo-waybills';
 const MANIFEST_STORAGE_KEY = 'rajcargo-manifests';
@@ -15,7 +16,7 @@ const WAYBILL_INVENTORY_KEY = 'rajcargo-waybill-inventory';
 interface DataContextType {
   waybills: Waybill[];
   manifests: Manifest[];
-  waybillInventory: string[];
+  waybillInventory: InventoryItem[];
   isLoaded: boolean;
   addWaybill: (waybill: Waybill, silent?: boolean) => boolean;
   updateWaybill: (updatedWaybill: Waybill) => void;
@@ -25,8 +26,9 @@ interface DataContextType {
   updateManifest: (updatedManifest: Manifest) => void;
   deleteManifest: (id: string) => void;
   getManifestById: (id: string) => Manifest | undefined;
-  addWaybillToInventory: (waybillNumber: string) => boolean;
+  addWaybillToInventory: (item: InventoryItem) => boolean;
   removeWaybillFromInventory: (waybillNumber: string) => void;
+  markWaybillAsUsed: (waybillNumber: string, isUsed: boolean) => void;
 }
 
 export const DataContext = createContext<DataContextType | undefined>(undefined);
@@ -34,7 +36,7 @@ export const DataContext = createContext<DataContextType | undefined>(undefined)
 export function DataProvider({ children }: { children: ReactNode }) {
   const [waybillsData, setWaybillsData] = useState<Waybill[]>([]);
   const [manifestsData, setManifestsData] = useState<Manifest[]>([]);
-  const [waybillInventoryData, setWaybillInventoryData] = useState<string[]>([]);
+  const [waybillInventoryData, setWaybillInventoryData] = useState<InventoryItem[]>([]);
   const [isLoaded, setIsLoaded] = useState(false);
   const { toast } = useToast();
   const { user } = useAuth();
@@ -63,7 +65,14 @@ export function DataProvider({ children }: { children: ReactNode }) {
       if (inventoryItems) {
         const parsedInventory = JSON.parse(inventoryItems);
         if(Array.isArray(parsedInventory)) {
-            setWaybillInventoryData(parsedInventory);
+            // Migration from string[] to InventoryItem[]
+            const migratedInventory = parsedInventory.map(item => {
+                if (typeof item === 'string') {
+                    return { waybillNumber: item, partnerCode: 'UNASSIGNED', isUsed: false };
+                }
+                return item;
+            });
+            setWaybillInventoryData(migratedInventory);
         }
       }
 
@@ -133,8 +142,14 @@ export function DataProvider({ children }: { children: ReactNode }) {
   }, [manifestsData]);
   
   const sortedInventory = useMemo(() => {
-    return [...waybillInventoryData].sort((a, b) => a.localeCompare(b, undefined, { numeric: true }));
+    return [...waybillInventoryData].sort((a, b) => a.waybillNumber.localeCompare(b.waybillNumber, undefined, { numeric: true }));
   }, [waybillInventoryData]);
+  
+  const markWaybillAsUsed = useCallback((waybillNumber: string, isUsed: boolean) => {
+    setWaybillInventoryData(prev => {
+        return prev.map(item => item.waybillNumber === waybillNumber ? { ...item, isUsed } : item);
+    });
+  }, []);
 
   const addWaybill = useCallback((waybill: Waybill, silent = false) => {
     if (waybillsData.some(w => w.waybillNumber === waybill.waybillNumber)) {
@@ -148,36 +163,46 @@ export function DataProvider({ children }: { children: ReactNode }) {
         return false;
     }
     setWaybillsData(prev => [waybill, ...prev]);
-    // Remove from inventory when used
-    setWaybillInventoryData(prev => prev.filter(item => item !== waybill.waybillNumber));
+    markWaybillAsUsed(waybill.waybillNumber, true);
     return true;
-  }, [waybillsData, toast]);
+  }, [waybillsData, toast, markWaybillAsUsed]);
 
   const updateWaybill = useCallback((updatedWaybill: Waybill) => {
-    setWaybillsData(prev => prev.map(w => (w.id === updatedWaybill.id ? updatedWaybill : w)));
+    let originalWaybillNumber: string | undefined;
+    setWaybillsData(prev => {
+      const original = prev.find(w => w.id === updatedWaybill.id);
+      if (original) {
+        originalWaybillNumber = original.waybillNumber;
+      }
+      return prev.map(w => (w.id === updatedWaybill.id ? updatedWaybill : w));
+    });
+    
+    if (originalWaybillNumber && originalWaybillNumber !== updatedWaybill.waybillNumber) {
+        markWaybillAsUsed(originalWaybillNumber, false);
+        markWaybillAsUsed(updatedWaybill.waybillNumber, true);
+    }
+    
     toast({
         title: 'Waybill Updated',
         description: `Waybill #${updatedWaybill.waybillNumber} has been updated.`,
     });
-  }, [toast]);
+  }, [toast, markWaybillAsUsed]);
 
   const deleteWaybill = useCallback((id: string) => {
-    const waybillToDelete = waybillsData.find(w => w.id === id);
+    let waybillToDelete: Waybill | undefined;
+    setWaybillsData(prev => {
+        waybillToDelete = prev.find(w => w.id === id);
+        return prev.filter(w => w.id !== id);
+    });
+
     if (waybillToDelete) {
+        markWaybillAsUsed(waybillToDelete.waybillNumber, false);
         toast({
             title: 'Waybill Deleted',
             description: `Waybill #${waybillToDelete.waybillNumber} deleted.`,
         });
-        // Add back to inventory if deleted
-        setWaybillInventoryData(prevInv => {
-            if (!prevInv.includes(waybillToDelete.waybillNumber)) {
-                return [...prevInv, waybillToDelete.waybillNumber].sort((a, b) => a.localeCompare(b, undefined, { numeric: true }));
-            }
-            return prevInv;
-        });
     }
-    setWaybillsData(prev => prev.filter(w => w.id !== id));
-  }, [toast, waybillsData]);
+  }, [toast, markWaybillAsUsed]);
 
   const getWaybillById = useCallback((id: string) => {
     return waybillsData.find(w => w.id === id);
@@ -205,35 +230,33 @@ export function DataProvider({ children }: { children: ReactNode }) {
   }, [toast]);
 
   const deleteManifest = useCallback((id: string) => {
-    const manifestToDelete = manifestsData.find(m => m.id === id);
-    if (manifestToDelete) {
+    let manifestToDelete: Manifest | undefined;
+    setManifestsData(prev => {
+        manifestToDelete = prev.find(m => m.id === id);
+        return prev.filter(m => m.id !== id);
+    });
+     if (manifestToDelete) {
         toast({
             title: 'Manifest Deleted',
             description: `The manifest has been deleted.`,
         });
     }
-    setManifestsData(prev => prev.filter(m => m.id !== id));
-  }, [toast, manifestsData]);
+  }, [toast]);
 
   const getManifestById = useCallback((id: string) => {
     return manifestsData.find(m => m.id === id);
   }, [manifestsData]);
 
-  const addWaybillToInventory = useCallback((waybillNumber: string) => {
-    if (waybillInventoryData.includes(waybillNumber) || waybillsData.some(w => w.waybillNumber === waybillNumber)) {
-        toast({
-            title: "Waybill number already exists",
-            description: `The waybill number ${waybillNumber} is already in the inventory or in use.`,
-            variant: "destructive"
-        });
+  const addWaybillToInventory = useCallback((item: InventoryItem) => {
+    if (waybillInventoryData.some(i => i.waybillNumber === item.waybillNumber)) {
         return false;
     }
-    setWaybillInventoryData(prev => [...prev, waybillNumber]);
+    setWaybillInventoryData(prev => [...prev, item]);
     return true;
-  }, [waybillInventoryData, waybillsData, toast]);
+  }, [waybillInventoryData]);
 
   const removeWaybillFromInventory = useCallback((waybillNumber: string) => {
-    setWaybillInventoryData(prev => prev.filter(item => item !== waybillNumber));
+    setWaybillInventoryData(prev => prev.filter(item => item.waybillNumber !== waybillNumber));
   }, []);
 
   const value = {
@@ -251,6 +274,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
     getManifestById,
     addWaybillToInventory,
     removeWaybillFromInventory,
+    markWaybillAsUsed,
   };
 
   if (!isLoaded) {

@@ -7,7 +7,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter }
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
-import { Save, Building, Phone, MapPin, User, Hash } from 'lucide-react';
+import { Save, Building, Phone, MapPin, User } from 'lucide-react';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 
 function ConfigurationPageContent() {
@@ -105,7 +105,7 @@ function ConfigurationPageContent() {
                                 <FormLabel>Sender Pincode</FormLabel>
                                 <div className="relative">
                                 <FormControl><Input {...field} className="pl-10" /></FormControl>
-                                <Hash className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+                                <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
                                 </div>
                                 <FormMessage />
                             </FormItem>

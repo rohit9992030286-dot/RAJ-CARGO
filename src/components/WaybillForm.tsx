@@ -59,7 +59,7 @@ const getInitialValues = (initialData?: Waybill): WaybillFormData => {
 
 export function WaybillForm({ initialData, onSave, onCancel }: WaybillFormProps) {
   const { toast } = useToast();
-  const { removeWaybillFromInventory } = useWaybillInventory();
+  const { availablePartnerInventory, isInventoryLoaded } = useWaybillInventory();
   const { user } = useAuth();
   const [rates, setRates] = useState<Record<string, number>>({});
 
@@ -133,7 +133,6 @@ export function WaybillForm({ initialData, onSave, onCancel }: WaybillFormProps)
     const success = onSave(waybillToSave);
 
     if (success) {
-        removeWaybillFromInventory(data.waybillNumber);
         toast({
             title: `Waybill ${initialData ? 'Updated' : 'Created'}`,
             description: `Waybill #${data.waybillNumber} has been saved successfully.`,
@@ -334,20 +333,32 @@ export function WaybillForm({ initialData, onSave, onCancel }: WaybillFormProps)
           <CardContent className="space-y-6">
              <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-4">
                 <FormField
-                  control={form.control}
-                  name="waybillNumber"
-                  render={({ field }) => (
-                  <FormItem>
-                      <FormLabel>Waybill Number</FormLabel>
-                      <div className="relative">
-                        <FormControl>
-                            <Input placeholder="Enter waybill number" {...field} className="pl-10" disabled={!!initialData} />
-                        </FormControl>
-                        <IconWrapper><Hash /></IconWrapper>
-                      </div>
-                      <FormMessage />
-                  </FormItem>
-                  )}
+                    control={form.control}
+                    name="waybillNumber"
+                    render={({ field }) => (
+                    <FormItem>
+                        <FormLabel>Waybill Number</FormLabel>
+                        <Select onValueChange={field.onChange} defaultValue={field.value} disabled={!!initialData}>
+                            <FormControl>
+                                <div className="relative">
+                                <SelectTrigger className="pl-10">
+                                    <SelectValue placeholder={!isInventoryLoaded ? "Loading..." : "Select from inventory"} />
+                                </SelectTrigger>
+                                <IconWrapper><Hash /></IconWrapper>
+                                </div>
+                            </FormControl>
+                            <SelectContent>
+                                {initialData && <SelectItem value={initialData.waybillNumber}>{initialData.waybillNumber}</SelectItem>}
+                                {availablePartnerInventory.map(item => (
+                                    <SelectItem key={item.waybillNumber} value={item.waybillNumber}>
+                                        {item.waybillNumber}
+                                    </SelectItem>
+                                ))}
+                            </SelectContent>
+                        </Select>
+                        <FormMessage />
+                    </FormItem>
+                    )}
                 />
                 <FormField
                     control={form.control}
