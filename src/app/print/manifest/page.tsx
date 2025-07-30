@@ -55,11 +55,9 @@ function PrintManifestContent() {
     );
   }
   
-  const formattedDate = manifestData.date ? format(new Date(manifestData.date), 'MMMM d, yyyy') : 'N/A';
-
   return (
     <div className="bg-white">
-      <ManifestPrint waybills={waybillsToPrint} date={formattedDate} vehicleNo={manifestData.vehicleNo} />
+      <ManifestPrint waybills={waybillsToPrint} manifest={manifestData} />
     </div>
   );
 }

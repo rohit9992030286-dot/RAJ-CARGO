@@ -11,12 +11,12 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { Printer, Truck, PlusCircle, AlertCircle, Trash2, Box, Save, ArrowLeft, Send, Loader2, Briefcase } from 'lucide-react';
+import { Printer, Truck, PlusCircle, AlertCircle, Trash2, Box, Save, ArrowLeft, Send, Loader2, Briefcase, User, Phone } from 'lucide-react';
 import { Waybill } from '@/types/waybill';
 import { Manifest } from '@/types/manifest';
 import { useToast } from '@/hooks/use-toast';
 import { format } from 'date-fns';
-import { useAuth, User } from '@/hooks/useAuth.tsx';
+import { useAuth, User as AuthUser } from '@/hooks/useAuth.tsx';
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@/components/ui/select';
 
 export default function EditManifestPage() {
@@ -199,7 +199,7 @@ export default function EditManifestPage() {
           </CardDescription>
         </CardHeader>
         <CardContent>
-            <div className="grid md:grid-cols-2 gap-4 mb-6">
+            <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
                 <div>
                     <Label htmlFor="vehicle-no">Vehicle No.</Label>
                     <Input
@@ -207,6 +207,26 @@ export default function EditManifestPage() {
                         placeholder="e.g., MH-12-AB-1234"
                         value={manifest.vehicleNo || ''}
                         onChange={(e) => setManifest({...manifest, vehicleNo: e.target.value})}
+                        disabled={isDispatched}
+                    />
+                </div>
+                 <div>
+                    <Label htmlFor="driver-name">Driver Name</Label>
+                    <Input
+                        id="driver-name"
+                        placeholder="e.g., Suresh Kumar"
+                        value={manifest.driverName || ''}
+                        onChange={(e) => setManifest({...manifest, driverName: e.target.value})}
+                        disabled={isDispatched}
+                    />
+                </div>
+                <div>
+                    <Label htmlFor="driver-contact">Driver Contact</Label>
+                    <Input
+                        id="driver-contact"
+                        placeholder="e.g., 9876543210"
+                        value={manifest.driverContact || ''}
+                        onChange={(e) => setManifest({...manifest, driverContact: e.target.value})}
                         disabled={isDispatched}
                     />
                 </div>

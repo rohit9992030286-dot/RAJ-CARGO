@@ -37,6 +37,8 @@ export default function HubDispatchPage() {
   
   const [selectedWaybillIds, setSelectedWaybillIds] = useState<string[]>([]);
   const [vehicleNo, setVehicleNo] = useState('');
+  const [driverName, setDriverName] = useState('');
+  const [driverContact, setDriverContact] = useState('');
   const [deliveryPartnerCode, setDeliveryPartnerCode] = useState<string | null>(null);
 
   const { toast } = useToast();
@@ -79,8 +81,8 @@ export default function HubDispatchPage() {
 
   const handleCreateAndDispatchManifest = () => {
     if (selectedWaybillIds.length === 0) return;
-    if (!vehicleNo.trim()) {
-        toast({ title: 'Vehicle Number Required', description: 'Please enter a vehicle number to create the manifest.', variant: 'destructive' });
+    if (!vehicleNo.trim() || !driverName.trim() || !driverContact.trim()) {
+        toast({ title: 'All Fields Required', description: 'Please enter vehicle and driver details to create the manifest.', variant: 'destructive' });
         return;
     }
     if (!deliveryPartnerCode) {
@@ -96,6 +98,8 @@ export default function HubDispatchPage() {
         waybillIds: selectedWaybills.map(w => w.id),
         status: 'Dispatched' as 'Dispatched',
         vehicleNo: vehicleNo.trim(),
+        driverName: driverName.trim(),
+        driverContact: driverContact.trim(),
         origin: 'hub' as 'hub',
         deliveryPartnerCode: deliveryPartnerCode,
     };
@@ -115,11 +119,20 @@ export default function HubDispatchPage() {
     // Reset selection and form
     setSelectedWaybillIds([]);
     setVehicleNo('');
+    setDriverName('');
+    setDriverContact('');
     setDeliveryPartnerCode(null);
   };
 
   const deliveryPartners = useMemo(() => {
-    return users.filter(u => u.role === 'staff' && u.partnerCode);
+    // Get unique partner codes from users who have delivery role
+    const partnerCodes = new Map<string, string>();
+    users.forEach(u => {
+        if (u.roles.includes('delivery') && u.partnerCode && !partnerCodes.has(u.partnerCode)) {
+            partnerCodes.set(u.partnerCode, u.username);
+        }
+    });
+    return Array.from(partnerCodes, ([code, username]) => ({ code, username }));
   }, [users]);
 
 
@@ -162,12 +175,12 @@ export default function HubDispatchPage() {
                         <AlertDialogHeader>
                             <AlertDialogTitle>Create New Outbound Manifest</AlertDialogTitle>
                             <AlertDialogDescription>
-                                Enter vehicle number and select a delivery partner for this manifest.
+                                Enter vehicle, driver details and select a delivery partner for this manifest.
                             </AlertDialogDescription>
                         </AlertDialogHeader>
                         <div className="py-4 space-y-4">
                            <div>
-                             <Label htmlFor="vehicle-no-dialog">Vehicle Number</Label>
+                             <Label htmlFor="vehicle-no-dialog">Vehicle Number *</Label>
                              <Input 
                                id="vehicle-no-dialog"
                                value={vehicleNo}
@@ -175,18 +188,36 @@ export default function HubDispatchPage() {
                                placeholder="e.g., MH-12-AB-1234"
                              />
                            </div>
+                            <div>
+                                <Label htmlFor="driver-name-dialog">Driver Name *</Label>
+                                <Input 
+                                id="driver-name-dialog"
+                                value={driverName}
+                                onChange={(e) => setDriverName(e.target.value)}
+                                placeholder="e.g., Suresh Kumar"
+                                />
+                           </div>
                            <div>
-                               <Label htmlFor="delivery-partner-dialog">Delivery Partner</Label>
+                                <Label htmlFor="driver-contact-dialog">Driver Contact No. *</Label>
+                                <Input 
+                                id="driver-contact-dialog"
+                                value={driverContact}
+                                onChange={(e) => setDriverContact(e.target.value)}
+                                placeholder="e.g., 9876543210"
+                                />
+                           </div>
+                           <div>
+                               <Label htmlFor="delivery-partner-dialog">Delivery Partner *</Label>
                                 <Select onValueChange={setDeliveryPartnerCode} value={deliveryPartnerCode || ''}>
                                     <SelectTrigger id="delivery-partner-dialog">
                                         <SelectValue placeholder="Select a delivery partner" />
                                     </SelectTrigger>
                                     <SelectContent>
                                         {deliveryPartners.map(p => (
-                                            <SelectItem key={p.partnerCode} value={p.partnerCode!}>
+                                            <SelectItem key={p.code} value={p.code!}>
                                                 <div className="flex items-center gap-2">
                                                     <Briefcase className="h-4 w-4 text-muted-foreground" />
-                                                    {p.partnerCode} ({p.username})
+                                                    {p.code} ({p.username})
                                                 </div>
                                             </SelectItem>
                                         ))}
@@ -195,7 +226,7 @@ export default function HubDispatchPage() {
                            </div>
                         </div>
                         <AlertDialogFooter>
-                            <AlertDialogCancel onClick={() => { setVehicleNo(''); setDeliveryPartnerCode(null); }}>Cancel</AlertDialogCancel>
+                            <AlertDialogCancel onClick={() => { setVehicleNo(''); setDriverName(''); setDriverContact(''); setDeliveryPartnerCode(null); }}>Cancel</AlertDialogCancel>
                             <AlertDialogAction onClick={handleCreateAndDispatchManifest}>
                                 Create & Dispatch
                             </AlertDialogAction>
