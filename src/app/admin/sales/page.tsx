@@ -20,12 +20,6 @@ export default function SalesReportPage() {
   const { allWaybills, isLoaded } = useWaybills();
   const [date, setDate] = useState<Date | undefined>(undefined);
 
-  const calculateCharge = (waybill: Waybill) => {
-    const baseCharge = 150;
-    const weightCharge = waybill.packageWeight * 10;
-    return baseCharge + weightCharge;
-  };
-
   const filteredWaybills = useMemo(() => {
     if (!date) {
       return allWaybills;
@@ -43,7 +37,7 @@ export default function SalesReportPage() {
     );
   }
 
-  const totalSales = filteredWaybills.reduce((total, waybill) => total + calculateCharge(waybill), 0);
+  const totalSales = filteredWaybills.reduce((total, waybill) => total + waybill.shipmentValue, 0);
 
   const handleDownloadExcel = () => {
     if (filteredWaybills.length === 0) {
@@ -56,7 +50,7 @@ export default function SalesReportPage() {
         'Date': format(new Date(wb.shippingDate), 'PP'),
         'Receiver Name': wb.receiverName,
         'Receiver Pincode': wb.receiverPincode,
-        'Charge (₹)': calculateCharge(wb),
+        'Charge (₹)': wb.shipmentValue,
     }));
 
     const worksheet = XLSX.utils.json_to_sheet(dataToExport);
@@ -140,7 +134,7 @@ export default function SalesReportPage() {
                     <TableCell>{format(new Date(waybill.shippingDate), 'PP')}</TableCell>
                     <TableCell>{waybill.receiverName}</TableCell>
                     <TableCell>{waybill.receiverPincode}</TableCell>
-                    <TableCell className="text-right font-mono">{calculateCharge(waybill).toLocaleString('en-IN')}</TableCell>
+                    <TableCell className="text-right font-mono">{waybill.shipmentValue.toLocaleString('en-IN')}</TableCell>
                   </TableRow>
                 ))
               ) : (
@@ -156,7 +150,7 @@ export default function SalesReportPage() {
                     <TableCell colSpan={5}>{date ? 'Total for selected date' : 'Total Sales'}</TableCell>
                     <TableCell className="text-right font-mono flex items-center justify-end gap-2">
                         <IndianRupee className="h-5 w-5" />
-                        {totalSales.toLocaleString('en-IN')}
+                        {totalSales.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                     </TableCell>
                 </TableRow>
             </TableFooter>

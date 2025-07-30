@@ -22,6 +22,8 @@ interface WaybillFormProps {
   onCancel: () => void;
 }
 
+const RATES_STORAGE_KEY = 'rajcargo-pincode-rates';
+
 const getInitialValues = (initialData?: Waybill): WaybillFormData => {
     const defaults = {
         waybillNumber: '',
@@ -59,6 +61,7 @@ export function WaybillForm({ initialData, onSave, onCancel }: WaybillFormProps)
   const { toast } = useToast();
   const { removeWaybillFromInventory } = useWaybillInventory();
   const { user } = useAuth();
+  const [rates, setRates] = useState<Record<string, number>>({});
 
   const form = useForm<WaybillFormData>({
     resolver: zodResolver(waybillFormSchema),
@@ -70,6 +73,11 @@ export function WaybillForm({ initialData, onSave, onCancel }: WaybillFormProps)
       control: form.control,
       name: 'shipmentValue'
   });
+  
+  const receiverPincode = useWatch({
+      control: form.control,
+      name: 'receiverPincode'
+  });
 
   useEffect(() => {
     const values = getInitialValues(initialData);
@@ -78,7 +86,6 @@ export function WaybillForm({ initialData, onSave, onCancel }: WaybillFormProps)
         const storedSender = localStorage.getItem('rajcargo-defaultSender');
         if (storedSender) {
           const defaultSender = JSON.parse(storedSender);
-          // Only apply default sender if creating a new waybill
           Object.assign(values, defaultSender);
         }
       } catch (error) {
@@ -88,6 +95,33 @@ export function WaybillForm({ initialData, onSave, onCancel }: WaybillFormProps)
     form.reset(values);
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [initialData]);
+
+  useEffect(() => {
+      try {
+          const storedRates = localStorage.getItem(RATES_STORAGE_KEY);
+          if (storedRates) {
+              const parsedRates: {pincode: string, rate: number}[] = JSON.parse(storedRates);
+              const ratesMap = parsedRates.reduce((acc, curr) => {
+                  acc[curr.pincode] = curr.rate;
+                  return acc;
+              }, {} as Record<string, number>);
+              setRates(ratesMap);
+          }
+      } catch (error) {
+          console.error("Failed to load rates for form", error);
+      }
+  }, []);
+
+  useEffect(() => {
+    // Don't auto-update if we are editing an existing record
+    if (initialData) return;
+
+    if (receiverPincode && rates[receiverPincode] !== undefined) {
+        form.setValue('shipmentValue', rates[receiverPincode], { shouldValidate: true });
+    } else {
+        form.setValue('shipmentValue', 0, { shouldValidate: true });
+    }
+  }, [receiverPincode, rates, form, initialData]);
 
   const onSubmit = (data: WaybillFormData) => {
     const waybillToSave: Waybill = {
@@ -99,7 +133,6 @@ export function WaybillForm({ initialData, onSave, onCancel }: WaybillFormProps)
     const success = onSave(waybillToSave);
 
     if (success) {
-        // Remove from inventory if it exists there
         removeWaybillFromInventory(data.waybillNumber);
         toast({
             title: `Waybill ${initialData ? 'Updated' : 'Created'}`,
