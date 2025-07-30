@@ -18,6 +18,7 @@ import { Calendar } from '@/components/ui/calendar';
 import { format, addDays } from 'date-fns';
 import { cn } from '@/lib/utils';
 import { useWaybillInventory } from '@/hooks/useWaybillInventory';
+import { DateRange } from 'react-day-picker';
 
 function useDebounce(value: string, delay: number): string {
   const [debouncedValue, setDebouncedValue] = useState(value);
@@ -42,7 +43,7 @@ function WaybillsPageContent() {
   const [selectedWaybillIds, setSelectedWaybillIds] = useState<string[]>([]);
   const [currentPage, setCurrentPage] = useState(1);
   const [searchTerm, setSearchTerm] = useState('');
-  const [date, setDate] = useState<Date | undefined>(undefined);
+  const [dateRange, setDateRange] = useState<DateRange | undefined>(undefined);
   const router = useRouter();
   const { toast } = useToast();
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -65,17 +66,23 @@ function WaybillsPageContent() {
       );
     }
 
-    if (date) {
-        const selectedDate = format(date, 'yyyy-MM-dd');
-        filtered = filtered.filter(w => w.shippingDate === selectedDate);
+    if (dateRange?.from) {
+        const fromDate = dateRange.from;
+        const toDate = dateRange.to || dateRange.from;
+        filtered = filtered.filter(w => {
+            const waybillDate = new Date(w.shippingDate);
+            const toDateInclusive = new Date(toDate);
+            toDateInclusive.setDate(toDateInclusive.getDate() + 1);
+            return waybillDate >= fromDate && waybillDate < toDateInclusive;
+        });
     }
     
     return filtered;
-  }, [waybills, debouncedSearchTerm, date]);
+  }, [waybills, debouncedSearchTerm, dateRange]);
 
   useEffect(() => {
     setCurrentPage(1);
-  }, [debouncedSearchTerm, date]);
+  }, [debouncedSearchTerm, dateRange]);
 
   const indexOfLastWaybill = currentPage * WAYBILLS_PER_PAGE;
   const indexOfFirstWaybill = indexOfLastWaybill - WAYBILLS_PER_PAGE;
@@ -320,26 +327,35 @@ function WaybillsPageContent() {
                             <Button
                             variant={"outline"}
                             className={cn(
-                                "w-[240px] justify-start text-left font-normal",
-                                !date && "text-muted-foreground"
+                                "w-[300px] justify-start text-left font-normal",
+                                !dateRange && "text-muted-foreground"
                             )}
                             >
                             <CalendarIcon className="mr-2 h-4 w-4" />
-                            {date ? format(date, "PPP") : <span>Pick a date</span>}
+                            {dateRange?.from ? (
+                                dateRange.to ? (
+                                  <>
+                                    {format(dateRange.from, "LLL dd, y")} -{" "}
+                                    {format(dateRange.to, "LLL dd, y")}
+                                  </>
+                                ) : (
+                                  format(dateRange.from, "LLL dd, y")
+                                )
+                              ) : (
+                                <span>Pick a date range</span>
+                              )}
                             </Button>
                         </PopoverTrigger>
                         <PopoverContent className="w-auto p-0" align="start">
                             <Calendar
-                            mode="single"
-                            selected={date}
-                            onSelect={(newDate) => {
-                                setDate(newDate);
-                            }}
+                            mode="range"
+                            selected={dateRange}
+                            onSelect={setDateRange}
                             initialFocus
                             />
                         </PopoverContent>
                     </Popover>
-                    {date && <Button variant="ghost" onClick={() => setDate(undefined)}>Clear</Button>}
+                    {dateRange && <Button variant="ghost" onClick={() => setDateRange(undefined)}>Clear</Button>}
                  </div>
                  {selectedWaybillIds.length > 0 && (
                   <div className="flex items-center gap-2">

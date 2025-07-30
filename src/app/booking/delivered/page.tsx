@@ -13,20 +13,28 @@ import { Popover, PopoverTrigger, PopoverContent } from '@/components/ui/popover
 import { Calendar } from '@/components/ui/calendar';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
+import { DateRange } from 'react-day-picker';
 
 
 export default function DeliveredPage() {
   const { waybills, isLoaded } = useWaybills();
-  const [date, setDate] = useState<Date | undefined>(undefined);
+  const [dateRange, setDateRange] = useState<DateRange | undefined>(undefined);
 
   const deliveredWaybills = useMemo(() => {
     let filtered = waybills.filter((w): w is Waybill => !!w && w.status === 'Delivered');
-    if (date) {
-        const selectedDate = format(date, 'yyyy-MM-dd');
-        filtered = filtered.filter(w => w.shippingDate === selectedDate);
+    if (dateRange?.from) {
+        const fromDate = dateRange.from;
+        const toDate = dateRange.to || dateRange.from;
+
+        filtered = filtered.filter(w => {
+            const waybillDate = new Date(w.shippingDate);
+            const toDateInclusive = new Date(toDate);
+            toDateInclusive.setDate(toDateInclusive.getDate() + 1);
+            return waybillDate >= fromDate && waybillDate < toDateInclusive;
+        });
     }
     return filtered;
-  }, [waybills, date]);
+  }, [waybills, dateRange]);
   
   if (!isLoaded) {
     return (
@@ -58,24 +66,35 @@ export default function DeliveredPage() {
                         <Button
                         variant={"outline"}
                         className={cn(
-                            "w-[240px] justify-start text-left font-normal",
-                            !date && "text-muted-foreground"
+                            "w-[300px] justify-start text-left font-normal",
+                            !dateRange && "text-muted-foreground"
                         )}
                         >
                         <CalendarIcon className="mr-2 h-4 w-4" />
-                        {date ? format(date, "PPP") : <span>Filter by date</span>}
+                        {dateRange?.from ? (
+                          dateRange.to ? (
+                            <>
+                              {format(dateRange.from, "LLL dd, y")} -{" "}
+                              {format(dateRange.to, "LLL dd, y")}
+                            </>
+                          ) : (
+                            format(dateRange.from, "LLL dd, y")
+                          )
+                        ) : (
+                          <span>Pick a date range</span>
+                        )}
                         </Button>
                     </PopoverTrigger>
                     <PopoverContent className="w-auto p-0" align="end">
                         <Calendar
-                        mode="single"
-                        selected={date}
-                        onSelect={setDate}
+                        mode="range"
+                        selected={dateRange}
+                        onSelect={setDateRange}
                         initialFocus
                         />
                     </PopoverContent>
                 </Popover>
-                {date && <Button variant="ghost" size="sm" onClick={() => setDate(undefined)}>Clear</Button>}
+                {dateRange && <Button variant="ghost" size="sm" onClick={() => setDateRange(undefined)}>Clear</Button>}
               </div>
           </div>
         </CardHeader>
@@ -113,7 +132,7 @@ export default function DeliveredPage() {
               <Package className="mx-auto h-12 w-12 text-muted-foreground" />
               <h3 className="mt-4 text-lg font-semibold">No Delivered Waybills</h3>
               <p className="mt-1 text-sm text-muted-foreground">
-                {date ? "No waybills were delivered on this date." : "No waybills have been marked as 'Delivered' yet."}
+                {dateRange?.from ? "No waybills were delivered on this date range." : "No waybills have been marked as 'Delivered' yet."}
               </p>
             </div>
           )}

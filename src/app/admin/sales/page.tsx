@@ -15,18 +15,29 @@ import { cn } from '@/lib/utils';
 import { Badge } from '@/components/ui/badge';
 import * as XLSX from 'xlsx';
 import { saveAs } from 'file-saver';
+import { DateRange } from 'react-day-picker';
 
 export default function SalesReportPage() {
   const { allWaybills, isLoaded } = useWaybills();
-  const [date, setDate] = useState<Date | undefined>(undefined);
+  const [dateRange, setDateRange] = useState<DateRange | undefined>(undefined);
 
   const filteredWaybills = useMemo(() => {
-    if (!date) {
+    if (!dateRange?.from) {
       return allWaybills;
     }
-    const selectedDate = format(date, 'yyyy-MM-dd');
-    return allWaybills.filter(w => w.shippingDate === selectedDate);
-  }, [allWaybills, date]);
+    const fromDate = dateRange.from;
+    // If only `from` is selected, `to` is the same day. If both, use `to`.
+    const toDate = dateRange.to || dateRange.from;
+
+    return allWaybills.filter(w => {
+        const waybillDate = new Date(w.shippingDate);
+        // Add a day to `toDate` to make the range inclusive of the end date.
+        const toDateInclusive = new Date(toDate);
+        toDateInclusive.setDate(toDateInclusive.getDate() + 1);
+
+        return waybillDate >= fromDate && waybillDate < toDateInclusive;
+    });
+  }, [allWaybills, dateRange]);
 
 
   if (!isLoaded) {
@@ -64,7 +75,9 @@ export default function SalesReportPage() {
 
     const excelBuffer = XLSX.write(workbook, { bookType: 'xlsx', type: 'array' });
     const data = new Blob([excelBuffer], {type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;charset=UTF-8'});
-    saveAs(data, `sales_report_${date ? format(date, 'yyyy-MM-dd') : 'all_time'}.xlsx`);
+    
+    const dateString = dateRange?.from ? `${format(dateRange.from, 'yyyy-MM-dd')}_to_${format(dateRange.to || dateRange.from, 'yyyy-MM-dd')}` : 'all_time';
+    saveAs(data, `sales_report_${dateString}.xlsx`);
   };
 
   return (
@@ -89,24 +102,35 @@ export default function SalesReportPage() {
                       <Button
                       variant={"outline"}
                       className={cn(
-                          "w-[240px] justify-start text-left font-normal",
-                          !date && "text-muted-foreground"
+                          "w-[300px] justify-start text-left font-normal",
+                          !dateRange && "text-muted-foreground"
                       )}
                       >
                       <CalendarIcon className="mr-2 h-4 w-4" />
-                      {date ? format(date, "PPP") : <span>Filter by date</span>}
+                      {dateRange?.from ? (
+                        dateRange.to ? (
+                          <>
+                            {format(dateRange.from, "LLL dd, y")} -{" "}
+                            {format(dateRange.to, "LLL dd, y")}
+                          </>
+                        ) : (
+                          format(dateRange.from, "LLL dd, y")
+                        )
+                      ) : (
+                        <span>Pick a date range</span>
+                      )}
                       </Button>
                   </PopoverTrigger>
                   <PopoverContent className="w-auto p-0" align="end">
                       <Calendar
-                      mode="single"
-                      selected={date}
-                      onSelect={setDate}
+                      mode="range"
+                      selected={dateRange}
+                      onSelect={setDateRange}
                       initialFocus
                       />
                   </PopoverContent>
               </Popover>
-              {date && <Button variant="ghost" size="sm" onClick={() => setDate(undefined)}>Clear</Button>}
+              {dateRange && <Button variant="ghost" size="sm" onClick={() => setDateRange(undefined)}>Clear</Button>}
                <Button onClick={handleDownloadExcel} variant="outline" size="sm" disabled={filteredWaybills.length === 0}>
                     <FileDown className="mr-2 h-4 w-4" /> Export Excel
                 </Button>
@@ -140,14 +164,14 @@ export default function SalesReportPage() {
               ) : (
                 <TableRow>
                   <TableCell colSpan={6} className="h-24 text-center">
-                    No sales data available for the selected date.
+                    No sales data available for the selected date range.
                   </TableCell>
                 </TableRow>
               )}
             </TableBody>
             <TableFooter>
                 <TableRow className="font-bold text-lg">
-                    <TableCell colSpan={5}>{date ? 'Total for selected date' : 'Total Sales'}</TableCell>
+                    <TableCell colSpan={5}>{dateRange?.from ? 'Total for selected range' : 'Total Sales'}</TableCell>
                     <TableCell className="text-right font-mono flex items-center justify-end gap-2">
                         <IndianRupee className="h-5 w-5" />
                         {totalSales.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
