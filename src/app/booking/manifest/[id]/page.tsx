@@ -234,14 +234,14 @@ export default function EditManifestPage() {
                     <Label htmlFor="delivery-partner">Direct to Delivery Partner (Optional)</Label>
                     <Select 
                       value={manifest.deliveryPartnerCode || ''} 
-                      onValueChange={(value) => setManifest({...manifest, deliveryPartnerCode: value || undefined})}
+                      onValueChange={(value) => setManifest({...manifest, deliveryPartnerCode: value === 'hub_default' ? undefined : value})}
                       disabled={isDispatched}
                     >
                         <SelectTrigger id="delivery-partner">
                             <SelectValue placeholder="Route to Hub (Default)" />
                         </SelectTrigger>
                         <SelectContent>
-                             <SelectItem value="">Route to Hub (Default)</SelectItem>
+                             <SelectItem value="hub_default">Route to Hub (Default)</SelectItem>
                             {deliveryPartners.map(code => (
                                 <SelectItem key={code} value={code}>
                                     <div className="flex items-center gap-2">
@@ -317,3 +317,4 @@ export default function EditManifestPage() {
     </div>
   );
 }
+
