@@ -27,22 +27,6 @@ import { cn } from '@/lib/utils';
 type Theme = 'light' | 'dark' | 'system';
 type StickerSize = '75mm' | 'custom';
 
-function getBackupData() {
-    const waybills = localStorage.getItem('rajcargo-waybills') || '[]';
-    const manifests = localStorage.getItem('rajcargo-manifests') || '[]';
-    const inventory = localStorage.getItem('rajcargo-waybill-inventory') || '[]';
-    const users = localStorage.getItem('rajcargo-users') || '[]';
-    const allData = {
-      waybills: JSON.parse(waybills),
-      manifests: JSON.parse(manifests),
-      waybillInventory: JSON.parse(inventory),
-      users: JSON.parse(users),
-      exportDate: new Date().toISOString(),
-    };
-    return JSON.stringify(allData, null, 2);
-}
-
-
 function SettingsPageContent() {
   const { toast } = useToast();
   const [theme, setTheme] = useState<Theme>('system');
@@ -83,93 +67,11 @@ function SettingsPageContent() {
     });
   };
 
-  const handleClearData = () => {
-    try {
-      localStorage.removeItem('rajcargo-waybills');
-      localStorage.removeItem('rajcargo-manifests');
-      localStorage.removeItem('rajcargo-waybill-inventory');
-      // Do not clear users or theme settings
-      toast({
-        title: 'Application Data Cleared',
-        description: 'All waybills, manifests, and inventory have been deleted.',
-      });
-      setTimeout(() => window.location.reload(), 1000);
-    } catch (error) {
-      toast({
-        title: 'Error Clearing Data',
-        description: 'Could not clear application data from local storage.',
-        variant: 'destructive',
-      });
-    }
-  };
-
-  const handleExportData = () => {
-    try {
-      const allData = getBackupData();
-      const blob = new Blob([allData], { type: 'application/json' });
-      saveAs(blob, 'rajcargo_backup.json');
-      toast({
-        title: 'Data Exported',
-        description: 'Your data has been saved to rajcargo_backup.json.',
-      });
-
-    } catch (error) {
-       toast({
-        title: 'Error Exporting Data',
-        description: 'Could not export your data.',
-        variant: 'destructive',
-      });
-    }
-  };
-
-  const handleImportFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (!file) return;
-
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      try {
-        const text = e.target?.result as string;
-        const data = JSON.parse(text);
-        
-        const requiredKeys = ['waybills', 'manifests', 'waybillInventory', 'users'];
-        const hasAllKeys = requiredKeys.every(key => Array.isArray(data[key]));
-
-        if (hasAllKeys) {
-          localStorage.setItem('rajcargo-waybills', JSON.stringify(data.waybills));
-          localStorage.setItem('rajcargo-manifests', JSON.stringify(data.manifests));
-          localStorage.setItem('rajcargo-waybill-inventory', JSON.stringify(data.waybillInventory));
-          localStorage.setItem('rajcargo-users', JSON.stringify(data.users));
-          toast({
-            title: 'Import Successful',
-            description: 'Your data has been restored from the backup file.',
-          });
-          setTimeout(() => window.location.reload(), 1000);
-        } else {
-          throw new Error('Invalid JSON structure. The file must contain waybills, manifests, waybillInventory and users arrays.');
-        }
-      } catch (err) {
-        const errorMessage = err instanceof Error ? err.message : 'An unknown error occurred.';
-        toast({
-          title: 'Import Failed',
-          description: `Could not import data. Please check the file format. Error: ${errorMessage}`,
-          variant: 'destructive',
-        });
-      } finally {
-        // Reset file input to allow re-selection of the same file
-        if (importFileRef.current) {
-          importFileRef.current.value = '';
-        }
-      }
-    };
-    reader.readAsText(file);
-  };
-  
   return (
     <div className="space-y-8 max-w-4xl mx-auto">
       <div>
         <h1 className="text-3xl font-bold">Settings</h1>
-        <p className="text-muted-foreground">Manage your application preferences and data.</p>
+        <p className="text-muted-foreground">Manage your application preferences.</p>
       </div>
 
       <Card>
@@ -229,88 +131,6 @@ function SettingsPageContent() {
                   </RadioGroup>
               </div>
           </CardContent>
-      </Card>
-
-       <Card>
-        <CardHeader>
-          <CardTitle>Data Management</CardTitle>
-          <CardDescription>Manage application data stored in your browser.</CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
-           <div className="flex items-center justify-between">
-                <div>
-                    <Label className="font-medium">Export All Data</Label>
-                    <p className="text-sm text-muted-foreground">Save a JSON backup file to your local machine.</p>
-                </div>
-                <Button variant="outline" onClick={handleExportData}>
-                    <Download className="mr-2 h-4 w-4" />
-                    Export Data
-                </Button>
-            </div>
-            <div className="flex items-center justify-between pt-4 border-t">
-                <div>
-                    <Label className="font-medium">Import Data from JSON</Label>
-                    <p className="text-sm text-muted-foreground">Restore data from a backup file. This will overwrite existing data.</p>
-                </div>
-                <AlertDialog>
-                    <AlertDialogTrigger asChild>
-                        <Button variant="outline">
-                            <Upload className="mr-2 h-4 w-4" />
-                            Import Data
-                        </Button>
-                    </AlertDialogTrigger>
-                    <AlertDialogContent>
-                        <AlertDialogHeader>
-                            <AlertDialogTitle>Are you sure you want to import data?</AlertDialogTitle>
-                            <AlertDialogDescription>
-                                This will overwrite all current waybills, manifests, and inventory with the data from the selected file. This action cannot be undone.
-                            </AlertDialogDescription>
-                        </AlertDialogHeader>
-                        <AlertDialogFooter>
-                            <AlertDialogCancel>Cancel</AlertDialogCancel>
-                            <AlertDialogAction onClick={() => importFileRef.current?.click()}>
-                                Yes, Overwrite and Import
-                            </AlertDialogAction>
-                        </AlertDialogFooter>
-                    </AlertDialogContent>
-                </AlertDialog>
-                <input
-                    type="file"
-                    ref={importFileRef}
-                    className="hidden"
-                    accept="application/json"
-                    onChange={handleImportFileChange}
-                />
-            </div>
-          <div className="flex items-center justify-between pt-4 border-t">
-            <div>
-                <Label className="font-medium">Clear All Local Data</Label>
-                <p className="text-sm text-muted-foreground">This will permanently delete all waybills, manifests, and inventory.</p>
-            </div>
-            <AlertDialog>
-              <AlertDialogTrigger asChild>
-                <Button variant="destructive">
-                  <Trash2 className="mr-2 h-4 w-4" />
-                  Clear Data
-                </Button>
-              </AlertDialogTrigger>
-              <AlertDialogContent>
-                <AlertDialogHeader>
-                  <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
-                  <AlertDialogDescription>
-                    This action cannot be undone. This will permanently delete all your waybill, manifest, and inventory data from this device.
-                  </AlertDialogDescription>
-                </AlertDialogHeader>
-                <AlertDialogFooter>
-                  <AlertDialogCancel>Cancel</AlertDialogCancel>
-                  <AlertDialogAction onClick={handleClearData}>
-                    Yes, delete everything
-                  </AlertDialogAction>
-                </AlertDialogFooter>
-              </AlertDialogContent>
-            </AlertDialog>
-          </div>
-        </CardContent>
       </Card>
     </div>
   );
