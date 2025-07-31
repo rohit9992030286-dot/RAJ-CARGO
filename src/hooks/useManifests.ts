@@ -31,8 +31,7 @@ export function useManifests() {
   const filteredManifests = useMemo(() => {
     if (!user || !context.isLoaded) return [];
 
-    // Admin with ALL_ACCESS sees everything
-    if (user.role === 'admin' && user.partnerCode === 'ALL_ACCESS') {
+    if (user.role === 'admin') {
       return context.manifests;
     }
 
@@ -53,33 +52,23 @@ export function useManifests() {
             return false;
         });
     }
-
-    if (userIsBooking && !userIsHub) {
-        return context.manifests.filter(m => m.origin === 'booking' && m.creatorPartnerCode === user.partnerCode);
-    }
     
     if (userIsHub) {
-        const associations = getAssociations();
-        const hubPartnerCode = user.partnerCode || '';
-        const associatedBookingPartners = associations[hubPartnerCode] || [];
-        const hasSpecificAssociations = associatedBookingPartners.length > 0;
-
         return context.manifests.filter(manifest => {
-            if (manifest.origin === 'hub' && manifest.creatorPartnerCode === hubPartnerCode) {
+            // Hub users see manifests they've created
+            if (manifest.origin === 'hub' && manifest.creatorPartnerCode === user.partnerCode) {
                 return true;
             }
-
-            if (manifest.origin === 'booking') {
-                if (manifest.status === 'Draft' || manifest.deliveryPartnerCode) return false;
-
-                if (hasSpecificAssociations) {
-                    return associatedBookingPartners.includes(manifest.creatorPartnerCode);
-                } else {
-                    return true;
-                }
+            // Hub users also see manifests from booking that are dispatched or received.
+            if (manifest.origin === 'booking' && (manifest.status === 'Dispatched' || manifest.status === 'Received')) {
+                return true;
             }
             return false;
         });
+    }
+
+    if (userIsBooking) {
+        return context.manifests.filter(m => m.origin === 'booking' && m.creatorPartnerCode === user.partnerCode);
     }
 
     return [];
