@@ -19,6 +19,7 @@ export default function HubPage() {
   const { waybills, isLoaded: waybillsLoaded } = useWaybills();
   
   const incomingManifests = useMemo(() => {
+    // Hub users should only see manifests from booking partners that are dispatched to them, or already received by them.
     return manifests.filter(m => m.origin === 'booking' && (m.status === 'Dispatched' || m.status === 'Received'));
   }, [manifests]);
 
