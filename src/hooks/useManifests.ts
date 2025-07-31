@@ -55,11 +55,14 @@ export function useManifests() {
     
     if (userIsHub) {
         const associations = getAssociations();
-        const associatedBookingPartners = associations[user.partnerCode || ''] || [];
+        const hubPartnerCode = user.partnerCode;
+        if (!hubPartnerCode) return []; // Hub user must have a partner code
+
+        const associatedBookingPartners = associations[hubPartnerCode] || [];
         
         return context.manifests.filter(manifest => {
-            // Hub users see manifests they've created
-            if (manifest.origin === 'hub' && manifest.creatorPartnerCode === user.partnerCode) {
+            // Hub users see manifests they've created themselves
+            if (manifest.origin === 'hub' && manifest.creatorPartnerCode === hubPartnerCode) {
                 return true;
             }
             // Hub users see manifests from associated booking partners that are dispatched or received at their hub.
