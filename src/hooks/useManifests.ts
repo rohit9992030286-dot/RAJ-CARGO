@@ -54,14 +54,18 @@ export function useManifests() {
     }
     
     if (userIsHub) {
+        const associations = getAssociations();
+        const associatedBookingPartners = associations[user.partnerCode || ''] || [];
+        
         return context.manifests.filter(manifest => {
             // Hub users see manifests they've created
             if (manifest.origin === 'hub' && manifest.creatorPartnerCode === user.partnerCode) {
                 return true;
             }
-            // Hub users also see manifests from booking that are dispatched or received.
-            if (manifest.origin === 'booking' && (manifest.status === 'Dispatched' || manifest.status === 'Received')) {
-                return true;
+            // Hub users see manifests from associated booking partners that are dispatched or received at their hub.
+            // This applies to manifests that do not have a direct delivery partner set.
+            if (manifest.origin === 'booking' && (manifest.status === 'Dispatched' || manifest.status === 'Received') && !manifest.deliveryPartnerCode) {
+                return associatedBookingPartners.includes(manifest.creatorPartnerCode);
             }
             return false;
         });
