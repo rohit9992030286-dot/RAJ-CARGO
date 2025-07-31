@@ -1,26 +1,13 @@
 
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
-import { Button } from '@/components/ui/button';
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogTrigger,
-} from '@/components/ui/alert-dialog';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { useToast } from '@/hooks/use-toast';
-import { Moon, Sun, Trash2, Download, Upload, Loader2, Printer } from 'lucide-react';
+import { Moon, Sun, Loader2, Printer } from 'lucide-react';
 import { useWaybillInventory } from '@/hooks/useWaybillInventory';
-import { saveAs } from 'file-saver';
 import { cn } from '@/lib/utils';
 
 
@@ -31,7 +18,6 @@ function SettingsPageContent() {
   const { toast } = useToast();
   const [theme, setTheme] = useState<Theme>('system');
   const [stickerSize, setStickerSize] = useState<StickerSize>('75mm');
-  const importFileRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     const storedTheme = localStorage.getItem('rajcargo-theme') as Theme | null;
