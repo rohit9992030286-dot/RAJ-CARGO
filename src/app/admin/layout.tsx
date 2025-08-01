@@ -75,12 +75,6 @@ function AdminLayout({
           </Link>
         </li>
         <li>
-            <Link href="/admin/partners" onClick={onLinkClick} className="flex items-center gap-3 p-3 rounded-lg hover:bg-primary/10 hover:text-primary transition-colors">
-                <Link2 className="h-5 w-5" />
-                <span>Partner Management</span>
-            </Link>
-        </li>
-        <li>
             <Link href="/admin/inventory" onClick={onLinkClick} className="flex items-center gap-3 p-3 rounded-lg hover:bg-primary/10 hover:text-primary transition-colors">
                 <List className="h-5 w-5" />
                 <span>Waybill Inventory</span>

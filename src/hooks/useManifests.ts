@@ -14,35 +14,37 @@ export function useManifests() {
     throw new Error('useManifests must be used within a DataProvider');
   }
 
-  const filteredManifests = useMemo(() => {
-    if (!user || !context.isLoaded) return [];
+  const { manifests, isLoaded } = context;
 
-    // Admin sees everything
+  const filteredManifests = useMemo(() => {
+    if (!user || !isLoaded) return [];
+
     if (user.role === 'admin') {
-      return context.manifests;
+      return manifests;
     }
     
     const userPartnerCode = user.partnerCode;
     const userRoles = user.roles || [];
     
-    // Return all manifests for booking role of the user's partner code.
     if (userRoles.includes('booking')) {
-        return context.manifests.filter(manifest => manifest.creatorPartnerCode === userPartnerCode);
+        return manifests.filter(manifest => manifest.creatorPartnerCode === userPartnerCode);
     }
     
-    // For hub users, show all booking manifests and all hub-originated manifests.
     if (userRoles.includes('hub')) {
-        return context.manifests;
+        // Hub users see all dispatched manifests from booking and all hub-originated manifests.
+        return manifests.filter(m => 
+            (m.origin === 'booking') || 
+            (m.origin === 'hub')
+        );
     }
 
-    // For delivery users, show manifests assigned to their partner code.
     if (userRoles.includes('delivery')) {
-        return context.manifests.filter(manifest => manifest.deliveryPartnerCode === userPartnerCode);
+        return manifests.filter(manifest => manifest.deliveryPartnerCode === userPartnerCode);
     }
 
     return [];
 
-  }, [context.manifests, user, context.isLoaded]);
+  }, [manifests, user, isLoaded]);
 
 
   return {

@@ -36,26 +36,6 @@ export default function AdminDashboardPage() {
         <Card className="flex flex-col">
             <CardHeader>
                 <CardTitle className="flex items-center gap-2">
-                <Link2 className="h-6 w-6" />
-                <span>Partner Management</span>
-                </CardTitle>
-                <CardDescription>Link Hub partners with their corresponding Booking partners.</CardDescription>
-            </CardHeader>
-            <CardContent>
-                <p>Define the relationships between your operational hubs and booking offices to ensure correct manifest routing.</p>
-            </CardContent>
-            <CardFooter className="mt-auto">
-                <Link href="/admin/partners" className="w-full">
-                    <button className="w-full inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-primary text-primary-foreground hover:bg-primary/90 h-10 px-4 py-2">
-                        Manage Partners <ArrowRight className="h-4 w-4" />
-                    </button>
-                </Link>
-            </CardFooter>
-        </Card>
-
-        <Card className="flex flex-col">
-            <CardHeader>
-                <CardTitle className="flex items-center gap-2">
                 <List className="h-6 w-6" />
                 <span>Waybill Inventory</span>
                 </CardTitle>
