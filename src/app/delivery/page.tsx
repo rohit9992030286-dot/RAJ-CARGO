@@ -43,8 +43,6 @@ export default function DeliveryPage() {
   const { user, isLoading: isAuthLoading } = useAuth();
 
   const waybillsForDelivery = useMemo(() => {
-    if (isAuthLoading || !manifestsLoaded || !waybillsLoaded) return [];
-
     const waybillsToDeliver: WaybillForDelivery[] = [];
     
     manifests.forEach(manifest => {
@@ -61,7 +59,7 @@ export default function DeliveryPage() {
 
     return waybillsToDeliver;
 
-  }, [manifests, getWaybillById, isAuthLoading, manifestsLoaded, waybillsLoaded]);
+  }, [manifests, getWaybillById]);
   
   const handleUpdateStatus = (id: string, status: Waybill['status']) => {
     const waybill = allWaybills.find(w => w.id === id);

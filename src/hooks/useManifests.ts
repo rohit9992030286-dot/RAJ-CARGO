@@ -17,6 +17,7 @@ export function useManifests() {
   const filteredManifests = useMemo(() => {
     if (!user || !context.isLoaded) return [];
 
+    // Admin sees everything
     if (user.role === 'admin') {
       return context.manifests;
     }
@@ -29,18 +30,14 @@ export function useManifests() {
         return context.manifests.filter(manifest => manifest.creatorPartnerCode === userPartnerCode);
     }
     
-    // For hub users, show all booking manifests that are in-progress and all hub-originated manifests.
+    // For hub users, show all booking manifests and all hub-originated manifests.
     if (userRoles.includes('hub')) {
-        return context.manifests.filter(manifest => {
-            const isDispatchedBookingManifest = manifest.origin === 'booking' && (manifest.status === 'Dispatched' || manifest.status === 'Received');
-            const isHubManifest = manifest.origin === 'hub';
-            return isDispatchedBookingManifest || isHubManifest;
-        });
+        return context.manifests;
     }
 
     // For delivery users, show manifests assigned to their partner code.
     if (userRoles.includes('delivery')) {
-        return context.manifests.filter(manifest => manifest.deliveryPartnerCode === userPartnerCode && manifest.status === 'Dispatched');
+        return context.manifests.filter(manifest => manifest.deliveryPartnerCode === userPartnerCode);
     }
 
     return [];
