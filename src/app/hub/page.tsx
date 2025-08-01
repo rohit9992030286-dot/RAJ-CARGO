@@ -49,7 +49,7 @@ export default function HubPage() {
     router.push(`/hub/scan/${id}`);
   };
 
-  const incomingManifests = manifests.filter(m => m.status === 'Dispatched');
+  const incomingManifests = manifests.filter(m => m.status === 'Dispatched' || m.status === 'Received');
   
   return (
     <div className="space-y-8">
@@ -101,7 +101,7 @@ export default function HubPage() {
         <CardHeader>
           <CardTitle>Incoming Manifests for Verification</CardTitle>
           <CardDescription>
-            There are {incomingManifests.length} dispatched manifest(s) awaiting verification at the hub.
+            There are {incomingManifests.filter(m => m.status === 'Dispatched').length} dispatched manifest(s) awaiting verification at the hub.
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -118,8 +118,8 @@ export default function HubPage() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {manifests.length > 0 ? (
-                manifests.map((manifest) => {
+              {incomingManifests.length > 0 ? (
+                incomingManifests.map((manifest) => {
                   const details = getManifestDetails(manifest);
                   return (
                     <TableRow key={manifest.id}>
