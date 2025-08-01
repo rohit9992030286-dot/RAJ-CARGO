@@ -143,6 +143,7 @@ export default function Home() {
         <div className="fixed inset-0 w-full h-full -z-10 overflow-hidden">
             <Image
                 src="https://placehold.co/1920x1080.png"
+                data-ai-hint="abstract background"
                 alt="Abstract background"
                 fill
                 className="object-cover opacity-5 dark:opacity-[0.02]"
