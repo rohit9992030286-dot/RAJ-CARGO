@@ -48,8 +48,6 @@ export default function HubPage() {
     router.push(`/hub/scan/${id}`);
   };
   
-  const incomingManifests = manifests.filter(m => m.origin === 'booking' && (m.status === 'Dispatched' || m.status === 'Received'));
-
   return (
     <div className="space-y-8">
       <div>
@@ -61,7 +59,7 @@ export default function HubPage() {
         <CardHeader>
           <CardTitle>Incoming Manifests</CardTitle>
           <CardDescription>
-            There are {incomingManifests.filter(m => m.status === 'Dispatched').length} dispatched manifest(s) awaiting verification at the hub.
+            There are {manifests.filter(m => m.status === 'Dispatched').length} dispatched manifest(s) awaiting verification at the hub.
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -78,8 +76,8 @@ export default function HubPage() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {incomingManifests.length > 0 ? (
-                incomingManifests.map((manifest) => {
+              {manifests.length > 0 ? (
+                manifests.map((manifest) => {
                   const details = getManifestDetails(manifest);
                   return (
                     <TableRow key={manifest.id}>
@@ -108,9 +106,9 @@ export default function HubPage() {
                 <TableRow>
                   <TableCell colSpan={7} className="h-24 text-center">
                     <div className="text-center py-8">
-                        <Truck className="mx-auto h-12 w-12 text-muted-foreground" />
-                        <h3 className="mt-4 text-lg font-semibold">No Incoming Manifests</h3>
-                        <p className="mt-1 text-sm text-muted-foreground">There are currently no manifests marked as 'Dispatched' from booking partners.</p>
+                        <CheckCircle className="mx-auto h-12 w-12 text-green-500" />
+                        <h3 className="mt-4 text-lg font-semibold">All Verifications Complete</h3>
+                        <p className="mt-1 text-sm text-muted-foreground">You are all caught up! There are no incoming manifests that require your attention.</p>
                     </div>
                   </TableCell>
                 </TableRow>
