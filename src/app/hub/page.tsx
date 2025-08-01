@@ -18,11 +18,6 @@ export default function HubPage() {
   const { manifests, isLoaded: manifestsLoaded } = useManifests();
   const { waybills, isLoaded: waybillsLoaded } = useWaybills();
   
-  const incomingManifests = useMemo(() => {
-    // Hub users should only see manifests from booking partners that are dispatched to them, or already received by them.
-    return manifests.filter(m => m.origin === 'booking' && (m.status === 'Dispatched' || m.status === 'Received'));
-  }, [manifests]);
-
   const getManifestDetails = useMemo(() => {
     const waybillMap = new Map(waybills.map(w => [w.id, w]));
 
@@ -52,6 +47,8 @@ export default function HubPage() {
   const handleVerifyManifest = (id: string) => {
     router.push(`/hub/scan/${id}`);
   };
+  
+  const incomingManifests = manifests.filter(m => m.origin === 'booking' && (m.status === 'Dispatched' || m.status === 'Received'));
 
   return (
     <div className="space-y-8">
