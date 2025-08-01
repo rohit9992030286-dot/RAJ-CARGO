@@ -30,10 +30,6 @@ export function useManifests() {
         return manifests.filter(manifest => manifest.creatorPartnerCode === userPartnerCode);
     }
     
-    if (userRoles.includes('delivery')) {
-        return manifests.filter(manifest => manifest.deliveryPartnerCode === userPartnerCode);
-    }
-
     return [];
 
   }, [manifests, user, isLoaded]);

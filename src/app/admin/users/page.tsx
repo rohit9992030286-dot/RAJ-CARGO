@@ -40,7 +40,6 @@ const userFormSchema = z.object({
 type UserFormData = z.infer<typeof userFormSchema>;
 const roles = [
     { id: 'booking', label: 'Booking', icon: BookCopy },
-    { id: 'delivery', label: 'Delivery', icon: Truck },
 ];
 
 export default function UserManagementPage() {
@@ -86,7 +85,7 @@ export default function UserManagementPage() {
         const userToUpdate: NewUser = {
             ...editingUser,
             ...data,
-            roles: data.roles as ('booking' | 'delivery')[],
+            roles: data.roles as ('booking')[],
         };
         const success = updateUser(userToUpdate);
          if (success) {
@@ -101,7 +100,7 @@ export default function UserManagementPage() {
         const newUser: NewUser = {
             ...data,
             role: 'staff' as 'staff',
-            roles: data.roles as ('booking' | 'delivery')[],
+            roles: data.roles as ('booking')[],
         };
 
         const success = addUser(newUser);

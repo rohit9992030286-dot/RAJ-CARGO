@@ -54,7 +54,6 @@ function LoginPageContent() {
       } else if (loggedInUser.roles.length === 1) {
         const role = loggedInUser.roles[0];
         if (role === 'booking') router.push('/booking');
-        else if (role === 'delivery') router.push('/delivery');
         else router.push('/dashboard'); // Fallback
       } else {
          router.push('/dashboard'); // Fallback for users with no roles

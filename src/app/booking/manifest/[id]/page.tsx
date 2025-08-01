@@ -49,17 +49,6 @@ export default function EditManifestPage() {
   const manifestWaybills = manifest?.waybillIds.map(id => getWaybillById(id)).filter((w): w is Waybill => !!w) || [];
   const isDispatched = manifest?.status === 'Dispatched';
 
-  const deliveryPartners = useMemo(() => {
-    // Get unique partner codes from users who have delivery role
-    const partnerCodes = new Set(
-        users
-        .filter(u => u.roles.includes('delivery') && u.partnerCode)
-        .map(u => u.partnerCode!)
-    );
-    return Array.from(partnerCodes);
-  }, [users]);
-
-
   const handleAddWaybill = () => {
     setError(null);
     if (!waybillNumber) {
@@ -121,11 +110,7 @@ export default function EditManifestPage() {
     updateManifest(dispatchedManifest);
     setManifest(dispatchedManifest); // Update local state to reflect change
 
-    const dispatchMessage = manifest.deliveryPartnerCode
-      ? `Dispatched directly to ${manifest.deliveryPartnerCode}.`
-      : 'Dispatched to Hub for processing.';
-
-    toast({ title: "Manifest Dispatched", description: `${manifestWaybills.length} waybills are now in transit. ${dispatchMessage}` });
+    toast({ title: "Manifest Dispatched", description: `${manifestWaybills.length} waybills are now in transit. ` });
   };
 
   const handlePrintManifest = () => {
@@ -199,7 +184,7 @@ export default function EditManifestPage() {
           </CardDescription>
         </CardHeader>
         <CardContent>
-            <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
                 <div>
                     <Label htmlFor="vehicle-no">Vehicle No.</Label>
                     <Input
@@ -229,29 +214,6 @@ export default function EditManifestPage() {
                         onChange={(e) => setManifest({...manifest, driverContact: e.target.value})}
                         disabled={isDispatched}
                     />
-                </div>
-                <div>
-                    <Label htmlFor="delivery-partner">Direct to Delivery Partner (Optional)</Label>
-                    <Select 
-                      value={manifest.deliveryPartnerCode || ''} 
-                      onValueChange={(value) => setManifest({...manifest, deliveryPartnerCode: value === 'hub_default' ? undefined : value})}
-                      disabled={isDispatched}
-                    >
-                        <SelectTrigger id="delivery-partner">
-                            <SelectValue placeholder="Route to Hub (Default)" />
-                        </SelectTrigger>
-                        <SelectContent>
-                             <SelectItem value="hub_default">Route to Hub (Default)</SelectItem>
-                            {deliveryPartners.map(code => (
-                                <SelectItem key={code} value={code}>
-                                    <div className="flex items-center gap-2">
-                                        <Briefcase className="h-4 w-4 text-muted-foreground" />
-                                        {code}
-                                    </div>
-                                </SelectItem>
-                            ))}
-                        </SelectContent>
-                    </Select>
                 </div>
             </div>
           
@@ -317,4 +279,3 @@ export default function EditManifestPage() {
     </div>
   );
 }
-

@@ -35,7 +35,6 @@ export default function DashboardPage() {
     }
 
   const hasBookingRole = user.roles?.includes('booking');
-  const hasDeliveryRole = user.roles?.includes('delivery');
   const isAdmin = user.role === 'admin';
 
   return (
@@ -75,29 +74,6 @@ export default function DashboardPage() {
                             <Link href="/booking" className="w-full">
                                 <Button className="w-full">
                                     Go to Booking <ArrowRight className="ml-2 h-4 w-4" />
-                                </Button>
-                            </Link>
-                        </CardFooter>
-                    </Card>
-                )}
-                {hasDeliveryRole && (
-                    <Card className="hover:shadow-lg transition-shadow">
-                        <CardHeader>
-                            <div className="flex items-center gap-4">
-                                <Truck className="h-10 w-10 text-primary" />
-                                <div>
-                                    <CardTitle className="text-2xl">Delivery Operations</CardTitle>
-                                    <CardDescription>Manage last-mile delivery to customers.</CardDescription>
-                                </div>
-                            </div>
-                        </CardHeader>
-                        <CardContent>
-                            <p>View waybills ready for final delivery, update their status, and manage your delivery personnel and routes.</p>
-                        </CardContent>
-                        <CardFooter>
-                            <Link href="/delivery" className="w-full">
-                                <Button className="w-full">
-                                    Go to Delivery <ArrowRight className="ml-2 h-4 w-4" />
                                 </Button>
                             </Link>
                         </CardFooter>
