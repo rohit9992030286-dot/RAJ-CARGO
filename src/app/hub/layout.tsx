@@ -30,26 +30,6 @@ function NavLinks({ onLinkClick, onLogout }: { onLinkClick?: () => void, onLogou
                     <span>Hub Dashboard</span>
                 </Link>
                 </li>
-                <li>
-                <Link href="/hub" onClick={onLinkClick} className="flex items-center gap-3 p-3 rounded-lg hover:bg-primary/10 hover:text-primary transition-colors">
-                    <ScanLine className="h-5 w-5" />
-                    <span>Incoming Verification</span>
-                </Link>
-                </li>
-                <li>
-                <Link href="/hub/dispatch" onClick={onLinkClick} className="flex items-center gap-3 p-3 rounded-lg hover:bg-primary/10 hover:text-primary transition-colors">
-                    <Truck className="h-5 w-5" />
-                    <span>Outbound Dispatch</span>
-                </Link>
-                </li>
-                {user?.role === 'admin' && (
-                  <li>
-                    <Link href="/hub/partners" onClick={onLinkClick} className="flex items-center gap-3 p-3 rounded-lg hover:bg-primary/10 hover:text-primary transition-colors">
-                        <Link2 className="h-5 w-5" />
-                        <span>Partner Management</span>
-                    </Link>
-                  </li>
-                )}
             </ul>
             <div className="space-y-2 border-t pt-4">
                 <Link href="/booking/settings" onClick={onLinkClick} className="flex items-center gap-3 p-3 rounded-lg hover:bg-primary/10 hover:text-primary transition-colors">

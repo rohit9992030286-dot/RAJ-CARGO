@@ -1,14 +1,15 @@
 
 'use client';
 
+import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useManifests } from '@/hooks/useManifests';
 import { useWaybills } from '@/hooks/useWaybills';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
-import { Eye, Truck, Loader2, ScanLine, CheckCircle } from 'lucide-react';
+import { Eye, Truck, Loader2, ScanLine, CheckCircle, ArrowRight } from 'lucide-react';
 import { Manifest } from '@/types/manifest';
 import { format } from 'date-fns';
 import { useMemo } from 'react';
@@ -47,19 +48,60 @@ export default function HubPage() {
   const handleVerifyManifest = (id: string) => {
     router.push(`/hub/scan/${id}`);
   };
+
+  const incomingManifests = manifests.filter(m => m.status === 'Dispatched');
   
   return (
     <div className="space-y-8">
       <div>
         <h1 className="text-3xl font-bold">Hub Operations Dashboard</h1>
-        <p className="text-muted-foreground">Manage and verify incoming manifests that have been dispatched.</p>
+        <p className="text-muted-foreground">Manage incoming verifications and outbound dispatches.</p>
+      </div>
+
+      <div className="grid md:grid-cols-2 gap-6">
+        <Card className="flex flex-col hover:shadow-lg transition-shadow">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <ScanLine className="h-6 w-6 text-primary" />
+              <span>Incoming Verification</span>
+            </CardTitle>
+            <CardDescription>Verify manifests that have arrived at the hub.</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <p>Scan waybills from incoming trucks to confirm receipt of all packages.</p>
+          </CardContent>
+          <CardFooter className="mt-auto">
+            <Button className="w-full" onClick={() => document.getElementById('incoming-manifests')?.focus()}>
+              View Incoming Manifests
+            </Button>
+          </CardFooter>
+        </Card>
+        <Card className="flex flex-col hover:shadow-lg transition-shadow">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Truck className="h-6 w-6 text-primary" />
+              <span>Outbound Dispatch</span>
+            </CardTitle>
+            <CardDescription>Create new manifests for the next destination.</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <p>Group verified waybills and dispatch them to the next hub or delivery center.</p>
+          </CardContent>
+          <CardFooter className="mt-auto">
+            <Link href="/hub/dispatch" className="w-full">
+              <Button className="w-full">
+                Go to Dispatch <ArrowRight className="ml-2 h-4 w-4" />
+              </Button>
+            </Link>
+          </CardFooter>
+        </Card>
       </div>
       
-      <Card>
+      <Card id="incoming-manifests" tabIndex={-1} className="focus:ring-2 focus:ring-primary focus:outline-none">
         <CardHeader>
-          <CardTitle>Incoming Manifests</CardTitle>
+          <CardTitle>Incoming Manifests for Verification</CardTitle>
           <CardDescription>
-            There are {manifests.filter(m => m.status === 'Dispatched').length} dispatched manifest(s) awaiting verification at the hub.
+            There are {incomingManifests.length} dispatched manifest(s) awaiting verification at the hub.
           </CardDescription>
         </CardHeader>
         <CardContent>
