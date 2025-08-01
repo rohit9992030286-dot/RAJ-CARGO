@@ -56,22 +56,16 @@ export function useManifests() {
     if (userIsHub) {
         const associations = getAssociations();
         const associatedBookingPartners = associations[user.partnerCode || ''] || [];
-        const isAssociatedHub = Object.values(associations).flat().includes(user.partnerCode);
 
         return context.manifests.filter(manifest => {
             // Show incoming manifests from booking partners this hub is associated with.
             if (manifest.origin === 'booking' && (manifest.status === 'Dispatched' || manifest.status === 'Received')) {
-                // If this hub has been explicitly assigned booking partners, check if the manifest creator is one of them.
-                if (associatedBookingPartners.length > 0) {
-                    return associatedBookingPartners.includes(manifest.creatorPartnerCode);
+                 // If no associations are defined at all, hub sees everything by default (catch-all)
+                if (Object.keys(associations).length === 0) {
+                    return true;
                 }
-                // If this hub has NO booking partners assigned to it, but associations EXIST for OTHER hubs,
-                // it should not see any booking manifests (it's not a catch-all).
-                if(Object.keys(associations).length > 0) {
-                    return false;
-                }
-                // If NO associations are defined in the system AT ALL, the hub acts as a catch-all and sees everything.
-                return true;
+                // If associations are defined, hub only sees manifests from its linked booking partners
+                return associatedBookingPartners.includes(manifest.creatorPartnerCode);
             }
             
             // Show all manifests created by this hub for outbound dispatch.

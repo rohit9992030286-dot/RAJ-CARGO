@@ -125,7 +125,7 @@ export default function PartnerManagementPage() {
             <Card>
                 <CardHeader>
                     <CardTitle>Create New Association</CardTitle>
-                    <CardDescription>Select a Hub Partner and link them with a Booking Partner.</CardDescription>
+                    <CardDescription>Select a Hub Partner and link them with one or more Booking Partners.</CardDescription>
                 </CardHeader>
                 <CardContent className="grid sm:grid-cols-3 gap-4">
                      <Select value={selectedHub || ''} onValueChange={setSelectedHub}>
@@ -138,7 +138,7 @@ export default function PartnerManagementPage() {
                     </Select>
                      <Select value={selectedBookingPartner || ''} onValueChange={setSelectedBookingPartner} disabled={!selectedHub}>
                         <SelectTrigger>
-                            <SelectValue placeholder="Select Booking Partner" />
+                            <SelectValue placeholder="Select Booking Partner to Link" />
                         </SelectTrigger>
                         <SelectContent>
                             {availableBookingPartners.map(code => <SelectItem key={code} value={code}>{code}</SelectItem>)}
