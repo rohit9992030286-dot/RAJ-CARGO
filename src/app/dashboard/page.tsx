@@ -3,12 +3,11 @@
 
 import Link from 'next/link';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
-import { ArrowRight, BookCopy, Cpu, Truck, Shield, Loader2, LogOut } from 'lucide-react';
+import { ArrowRight, BookCopy, Cpu, Shield, Loader2, LogOut } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/hooks/useAuth';
 import { useRouter } from 'next/navigation';
 import { useEffect } from 'react';
-import Image from 'next/image';
 import { Logo } from '@/components/Logo';
 
 export default function DashboardPage() {
