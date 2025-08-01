@@ -25,9 +25,9 @@ const BorderedBox = ({ children, style }: { children: React.ReactNode; style?: R
 );
 
 
-export function WaybillStickerCustom({ waybill, boxNumber, totalBoxes, storeCode }: WaybillStickerCustomProps) {
-
-  const boxIdBarcode = `${waybill.waybillNumber}${String(boxNumber).padStart(4, '0')}`;
+export function WaybillStickerCustom({ waybill, boxNumber = 1, totalBoxes = 1, storeCode }: WaybillStickerCustomProps) {
+  // Unique ID for each box barcode
+  const boxIdBarcode = `${waybill.waybillNumber}-${boxNumber}`;
 
   return (
     <div style={{
@@ -38,7 +38,7 @@ export function WaybillStickerCustom({ waybill, boxNumber, totalBoxes, storeCode
       fontFamily: 'sans-serif',
       display: 'flex',
       flexDirection: 'column',
-      padding: '2cm 0.5cm 0.5cm 0.5cm',
+      padding: '0.5cm',
       boxSizing: 'border-box',
       position: 'relative'
     }}>
@@ -110,7 +110,8 @@ export function WaybillStickerCustom({ waybill, boxNumber, totalBoxes, storeCode
                     padding: '2px',
                     fontSize: '10px',
                     fontWeight: 'bold',
-                    justifyContent: 'flex-start'
+                    justifyContent: 'flex-start',
+                    alignItems: 'flex-start',
                 }}>
                     {waybill.receiverName}
                 </BorderedBox>
@@ -130,7 +131,7 @@ export function WaybillStickerCustom({ waybill, boxNumber, totalBoxes, storeCode
 
                 {/* Box Number */}
                 <BorderedBox style={{ height: '0.7cm', fontSize: '10px', fontWeight: 'bold', borderTop: 'none', borderRight: 'none', borderLeft: 'none' }}>
-                    BOX: {boxNumber || 'N/A'} OF {totalBoxes || 'N/A'}
+                    BOX: {boxNumber} OF {totalBoxes}
                 </BorderedBox>
                 
                 {/* Truck Illustration */}
@@ -160,15 +161,19 @@ export function WaybillStickerCustom({ waybill, boxNumber, totalBoxes, storeCode
                     borderTop: 'none',
                     borderRight: 'none',
                     borderBottom: 'none',
-                    borderLeft: 'none'
+                    borderLeft: 'none',
+                    flexDirection: 'column',
+                    justifyContent: 'center',
+                    alignItems: 'center'
                 }}>
                     <Barcode
                         value={boxIdBarcode}
-                        height={40}
+                        height={35}
                         width={1.2}
                         displayValue={false}
                         margin={0}
                     />
+                    <span style={{ fontSize: '8px', letterSpacing: '0.1em', marginTop: '2px' }}>{boxIdBarcode}</span>
                 </BorderedBox>
             </div>
         </div>

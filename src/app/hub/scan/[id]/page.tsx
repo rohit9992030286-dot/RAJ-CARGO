@@ -18,6 +18,15 @@ import { Input } from '@/components/ui/input';
 import { cn } from '@/lib/utils';
 import { Progress } from '@/components/ui/progress';
 
+type ExpectedBox = {
+  id: string; // waybillNumber + boxNumber
+  waybillNumber: string;
+  receiverName: string;
+  receiverCity: string;
+  boxNumber: number;
+  totalBoxes: number;
+};
+
 function ScanManifestPage() {
   const router = useRouter();
   const params = useParams();
@@ -29,7 +38,7 @@ function ScanManifestPage() {
   const { getWaybillById, isLoaded: waybillsLoaded } = useWaybills();
   
   const [manifest, setManifest] = useState<Manifest | null>(null);
-  const [scannedWaybillNumbers, setScannedWaybillNumbers] = useState<Set<string>>(new Set());
+  const [scannedBoxIds, setScannedBoxIds] = useState<Set<string>>(new Set());
   const [inputValue, setInputValue] = useState('');
   const [error, setError] = useState<string | null>(null);
   const scanInputRef = useRef<HTMLInputElement>(null);
@@ -46,26 +55,50 @@ function ScanManifestPage() {
     }
   }, [manifestId, manifestsLoaded, getManifestById, router, toast]);
 
-  const manifestWaybills = useMemo(() => 
-    manifest?.waybillIds.map(id => getWaybillById(id)).filter((w): w is Waybill => !!w) || [],
-  [manifest, getWaybillById]);
+  const expectedBoxes = useMemo(() => {
+    if (!manifest) return [];
+    
+    const boxes: ExpectedBox[] = [];
+    manifest.waybillIds.forEach(waybillId => {
+      const waybill = getWaybillById(waybillId);
+      if (waybill) {
+        for (let i = 1; i <= waybill.numberOfBoxes; i++) {
+          boxes.push({
+            id: `${waybill.waybillNumber}-${i}`,
+            waybillNumber: waybill.waybillNumber,
+            receiverName: waybill.receiverName,
+            receiverCity: waybill.receiverCity,
+            boxNumber: i,
+            totalBoxes: waybill.numberOfBoxes,
+          });
+        }
+      }
+    });
+    return boxes;
+  }, [manifest, getWaybillById]);
+  
 
-  const handleVerifyWaybill = () => {
+  const handleVerifyBox = () => {
       setError(null);
-      if (!inputValue.trim()) {
-          setError("Please enter a waybill number to verify.");
+      const scannedId = inputValue.trim();
+      if (!scannedId) {
+          setError("Please scan or enter a box ID.");
           return;
       }
       
-      const waybillExistsInManifest = manifestWaybills.some(wb => wb.waybillNumber === inputValue.trim());
+      const boxExistsInManifest = expectedBoxes.some(box => box.id === scannedId);
 
-      if (waybillExistsInManifest) {
-          setScannedWaybillNumbers(prev => new Set(prev).add(inputValue.trim()));
-          setInputValue('');
-          toast({ title: "Verified", description: `Waybill #${inputValue.trim()} confirmed.`});
+      if (boxExistsInManifest) {
+          if (scannedBoxIds.has(scannedId)) {
+            setError(`Box ID #${scannedId} has already been verified.`);
+          } else {
+            setScannedBoxIds(prev => new Set(prev).add(scannedId));
+            toast({ title: "Verified", description: `Box #${scannedId} confirmed.` });
+          }
       } else {
-          setError(`Waybill #${inputValue.trim()} is not part of this manifest.`);
+          setError(`Box with ID #${scannedId} is not part of this manifest.`);
       }
+      setInputValue('');
       scanInputRef.current?.focus();
   };
 
@@ -74,17 +107,16 @@ function ScanManifestPage() {
       updateManifest({ ...manifest, status: 'Received' });
       toast({
         title: "Manifest Arrival Confirmed",
-        description: `All ${manifestWaybills.length} waybills in manifest M-${manifest.id.substring(0,8)} have been marked as received.`,
+        description: `All ${expectedBoxes.length} boxes in manifest M-${manifest.id.substring(0,8)} have been marked as received.`,
       });
       router.push('/hub');
     }
   };
 
-  const totalBoxes = manifestWaybills.reduce((sum, wb) => sum + wb.numberOfBoxes, 0);
-  const totalWaybills = manifestWaybills.length;
-  const verifiedCount = scannedWaybillNumbers.size;
-  const verificationProgress = totalWaybills > 0 ? (verifiedCount / totalWaybills) * 100 : 0;
-  const allVerified = totalWaybills > 0 && totalWaybills === verifiedCount;
+  const totalBoxes = expectedBoxes.length;
+  const verifiedCount = scannedBoxIds.size;
+  const verificationProgress = totalBoxes > 0 ? (verifiedCount / totalBoxes) * 100 : 0;
+  const allVerified = totalBoxes > 0 && totalBoxes === verifiedCount;
 
   if (!waybillsLoaded || !manifestsLoaded || !manifest) {
     return (
@@ -121,20 +153,20 @@ function ScanManifestPage() {
             <Card>
                 <CardHeader>
                     <CardTitle>Scan & Verify</CardTitle>
-                    <CardDescription>Enter waybill number to confirm arrival.</CardDescription>
+                    <CardDescription>Scan each box sticker to confirm arrival.</CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
                     <div className="flex gap-2">
                         <Input
                             ref={scanInputRef}
-                            placeholder="Scan or enter number"
+                            placeholder="Scan or enter box barcode"
                             value={inputValue}
                             onChange={(e) => setInputValue(e.target.value)}
-                            onKeyDown={(e) => { if (e.key === 'Enter') handleVerifyWaybill(); }}
+                            onKeyDown={(e) => { if (e.key === 'Enter') handleVerifyBox(); }}
                             disabled={allVerified}
                             autoFocus
                         />
-                        <Button onClick={handleVerifyWaybill} disabled={allVerified}>
+                        <Button onClick={handleVerifyBox} disabled={allVerified}>
                             <ScanLine className="mr-2 h-4 w-4" /> Verify
                         </Button>
                     </div>
@@ -155,17 +187,17 @@ function ScanManifestPage() {
                 <CardContent className="space-y-4">
                      <div>
                         <div className="flex justify-between mb-1 text-sm font-medium">
-                            <span>Waybills Verified</span>
-                            <span>{verifiedCount} of {totalWaybills}</span>
+                            <span>Boxes Verified</span>
+                            <span>{verifiedCount} of {totalBoxes}</span>
                         </div>
                         <Progress value={verificationProgress} />
                     </div>
 
                     {allVerified && (
-                         <Alert variant="default" className="bg-green-50 border-green-200">
+                         <Alert variant="default" className="bg-green-50 border-green-200 dark:bg-green-900/20 dark:border-green-800">
                             <CheckCircle className="h-4 w-4 text-green-600" />
-                            <AlertTitle className="text-green-800">All Verified!</AlertTitle>
-                            <AlertDescription className="text-green-700">
+                            <AlertTitle className="text-green-800 dark:text-green-300">All Verified!</AlertTitle>
+                            <AlertDescription className="text-green-700 dark:text-green-400">
                                 You can now confirm the full shipment arrival.
                             </AlertDescription>
                         </Alert>
@@ -184,25 +216,25 @@ function ScanManifestPage() {
         
         <Card className="lg:col-span-2">
             <CardHeader>
-            <CardTitle>Expected Waybills in Manifest</CardTitle>
-            <CardDescription>Total of {totalBoxes} box(es).</CardDescription>
+            <CardTitle>Expected Boxes in Manifest</CardTitle>
+            <CardDescription>Total of {totalBoxes} box(es) expected.</CardDescription>
             </CardHeader>
             <CardContent>
             <Table>
                 <TableHeader>
                 <TableRow>
                     <TableHead className="w-[100px]">Status</TableHead>
-                    <TableHead>Waybill #</TableHead>
+                    <TableHead>Box ID</TableHead>
                     <TableHead>Receiver</TableHead>
                     <TableHead>Destination</TableHead>
-                    <TableHead className="text-center">Boxes</TableHead>
+                    <TableHead className="text-center">Box</TableHead>
                 </TableRow>
                 </TableHeader>
                 <TableBody>
-                {manifestWaybills.map((waybill) => {
-                    const isVerified = scannedWaybillNumbers.has(waybill.waybillNumber);
+                {expectedBoxes.map((box) => {
+                    const isVerified = scannedBoxIds.has(box.id);
                     return (
-                        <TableRow key={waybill.id} className={cn(isVerified && 'bg-green-50/50 dark:bg-green-900/20')}>
+                        <TableRow key={box.id} className={cn(isVerified && 'bg-green-50/50 dark:bg-green-900/20')}>
                             <TableCell>
                                 {isVerified ? (
                                     <div className="flex items-center gap-2 text-green-600 font-medium">
@@ -214,13 +246,13 @@ function ScanManifestPage() {
                                     </div>
                                 )}
                             </TableCell>
-                            <TableCell className="font-medium">{waybill.waybillNumber}</TableCell>
-                            <TableCell>{waybill.receiverName}</TableCell>
-                            <TableCell>{waybill.receiverCity}</TableCell>
+                            <TableCell className="font-medium font-mono text-xs">{box.id}</TableCell>
+                            <TableCell>{box.receiverName}</TableCell>
+                            <TableCell>{box.receiverCity}</TableCell>
                             <TableCell className="text-center">
                                 <div className="flex items-center justify-center gap-2">
                                     <Box className="h-4 w-4 text-muted-foreground" />
-                                    {waybill.numberOfBoxes}
+                                    {box.boxNumber} of {box.totalBoxes}
                                 </div>
                             </TableCell>
                         </TableRow>
