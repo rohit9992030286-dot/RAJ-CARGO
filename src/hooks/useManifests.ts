@@ -30,14 +30,6 @@ export function useManifests() {
         return manifests.filter(manifest => manifest.creatorPartnerCode === userPartnerCode);
     }
     
-    if (userRoles.includes('hub')) {
-        // Hub users see all dispatched manifests from booking and all hub-originated manifests.
-        return manifests.filter(m => 
-            (m.origin === 'booking') || 
-            (m.origin === 'hub')
-        );
-    }
-
     if (userRoles.includes('delivery')) {
         return manifests.filter(manifest => manifest.deliveryPartnerCode === userPartnerCode);
     }

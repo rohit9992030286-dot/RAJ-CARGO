@@ -92,27 +92,7 @@ export default function AdminDashboardPage() {
                 </Link>
             </CardFooter>
         </Card>
-
-        <Card className="flex flex-col">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <AlertTriangle className="h-6 w-6" />
-              <span>Shortage Report</span>
-            </CardTitle>
-            <CardDescription>Review manifests with incomplete or missing boxes.</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <p>Track all manifests that were marked as 'Short Received' during hub verification to investigate and resolve discrepancies.</p>
-          </CardContent>
-           <CardFooter className="mt-auto">
-             <Link href="/admin/shortages" className="w-full">
-                <button className="w-full inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-primary text-primary-foreground hover:bg-primary/90 h-10 px-4 py-2">
-                    View Shortages <ArrowRight className="h-4 w-4" />
-                </button>
-             </Link>
-          </CardFooter>
-        </Card>
-
+        
         <Card className="flex flex-col">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">

@@ -9,7 +9,7 @@ export const USERS_STORAGE_KEY = 'rajcargo-users';
 export interface User {
   username: string;
   role: 'admin' | 'staff';
-  roles: ('booking' | 'hub' | 'delivery')[];
+  roles: ('booking' | 'delivery')[];
   partnerCode?: string;
 }
 
@@ -35,7 +35,7 @@ export const DEFAULT_ADMIN_USER: NewUser = {
   username: 'admin',
   password: 'admin',
   role: 'admin' as 'admin',
-  roles: ['booking', 'hub', 'delivery'],
+  roles: ['booking', 'delivery'],
   partnerCode: 'ALL_ACCESS',
 };
 
@@ -55,14 +55,16 @@ export function useProvideAuth() {
         // Ensure all users have a roles array for backward compatibility
         const migratedUsers = parsedUsers.map((u: NewUser) => ({
           ...u,
-          roles: u.roles || (u.role === 'admin' ? ['booking', 'hub', 'delivery'] : [])
+          roles: u.roles?.filter(r => r !== 'hub') || (u.role === 'admin' ? ['booking', 'delivery'] : [])
         }));
         setUsers(migratedUsers);
       }
 
       const storedAuth = localStorage.getItem(AUTH_STORAGE_KEY);
       if (storedAuth) {
-        setUser(JSON.parse(storedAuth));
+        const parsedUser = JSON.parse(storedAuth);
+        parsedUser.roles = parsedUser.roles?.filter((r: string) => r !== 'hub');
+        setUser(parsedUser);
       }
     } catch (error) {
       console.error("Failed to initialize auth from local storage", error);
@@ -86,7 +88,7 @@ export function useProvideAuth() {
       const loggedInUser: User = { 
         username: userToLogin.username, 
         role: userToLogin.role,
-        roles: userToLogin.roles || [],
+        roles: userToLogin.roles?.filter((r:string) => r !== 'hub') || [],
         partnerCode: userToLogin.partnerCode
       };
       localStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify(loggedInUser));
@@ -150,7 +152,7 @@ export const useAuth = () => {
   return context;
 };
 
-export function AuthProvider({ children }: { children: React.ReactNode }) {
+export function AuthProvider({ children }: { children: React.Node }) {
     const auth = useProvideAuth();
     return (
         <AuthContext.Provider value={auth}>

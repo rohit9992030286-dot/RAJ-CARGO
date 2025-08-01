@@ -9,7 +9,7 @@ export const manifestSchema = z.object({
   driverContact: z.string().optional(),
   waybillIds: z.array(z.string().uuid()),
   status: z.enum(['Draft', 'Dispatched', 'Received', 'Short Received']).default('Draft'),
-  origin: z.enum(['booking', 'hub']).default('booking'),
+  origin: z.enum(['booking']).default('booking'),
   deliveryPartnerCode: z.string().optional(),
   creatorPartnerCode: z.string(),
   verifiedBoxIds: z.array(z.string()).optional(),
