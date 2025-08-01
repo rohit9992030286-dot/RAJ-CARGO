@@ -20,6 +20,7 @@ import {
 import { Badge } from '@/components/ui/badge';
 import { format } from 'date-fns';
 import { useAuth } from '@/hooks/useAuth.tsx';
+import { Manifest } from '@/types/manifest';
 
 const statusVariantMap: { [key: string]: 'default' | 'secondary' | 'destructive' | 'outline' } = {
   Delivered: 'default',
@@ -32,6 +33,10 @@ const statusVariantMap: { [key: string]: 'default' | 'secondary' | 'destructive'
 
 const statusOptions: Waybill['status'][] = ['Out for Delivery', 'Delivered', 'Returned'];
 
+interface WaybillForDelivery extends Waybill {
+    manifestDate: string;
+}
+
 export default function DeliveryPage() {
   const { manifests, isLoaded: manifestsLoaded } = useManifests();
   const { allWaybills, updateWaybill, getWaybillById, isLoaded: waybillsLoaded } = useWaybills();
@@ -39,15 +44,23 @@ export default function DeliveryPage() {
 
   const waybillsForDelivery = useMemo(() => {
     if (isAuthLoading || !manifestsLoaded || !waybillsLoaded) return [];
-    
-    // Get IDs of all waybills from manifests assigned to the current delivery partner.
-    const waybillIdsForDelivery = manifests.flatMap(m => m.waybillIds);
-    const uniqueWaybillIds = [...new Set(waybillIdsForDelivery)];
 
-    // Get the waybill objects, filtering for those relevant to delivery operations
-    return uniqueWaybillIds
-      .map(id => getWaybillById(id))
-      .filter((w): w is Waybill => !!w && ['In Transit', 'Out for Delivery', 'Returned'].includes(w.status));
+    const waybillsToDeliver: WaybillForDelivery[] = [];
+    
+    manifests.forEach(manifest => {
+        manifest.waybillIds.forEach(waybillId => {
+            const waybill = getWaybillById(waybillId);
+            if (waybill && ['In Transit', 'Out for Delivery', 'Returned'].includes(waybill.status)) {
+                waybillsToDeliver.push({
+                    ...waybill,
+                    manifestDate: manifest.date,
+                });
+            }
+        });
+    });
+
+    return waybillsToDeliver;
+
   }, [manifests, getWaybillById, isAuthLoading, manifestsLoaded, waybillsLoaded]);
   
   const handleUpdateStatus = (id: string, status: Waybill['status']) => {
@@ -86,6 +99,7 @@ export default function DeliveryPage() {
               <TableHeader>
                 <TableRow>
                   <TableHead>Waybill #</TableHead>
+                  <TableHead>Delivery Date</TableHead>
                   <TableHead>Receiver</TableHead>
                   <TableHead>Address</TableHead>
                   <TableHead>Phone</TableHead>
@@ -96,6 +110,7 @@ export default function DeliveryPage() {
                 {waybillsForDelivery.map((wb) => (
                   <TableRow key={wb.id}>
                     <TableCell className="font-medium">{wb.waybillNumber}</TableCell>
+                    <TableCell>{format(new Date(wb.manifestDate), 'PP')}</TableCell>
                     <TableCell>{wb.receiverName}</TableCell>
                     <TableCell>{wb.receiverAddress}, {wb.receiverCity}, {wb.receiverPincode}</TableCell>
                     <TableCell>{wb.receiverPhone}</TableCell>

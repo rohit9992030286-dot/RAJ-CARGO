@@ -19,23 +19,19 @@ export default function HubPage() {
   const { manifests, isLoaded: manifestsLoaded } = useManifests();
   const { waybills, isLoaded: waybillsLoaded } = useWaybills();
   
-  const getManifestDetails = useMemo(() => {
-    const waybillMap = new Map(waybills.map(w => [w.id, w]));
-
-    return (manifest: Manifest) => {
-        const manifestWaybills = manifest.waybillIds.map(id => waybillMap.get(id)).filter(w => w);
-        const boxCount = manifestWaybills.reduce((total, wb) => total + (wb?.numberOfBoxes || 0), 0);
-        
-        const uniqueCities = [...new Set(manifestWaybills.map(wb => wb?.receiverCity).filter(Boolean))];
-        const destinations = uniqueCities.join(', ') || 'N/A';
-        
-        return {
-            waybillCount: manifestWaybills.length,
-            boxCount,
-            destinations,
-        };
+  const getManifestDetails = (manifest: Manifest) => {
+    const manifestWaybills = manifest.waybillIds.map(id => waybills.find(w => w.id === id)).filter(w => w);
+    const boxCount = manifestWaybills.reduce((total, wb) => total + (wb?.numberOfBoxes || 0), 0);
+    
+    const uniqueCities = [...new Set(manifestWaybills.map(wb => wb?.receiverCity).filter(Boolean))];
+    const destinations = uniqueCities.join(', ') || 'N/A';
+    
+    return {
+        waybillCount: manifestWaybills.length,
+        boxCount,
+        destinations,
     };
-  }, [waybills]);
+  };
 
   if (!manifestsLoaded || !waybillsLoaded) {
     return (
@@ -49,7 +45,7 @@ export default function HubPage() {
     router.push(`/hub/scan/${id}`);
   };
 
-  const incomingManifests = manifests.filter(m => m.origin === 'booking' && m.status !== 'Draft');
+  const incomingManifests = manifests.filter(m => m.origin === 'booking');
   
   return (
     <div className="space-y-8">
@@ -58,7 +54,7 @@ export default function HubPage() {
         <p className="text-muted-foreground">Manage incoming verifications and outbound dispatches.</p>
       </div>
 
-      <div className="grid md:grid-cols-2 gap-6">
+       <div className="grid md:grid-cols-2 gap-6">
         <Card className="flex flex-col hover:shadow-lg transition-shadow">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
