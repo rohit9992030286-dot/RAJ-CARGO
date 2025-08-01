@@ -34,11 +34,11 @@ const statusOptions: Waybill['status'][] = ['Out for Delivery', 'Delivered', 'Re
 
 export default function DeliveryPage() {
   const { manifests, isLoaded: manifestsLoaded } = useManifests();
-  const { waybills, updateWaybill, getWaybillById, isLoaded: waybillsLoaded } = useWaybills();
+  const { allWaybills, updateWaybill, getWaybillById, isLoaded: waybillsLoaded } = useWaybills();
   const { user, isLoading: isAuthLoading } = useAuth();
 
   const waybillsForDelivery = useMemo(() => {
-    if (!user || isAuthLoading || !manifestsLoaded) return [];
+    if (isAuthLoading || !manifestsLoaded || !waybillsLoaded) return [];
     
     // Get IDs of all waybills from manifests assigned to the current delivery partner.
     const waybillIdsForDelivery = manifests.flatMap(m => m.waybillIds);
@@ -47,11 +47,11 @@ export default function DeliveryPage() {
     // Get the waybill objects, filtering for those relevant to delivery operations
     return uniqueWaybillIds
       .map(id => getWaybillById(id))
-      .filter((w): w is Waybill => !!w && (w.status === 'In Transit' || w.status === 'Out for Delivery' || w.status === 'Returned'));
-  }, [manifests, getWaybillById, user, isAuthLoading, manifestsLoaded]);
+      .filter((w): w is Waybill => !!w && ['In Transit', 'Out for Delivery', 'Returned'].includes(w.status));
+  }, [manifests, getWaybillById, isAuthLoading, manifestsLoaded, waybillsLoaded]);
   
   const handleUpdateStatus = (id: string, status: Waybill['status']) => {
-    const waybill = waybills.find(w => w.id === id);
+    const waybill = allWaybills.find(w => w.id === id);
     if (waybill) {
         updateWaybill({...waybill, status});
     }

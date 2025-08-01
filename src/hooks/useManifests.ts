@@ -34,55 +34,43 @@ export function useManifests() {
     if (user.role === 'admin') {
       return context.manifests;
     }
-
-    const userIsBooking = user.roles.includes('booking');
-    const userIsHub = user.roles.includes('hub');
-    const userIsDelivery = user.roles.includes('delivery');
-
-    if (userIsDelivery) {
-        return context.manifests.filter(manifest => {
-            // Manifest dispatched from hub to this delivery partner
-            if (manifest.origin === 'hub' && manifest.status === 'Dispatched' && manifest.deliveryPartnerCode === user.partnerCode) {
-                return true;
-            }
-            // Manifest dispatched from booking directly to this delivery partner
-            if (manifest.origin === 'booking' && manifest.status === 'Dispatched' && manifest.deliveryPartnerCode === user.partnerCode) {
-                return true;
-            }
-            return false;
-        });
-    }
     
-    if (userIsHub) {
-        const associations = getAssociations();
-        const associatedBookingPartners = associations[user.partnerCode || ''] || [];
+    const userPartnerCode = user.partnerCode;
+    const userRoles = user.roles || [];
 
-        return context.manifests.filter(manifest => {
-            // Show incoming manifests from booking partners this hub is associated with.
+    return context.manifests.filter(manifest => {
+        // Booking users see manifests they created.
+        if (userRoles.includes('booking') && manifest.origin === 'booking' && manifest.creatorPartnerCode === userPartnerCode) {
+            return true;
+        }
+
+        // Hub users see manifests dispatched from their associated booking partners, or manifests they created.
+        if (userRoles.includes('hub')) {
+            if (manifest.origin === 'hub' && manifest.creatorPartnerCode === userPartnerCode) {
+                return true; // It's an outbound manifest created by this hub.
+            }
             if (manifest.origin === 'booking' && (manifest.status === 'Dispatched' || manifest.status === 'Received')) {
-                 // If no associations are defined at all, hub sees everything by default (catch-all)
+                const associations = getAssociations();
+                // If this hub has specific partners, check if the manifest's creator is one of them.
+                if (associations[userPartnerCode!]) {
+                    return associations[userPartnerCode!].includes(manifest.creatorPartnerCode);
+                }
+                // Fallback for hubs without specific associations: they see all booking manifests.
                 if (Object.keys(associations).length === 0) {
                     return true;
                 }
-                // If associations are defined, hub only sees manifests from its linked booking partners
-                return associatedBookingPartners.includes(manifest.creatorPartnerCode);
             }
-            
-            // Show all manifests created by this hub for outbound dispatch.
-            if (manifest.origin === 'hub' && manifest.creatorPartnerCode === user.partnerCode) {
+        }
+
+        // Delivery users see manifests dispatched to their partner code.
+        if (userRoles.includes('delivery')) {
+            if (manifest.status === 'Dispatched' && manifest.deliveryPartnerCode === userPartnerCode) {
                 return true;
             }
-            
-            return false;
-        });
-    }
+        }
 
-
-    if (userIsBooking) {
-        return context.manifests.filter(m => m.origin === 'booking' && m.creatorPartnerCode === user.partnerCode);
-    }
-
-    return [];
+        return false;
+    });
 
   }, [context.manifests, user, context.isLoaded]);
 
