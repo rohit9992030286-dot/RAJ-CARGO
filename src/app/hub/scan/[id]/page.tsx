@@ -9,7 +9,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { ArrowLeft, Box, CheckCircle, Loader2, ScanLine, XCircle, AlertCircle, Circle, ArrowRight } from 'lucide-react';
+import { ArrowLeft, Box, CheckCircle, Loader2, ScanLine, XCircle, AlertCircle, Circle, ArrowRight, Save } from 'lucide-react';
 import { Waybill } from '@/types/waybill';
 import { Manifest } from '@/types/manifest';
 import { useToast } from '@/hooks/use-toast';
@@ -48,6 +48,9 @@ function ScanManifestPage() {
       const existingManifest = getManifestById(manifestId);
       if (existingManifest) {
         setManifest(existingManifest);
+        if (existingManifest.verifiedBoxIds) {
+            setScannedBoxIds(new Set(existingManifest.verifiedBoxIds));
+        }
       } else {
         toast({ title: "Manifest not found", variant: "destructive"});
         router.push('/hub');
@@ -102,22 +105,30 @@ function ScanManifestPage() {
       scanInputRef.current?.focus();
   };
 
-  const handleConfirmArrival = () => {
+  const totalBoxes = expectedBoxes.length;
+  const verifiedCount = scannedBoxIds.size;
+  const allVerified = totalBoxes > 0 && totalBoxes === verifiedCount;
+
+  const handleSaveAndConfirm = () => {
     if (manifest) {
-      updateManifest({ ...manifest, status: 'Received' });
+      const newStatus = allVerified ? 'Received' : 'Short Received';
+      updateManifest({ ...manifest, status: newStatus, verifiedBoxIds: Array.from(scannedBoxIds) });
+      
+      const toastTitle = newStatus === 'Received' ? "Manifest Arrival Confirmed" : "Verification Progress Saved";
+      const toastDescription = newStatus === 'Received'
+        ? `All ${totalBoxes} boxes in manifest M-${manifest.id.substring(0,8)} have been marked as received.`
+        : `${verifiedCount} of ${totalBoxes} boxes verified. Progress has been saved with 'Short Received' status.`;
+
       toast({
-        title: "Manifest Arrival Confirmed",
-        description: `All ${expectedBoxes.length} boxes in manifest M-${manifest.id.substring(0,8)} have been marked as received.`,
+        title: toastTitle,
+        description: toastDescription,
       });
       router.push('/hub');
     }
   };
 
-  const totalBoxes = expectedBoxes.length;
-  const verifiedCount = scannedBoxIds.size;
   const verificationProgress = totalBoxes > 0 ? (verifiedCount / totalBoxes) * 100 : 0;
-  const allVerified = totalBoxes > 0 && totalBoxes === verifiedCount;
-
+  
   if (!waybillsLoaded || !manifestsLoaded || !manifest) {
     return (
       <div className="flex justify-center items-center h-64">
@@ -140,10 +151,10 @@ function ScanManifestPage() {
             Dispatched on {format(new Date(manifest.date), 'PPP')} with vehicle {manifest.vehicleNo || 'N/A'}.
           </p>
         </div>
-        {allVerified && (
-             <Button onClick={handleConfirmArrival} size="lg">
-                <CheckCircle className="mr-2 h-5 w-5" />
-                Confirm Full Shipment Arrival
+        {verifiedCount > 0 && (
+            <Button onClick={handleSaveAndConfirm} size="lg">
+                <Save className="mr-2 h-5 w-5" />
+                {allVerified ? 'Confirm Full Arrival' : 'Save Progress'}
             </Button>
         )}
       </div>
@@ -163,10 +174,9 @@ function ScanManifestPage() {
                             value={inputValue}
                             onChange={(e) => setInputValue(e.target.value)}
                             onKeyDown={(e) => { if (e.key === 'Enter') handleVerifyBox(); }}
-                            disabled={allVerified}
                             autoFocus
                         />
-                        <Button onClick={handleVerifyBox} disabled={allVerified}>
+                        <Button onClick={handleVerifyBox}>
                             <ScanLine className="mr-2 h-4 w-4" /> Verify
                         </Button>
                     </div>

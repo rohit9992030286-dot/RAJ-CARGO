@@ -8,10 +8,11 @@ export const manifestSchema = z.object({
   driverName: z.string().optional(),
   driverContact: z.string().optional(),
   waybillIds: z.array(z.string().uuid()),
-  status: z.enum(['Draft', 'Dispatched', 'Received']).default('Draft'),
+  status: z.enum(['Draft', 'Dispatched', 'Received', 'Short Received']).default('Draft'),
   origin: z.enum(['booking', 'hub']).default('booking'),
   deliveryPartnerCode: z.string().optional(),
   creatorPartnerCode: z.string(),
+  verifiedBoxIds: z.array(z.string()).optional(),
 });
 
 export type Manifest = z.infer<typeof manifestSchema>;
