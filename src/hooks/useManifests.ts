@@ -54,18 +54,35 @@ export function useManifests() {
     }
     
     if (userIsHub) {
+        const associations = getAssociations();
+        const associatedBookingPartners = associations[user.partnerCode || ''] || [];
+
         return context.manifests.filter(manifest => {
-            // Hub users see all incoming manifests dispatched to any hub
-            if (manifest.origin === 'booking' && (manifest.status === 'Dispatched' || manifest.status === 'Received') ) {
+            // Show incoming manifests from associated booking partners
+            if (manifest.origin === 'booking' && (manifest.status === 'Dispatched' || manifest.status === 'Received')) {
+                // If hub has associations, filter by them. Otherwise, show all.
+                if (Object.keys(associations).length > 0 && associatedBookingPartners.length === 0 && !Object.values(associations).flat().includes(user.partnerCode)) {
+                    // This hub is not associated with any booking partner, so it shouldn't see any booking manifests unless it's a "catch-all" hub.
+                    // For simplicity, we assume if a hub has no associations defined for it, it sees nothing from booking.
+                    // A hub that IS an association target for another hub is not covered here, adjust if needed.
+                    return false;
+                }
+                if (associatedBookingPartners.length > 0) {
+                    return associatedBookingPartners.includes(manifest.creatorPartnerCode);
+                }
+                 // If no associations are defined AT ALL for this hub, show all booking manifests by default.
                 return true;
             }
-            // Hub users see all manifests they have created themselves
+            
+            // Show all manifests created by this hub
             if (manifest.origin === 'hub' && manifest.creatorPartnerCode === user.partnerCode) {
                 return true;
             }
+            
             return false;
         });
     }
+
 
     if (userIsBooking) {
         return context.manifests.filter(m => m.origin === 'booking' && m.creatorPartnerCode === user.partnerCode);

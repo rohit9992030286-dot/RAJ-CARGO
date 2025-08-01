@@ -49,7 +49,7 @@ export default function HubPage() {
     router.push(`/hub/scan/${id}`);
   };
 
-  const incomingManifests = manifests.filter(m => m.status === 'Dispatched' || m.status === 'Received');
+  const incomingManifests = manifests.filter(m => m.origin === 'booking');
   
   return (
     <div className="space-y-8">
