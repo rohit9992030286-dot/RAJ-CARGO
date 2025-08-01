@@ -35,6 +35,7 @@ export default function DashboardPage() {
     }
 
   const hasBookingRole = user.roles?.includes('booking');
+  const hasHubRole = user.roles?.includes('hub');
   const isAdmin = user.role === 'admin';
 
   return (
@@ -74,6 +75,29 @@ export default function DashboardPage() {
                             <Link href="/booking" className="w-full">
                                 <Button className="w-full">
                                     Go to Booking <ArrowRight className="ml-2 h-4 w-4" />
+                                </Button>
+                            </Link>
+                        </CardFooter>
+                    </Card>
+                )}
+                 {hasHubRole && (
+                    <Card className="hover:shadow-lg transition-shadow">
+                        <CardHeader>
+                            <div className="flex items-center gap-4">
+                                <Cpu className="h-10 w-10 text-primary" />
+                                <div>
+                                    <CardTitle className="text-2xl">Hub System</CardTitle>
+                                    <CardDescription>Verify incoming and manage outbound shipments.</CardDescription>
+                                </div>
+                            </div>
+                        </CardHeader>
+                        <CardContent>
+                            <p>Scan and verify incoming manifests, manage shortages, and create outbound manifests for final delivery. Fulfills a central role in logistics.</p>
+                        </CardContent>
+                        <CardFooter>
+                            <Link href="/hub" className="w-full">
+                                <Button className="w-full">
+                                    Go to Hub <ArrowRight className="ml-2 h-4 w-4" />
                                 </Button>
                             </Link>
                         </CardFooter>
