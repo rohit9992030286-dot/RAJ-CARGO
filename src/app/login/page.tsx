@@ -25,7 +25,7 @@ type LoginFormValues = z.infer<typeof loginFormSchema>;
 
 function LoginPageContent() {
   const router = useRouter();
-  const { login, isAuthenticated, isLoading } = useAuth();
+  const { login, isAuthenticated, isLoading, user } = useAuth();
   const { toast } = useToast();
 
   const form = useForm<LoginFormValues>({
@@ -44,15 +44,15 @@ function LoginPageContent() {
 
 
   const onSubmit = (data: LoginFormValues) => {
-    const user = login(data.username, data.password);
-    if (user) {
+    const loggedInUser = login(data.username, data.password);
+    if (loggedInUser) {
       toast({ title: 'Login Successful', description: 'Welcome back!' });
       
       // Smart redirection logic
-      if (user.role === 'admin' || user.roles.length > 1) {
+      if (loggedInUser.role === 'admin' || loggedInUser.roles.length > 1) {
         router.push('/dashboard');
-      } else if (user.roles.length === 1) {
-        const role = user.roles[0];
+      } else if (loggedInUser.roles.length === 1) {
+        const role = loggedInUser.roles[0];
         if (role === 'booking') router.push('/booking');
         else if (role === 'hub') router.push('/hub');
         else if (role === 'delivery') router.push('/delivery');

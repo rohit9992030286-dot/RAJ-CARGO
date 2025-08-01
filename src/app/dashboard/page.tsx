@@ -21,6 +21,11 @@ export default function DashboardPage() {
         }
     }, [isLoading, user, router]);
 
+    const handleLogout = () => {
+        logout();
+        router.push('/login');
+    };
+
     if (isLoading || !user) {
         return (
             <div className="flex justify-center items-center h-screen">
@@ -35,7 +40,7 @@ export default function DashboardPage() {
   const isAdmin = user.role === 'admin';
 
   return (
-    <div className="flex flex-col min-h-screen bg-gray-50">
+    <div className="flex flex-col min-h-screen bg-gray-50 dark:bg-black">
         <header className="bg-card border-b">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex justify-between items-center">
                 <div>
@@ -45,7 +50,7 @@ export default function DashboardPage() {
                     <h1 className="text-2xl font-bold text-primary">Welcome, {user?.username}!</h1>
                     <p className="text-muted-foreground text-md">Please select which system you want to access.</p>
                 </div>
-                 <Button variant="outline" onClick={logout}>
+                 <Button variant="outline" onClick={handleLogout}>
                     <LogOut className="mr-2 h-4 w-4" /> Logout
                 </Button>
             </div>
@@ -68,7 +73,7 @@ export default function DashboardPage() {
                             <p>Create new shipments, track existing ones, manage dispatch manifests, and view sales reports. This is your main operational dashboard.</p>
                         </CardContent>
                         <CardFooter>
-                            <Link href="/booking">
+                            <Link href="/booking" className="w-full">
                                 <Button className="w-full">
                                     Go to Booking <ArrowRight className="ml-2 h-4 w-4" />
                                 </Button>
@@ -91,7 +96,7 @@ export default function DashboardPage() {
                             <p>Tools for incoming package scanning, sorting by destination, and managing outbound line haul trucks.</p>
                         </CardContent>
                         <CardFooter>
-                            <Link href="/hub">
+                            <Link href="/hub" className="w-full">
                                 <Button className="w-full">
                                     Go to Hub <ArrowRight className="ml-2 h-4 w-4" />
                                 </Button>
@@ -114,7 +119,7 @@ export default function DashboardPage() {
                             <p>View waybills ready for final delivery, update their status, and manage your delivery personnel and routes.</p>
                         </CardContent>
                         <CardFooter>
-                            <Link href="/delivery">
+                            <Link href="/delivery" className="w-full">
                                 <Button className="w-full">
                                     Go to Delivery <ArrowRight className="ml-2 h-4 w-4" />
                                 </Button>
@@ -137,7 +142,7 @@ export default function DashboardPage() {
                             <p>This is a restricted area for administrators to manage user accounts and application configurations.</p>
                         </CardContent>
                         <CardFooter>
-                            <Link href="/admin">
+                            <Link href="/admin" className="w-full">
                                 <Button className="w-full" variant="secondary">
                                     Go to Admin <ArrowRight className="ml-2 h-4 w-4" />
                                 </Button>

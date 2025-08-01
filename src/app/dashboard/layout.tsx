@@ -13,8 +13,7 @@ import { useToast } from '@/hooks/use-toast';
 import { DataProvider } from '@/components/DataContext';
 import { Logo } from '@/components/Logo';
 
-function NavLinks({ onLinkClick }: { onLinkClick?: () => void }) {
-    const { logout } = useAuth();
+function NavLinks({ onLinkClick, onLogout }: { onLinkClick?: () => void; onLogout: () => void; }) {
     return (
         <nav className="p-4 flex flex-col h-full">
             <ul className="space-y-2 flex-grow">
@@ -59,7 +58,7 @@ function NavLinks({ onLinkClick }: { onLinkClick?: () => void }) {
                     <Settings className="h-5 w-5" />
                     <span>Settings</span>
                 </Link>
-                 <Button variant="ghost" onClick={() => logout()} className="w-full justify-start flex items-center gap-3 p-3 rounded-lg hover:bg-destructive/10 hover:text-destructive transition-colors text-base">
+                 <Button variant="ghost" onClick={onLogout} className="w-full justify-start flex items-center gap-3 p-3 rounded-lg hover:bg-destructive/10 hover:text-destructive transition-colors text-base">
                     <LogOut className="h-5 w-5" />
                     <span>Logout</span>
                 </Button>
@@ -75,7 +74,7 @@ function DashboardLayoutContent({
 }) {
   const [year, setYear] = useState<number | null>(null);
   const [isSheetOpen, setIsSheetOpen] = useState(false);
-  const { user, isLoading } = useAuth();
+  const { user, isLoading, logout } = useAuth();
   const router = useRouter();
   const { toast } = useToast();
 
@@ -88,6 +87,11 @@ function DashboardLayoutContent({
       router.replace('/login');
     }
   }, [user, isLoading, router]);
+
+  const handleLogout = () => {
+    logout();
+    router.push('/login');
+  };
 
   if (isLoading || !user) {
       return (
@@ -108,7 +112,7 @@ function DashboardLayoutContent({
           <div className="flex items-center justify-center p-6 border-b">
             <Logo />
           </div>
-          <NavLinks />
+          <NavLinks onLogout={handleLogout} />
         </aside>
         <div className="flex-1 flex flex-col">
           <header className="flex h-16 items-center gap-4 border-b bg-card px-6 lg:hidden">
@@ -126,7 +130,7 @@ function DashboardLayoutContent({
                       <div className="flex items-center justify-center p-4 border-b">
                           <Logo />
                       </div>
-                      <NavLinks onLinkClick={handleLinkClick} />
+                      <NavLinks onLinkClick={handleLinkClick} onLogout={handleLogout} />
                   </SheetContent>
               </Sheet>
               <div className="flex-1">

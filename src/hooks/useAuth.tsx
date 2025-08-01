@@ -2,7 +2,6 @@
 'use client';
 
 import { createContext, useContext, useState, useEffect, ReactNode, useCallback } from 'react';
-import { useRouter } from 'next/navigation';
 
 export const AUTH_STORAGE_KEY = 'rajcargo-auth';
 export const USERS_STORAGE_KEY = 'rajcargo-users';
@@ -44,7 +43,6 @@ export function useProvideAuth() {
   const [user, setUser] = useState<User | null>(null);
   const [users, setUsers] = useState<NewUser[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const router = useRouter();
 
   useEffect(() => {
     try {
@@ -101,8 +99,8 @@ export function useProvideAuth() {
   const logout = useCallback(() => {
     localStorage.removeItem(AUTH_STORAGE_KEY);
     setUser(null);
-    router.push('/login');
-  }, [router]);
+    // Redirection will be handled by the component that calls logout
+  }, []);
   
   const addUser = useCallback((newUser: NewUser): boolean => {
     const currentUsers = JSON.parse(localStorage.getItem(USERS_STORAGE_KEY) || '[]');

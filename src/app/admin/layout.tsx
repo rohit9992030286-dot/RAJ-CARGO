@@ -34,6 +34,11 @@ function AdminLayout({
         }
     }
   }, [user, isLoading, router]);
+  
+  const handleLogout = () => {
+    logout();
+    router.push('/login');
+  };
 
   if (isLoading || !user || user.role !== 'admin') {
       return (
@@ -111,7 +116,7 @@ function AdminLayout({
             <Settings className="h-5 w-5" />
             <span>Settings</span>
         </Link>
-        <Button variant="ghost" onClick={() => logout()} className="w-full justify-start flex items-center gap-3 p-3 rounded-lg hover:bg-destructive/10 hover:text-destructive transition-colors text-base">
+        <Button variant="ghost" onClick={handleLogout} className="w-full justify-start flex items-center gap-3 p-3 rounded-lg hover:bg-destructive/10 hover:text-destructive transition-colors text-base">
             <LogOut className="h-5 w-5" />
             <span>Logout</span>
         </Button>
