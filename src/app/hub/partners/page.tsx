@@ -1,193 +1,244 @@
-
 'use client';
 
-import { useState, useEffect } from 'react';
-import { useAuth, User } from '@/hooks/useAuth.tsx';
-import { useToast } from '@/hooks/use-toast';
-import { useRouter } from 'next/navigation';
-import { Card, CardHeader, CardTitle, CardContent, CardDescription, CardFooter } from '@/components/ui/card';
+import { useState, useEffect, Suspense, useMemo, useRef } from 'react';
+import { useParams, useRouter } from 'next/navigation';
+import { useManifests } from '@/hooks/useManifests';
+import { useWaybills } from '@/hooks/useWaybills';
 import { Button } from '@/components/ui/button';
-import { Loader2, Link2, Briefcase, Trash2, Save, PlusCircle } from 'lucide-react';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Badge } from '@/components/ui/badge';
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogTrigger,
-} from '@/components/ui/alert-dialog';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { ArrowLeft, Box, CheckCircle, Loader2, ScanLine, XCircle, AlertCircle, Circle, ArrowRight } from 'lucide-react';
+import { Waybill } from '@/types/waybill';
+import { Manifest } from '@/types/manifest';
+import { useToast } from '@/hooks/use-toast';
+import { format } from 'date-fns';
+import { Input } from '@/components/ui/input';
+import { cn } from '@/lib/utils';
+import { Progress } from '@/components/ui/progress';
 
+function ScanManifestPage() {
+  const router = useRouter();
+  const params = useParams();
+  const { toast } = useToast();
+  
+  const manifestId = Array.isArray(params.id) ? params.id[0] : params.id;
+  
+  const { getManifestById, updateManifest, isLoaded: manifestsLoaded } = useManifests();
+  const { getWaybillById, isLoaded: waybillsLoaded } = useWaybills();
+  
+  const [manifest, setManifest] = useState<Manifest | null>(null);
+  const [scannedWaybillNumbers, setScannedWaybillNumbers] = useState<Set<string>>(new Set());
+  const [inputValue, setInputValue] = useState('');
+  const [error, setError] = useState<string | null>(null);
+  const scanInputRef = useRef<HTMLInputElement>(null);
 
-const STORAGE_KEY = 'rajcargo-hub-partner-associations';
-
-interface Associations {
-    [hubPartnerCode: string]: string[];
-}
-
-export default function PartnerManagementPage() {
-    const { user, users, isLoading } = useAuth();
-    const router = useRouter();
-    const { toast } = useToast();
-
-    const [associations, setAssociations] = useState<Associations>({});
-    const [isDataLoading, setIsDataLoading] = useState(true);
-
-    const [selectedHub, setSelectedHub] = useState<string | null>(null);
-    const [selectedBookingPartner, setSelectedBookingPartner] = useState<string | null>(null);
-
-    useEffect(() => {
-        // Protect this page for admins only
-        if (!isLoading && user?.role !== 'admin') {
-            toast({ title: 'Access Denied', description: 'You must be an admin to view this page.', variant: 'destructive' });
-            router.push('/hub');
-        }
-    }, [user, isLoading, router, toast]);
-
-    useEffect(() => {
-        try {
-            const storedAssociations = localStorage.getItem(STORAGE_KEY);
-            if (storedAssociations) {
-                setAssociations(JSON.parse(storedAssociations));
-            }
-        } catch (error) {
-            console.error("Failed to load partner associations:", error);
-            toast({ title: 'Error', description: 'Could not load partner associations.', variant: 'destructive' });
-        } finally {
-            setIsDataLoading(false);
-        }
-    }, [toast]);
-    
-    const saveAssociations = (newAssociations: Associations) => {
-        setAssociations(newAssociations);
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(newAssociations));
+  useEffect(() => {
+    if (manifestId && manifestsLoaded) {
+      const existingManifest = getManifestById(manifestId);
+      if (existingManifest) {
+        setManifest(existingManifest);
+      } else {
+        toast({ title: "Manifest not found", variant: "destructive"});
+        router.push('/hub');
+      }
     }
-    
-    const handleAddAssociation = () => {
-        if (!selectedHub || !selectedBookingPartner) {
-            toast({ title: 'Selection Missing', description: 'Please select both a hub and a booking partner.', variant: 'destructive'});
-            return;
-        }
-        
-        const newAssociations = {...associations};
-        if (!newAssociations[selectedHub]) {
-            newAssociations[selectedHub] = [];
-        }
-        
-        if (newAssociations[selectedHub].includes(selectedBookingPartner)) {
-            toast({ title: 'Already Linked', description: 'This booking partner is already linked to the selected hub.', variant: 'default'});
-            return;
-        }
+  }, [manifestId, manifestsLoaded, getManifestById, router, toast]);
 
-        newAssociations[selectedHub].push(selectedBookingPartner);
-        saveAssociations(newAssociations);
-        toast({ title: 'Association Added', description: `${selectedBookingPartner} has been linked to ${selectedHub}.`});
-        setSelectedBookingPartner(null);
-    };
-    
-    const handleRemoveAssociation = (hubCode: string, partnerCode: string) => {
-        const newAssociations = {...associations};
-        newAssociations[hubCode] = newAssociations[hubCode].filter(p => p !== partnerCode);
-        if(newAssociations[hubCode].length === 0) {
-            delete newAssociations[hubCode];
-        }
-        saveAssociations(newAssociations);
-        toast({ title: 'Association Removed', description: `${partnerCode} has been unlinked from ${hubCode}.`});
+  const manifestWaybills = useMemo(() => 
+    manifest?.waybillIds.map(id => getWaybillById(id)).filter((w): w is Waybill => !!w) || [],
+  [manifest, getWaybillById]);
+
+  const handleVerifyWaybill = () => {
+      setError(null);
+      if (!inputValue.trim()) {
+          setError("Please enter a waybill number to verify.");
+          return;
+      }
+      
+      const waybillExistsInManifest = manifestWaybills.some(wb => wb.waybillNumber === inputValue.trim());
+
+      if (waybillExistsInManifest) {
+          setScannedWaybillNumbers(prev => new Set(prev).add(inputValue.trim()));
+          setInputValue('');
+          toast({ title: "Verified", description: `Waybill #${inputValue.trim()} confirmed.`});
+      } else {
+          setError(`Waybill #${inputValue.trim()} is not part of this manifest.`);
+      }
+      scanInputRef.current?.focus();
+  };
+
+  const handleConfirmArrival = () => {
+    if (manifest) {
+      updateManifest({ ...manifest, status: 'Received' });
+      toast({
+        title: "Manifest Arrival Confirmed",
+        description: `All ${manifestWaybills.length} waybills in manifest M-${manifest.id.substring(0,8)} have been marked as received.`,
+      });
+      router.push('/hub');
     }
+  };
 
-    if (isLoading || isDataLoading || user?.role !== 'admin') {
-        return (
-            <div className="flex justify-center items-center h-64">
-                <Loader2 className="h-16 w-16 animate-spin text-primary" />
-            </div>
-        );
-    }
-    
-    const allPartnerCodes = users.map(u => u.partnerCode).filter((code): code is string => !!code);
-    const hubPartners = Object.keys(associations);
-    
-    const availableBookingPartners = allPartnerCodes.filter(code => 
-        selectedHub ? !associations[selectedHub]?.includes(code) : true
-    );
+  const totalBoxes = manifestWaybills.reduce((sum, wb) => sum + wb.numberOfBoxes, 0);
+  const totalWaybills = manifestWaybills.length;
+  const verifiedCount = scannedWaybillNumbers.size;
+  const verificationProgress = totalWaybills > 0 ? (verifiedCount / totalWaybills) * 100 : 0;
+  const allVerified = totalWaybills > 0 && totalWaybills === verifiedCount;
 
-
+  if (!waybillsLoaded || !manifestsLoaded || !manifest) {
     return (
-        <div className="space-y-8 max-w-4xl mx-auto">
-            <div>
-                <h1 className="text-3xl font-bold">Partner Management</h1>
-                <p className="text-muted-foreground">Link Hub Partners with their corresponding Booking Partners.</p>
-            </div>
-            
+      <div className="flex justify-center items-center h-64">
+        <Loader2 className="h-16 w-16 animate-spin text-primary" />
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-8">
+       <div className="flex justify-between items-center gap-4 flex-wrap">
+        <div>
+          <Button variant="outline" size="sm" onClick={() => router.push('/hub')}>
+            <ArrowLeft className="mr-2 h-4 w-4" /> Back to Hub Dashboard
+          </Button>
+          <h1 className="text-3xl font-bold mt-4">
+            Verify Manifest M-{manifest.id.substring(0,8)}
+          </h1>
+          <p className="text-muted-foreground">
+            Dispatched on {format(new Date(manifest.date), 'PPP')} with vehicle {manifest.vehicleNo || 'N/A'}.
+          </p>
+        </div>
+        {allVerified && (
+             <Button onClick={handleConfirmArrival} size="lg">
+                <CheckCircle className="mr-2 h-5 w-5" />
+                Confirm Full Shipment Arrival
+            </Button>
+        )}
+      </div>
+
+     <div className="grid lg:grid-cols-3 gap-8">
+        <div className="lg:col-span-1 space-y-6">
             <Card>
                 <CardHeader>
-                    <CardTitle>Create New Association</CardTitle>
-                    <CardDescription>Select a Hub Partner and a Booking Partner to link them.</CardDescription>
+                    <CardTitle>Scan & Verify</CardTitle>
+                    <CardDescription>Enter waybill number to confirm arrival.</CardDescription>
                 </CardHeader>
-                <CardContent className="grid sm:grid-cols-3 gap-4">
-                     <Select value={selectedHub || ''} onValueChange={setSelectedHub}>
-                        <SelectTrigger>
-                            <SelectValue placeholder="Select Hub Partner" />
-                        </SelectTrigger>
-                        <SelectContent>
-                             {allPartnerCodes.map(code => <SelectItem key={code} value={code}>{code}</SelectItem>)}
-                        </SelectContent>
-                    </Select>
-                     <Select value={selectedBookingPartner || ''} onValueChange={setSelectedBookingPartner} disabled={!selectedHub}>
-                        <SelectTrigger>
-                            <SelectValue placeholder="Select Booking Partner" />
-                        </SelectTrigger>
-                        <SelectContent>
-                            {availableBookingPartners.map(code => <SelectItem key={code} value={code}>{code}</SelectItem>)}
-                        </SelectContent>
-                    </Select>
-                     <Button onClick={handleAddAssociation} disabled={!selectedHub || !selectedBookingPartner}>
-                        <PlusCircle className="mr-2 h-4 w-4" /> Add Link
-                    </Button>
-                </CardContent>
-            </Card>
-
-            <Card>
-                 <CardHeader>
-                    <CardTitle>Existing Associations</CardTitle>
-                    <CardDescription>Review and manage current partner links.</CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-6">
-                    {hubPartners.length > 0 ? (
-                        hubPartners.map(hubCode => (
-                            <div key={hubCode} className="border p-4 rounded-lg">
-                                <h3 className="font-semibold text-lg flex items-center gap-2 mb-2">
-                                    <Briefcase className="h-5 w-5 text-primary"/>
-                                    Hub: <Badge>{hubCode}</Badge>
-                                </h3>
-                                <p className="text-sm text-muted-foreground mb-4">Is linked with the following booking partners:</p>
-                                <div className="flex flex-wrap gap-2">
-                                     {associations[hubCode].map(partnerCode => (
-                                         <Badge key={partnerCode} variant="secondary" className="flex items-center gap-2">
-                                            {partnerCode}
-                                             <button onClick={() => handleRemoveAssociation(hubCode, partnerCode)} className="ml-1 rounded-full hover:bg-destructive/20 p-0.5">
-                                                 <Trash2 className="h-3 w-3 text-destructive"/>
-                                             </button>
-                                         </Badge>
-                                     ))}
-                                </div>
-                            </div>
-                        ))
-                    ) : (
-                        <div className="text-center py-10 border-2 border-dashed rounded-lg">
-                            <Link2 className="mx-auto h-12 w-12 text-muted-foreground" />
-                            <h3 className="mt-4 text-lg font-semibold">No Associations Found</h3>
-                            <p className="mt-1 text-sm text-muted-foreground">
-                                Get started by linking a hub to a booking partner above.
-                            </p>
-                        </div>
+                <CardContent className="space-y-4">
+                    <div className="flex gap-2">
+                        <Input
+                            ref={scanInputRef}
+                            placeholder="Scan or enter number"
+                            value={inputValue}
+                            onChange={(e) => setInputValue(e.target.value)}
+                            onKeyDown={(e) => { if (e.key === 'Enter') handleVerifyWaybill(); }}
+                            disabled={allVerified}
+                            autoFocus
+                        />
+                        <Button onClick={handleVerifyWaybill} disabled={allVerified}>
+                            <ScanLine className="mr-2 h-4 w-4" /> Verify
+                        </Button>
+                    </div>
+                    {error && (
+                    <Alert variant="destructive">
+                        <AlertCircle className="h-4 w-4" />
+                        <AlertTitle>Verification Error</AlertTitle>
+                        <AlertDescription>{error}</AlertDescription>
+                    </Alert>
                     )}
                 </CardContent>
             </Card>
+
+            <Card>
+                <CardHeader>
+                    <CardTitle>Verification Progress</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                     <div>
+                        <div className="flex justify-between mb-1 text-sm font-medium">
+                            <span>Waybills Verified</span>
+                            <span>{verifiedCount} of {totalWaybills}</span>
+                        </div>
+                        <Progress value={verificationProgress} />
+                    </div>
+
+                    {allVerified && (
+                         <Alert variant="default" className="bg-green-50 border-green-200">
+                            <CheckCircle className="h-4 w-4 text-green-600" />
+                            <AlertTitle className="text-green-800">All Verified!</AlertTitle>
+                            <AlertDescription className="text-green-700">
+                                You can now confirm the full shipment arrival.
+                            </AlertDescription>
+                        </Alert>
+                    )}
+                </CardContent>
+                 <CardFooter>
+                    <Button 
+                        className="w-full" 
+                        onClick={() => router.push('/hub/dispatch')}
+                    >
+                        Go to Outbound Dispatch <ArrowRight className="ml-2 h-4 w-4"/>
+                    </Button>
+                 </CardFooter>
+            </Card>
         </div>
-    );
+        
+        <Card className="lg:col-span-2">
+            <CardHeader>
+            <CardTitle>Expected Waybills in Manifest</CardTitle>
+            <CardDescription>Total of {totalBoxes} box(es).</CardDescription>
+            </CardHeader>
+            <CardContent>
+            <Table>
+                <TableHeader>
+                <TableRow>
+                    <TableHead className="w-[100px]">Status</TableHead>
+                    <TableHead>Waybill #</TableHead>
+                    <TableHead>Receiver</TableHead>
+                    <TableHead>Destination</TableHead>
+                    <TableHead className="text-center">Boxes</TableHead>
+                </TableRow>
+                </TableHeader>
+                <TableBody>
+                {manifestWaybills.map((waybill) => {
+                    const isVerified = scannedWaybillNumbers.has(waybill.waybillNumber);
+                    return (
+                        <TableRow key={waybill.id} className={cn(isVerified && 'bg-green-50/50 dark:bg-green-900/20')}>
+                            <TableCell>
+                                {isVerified ? (
+                                    <div className="flex items-center gap-2 text-green-600 font-medium">
+                                        <CheckCircle className="h-5 w-5" /> Verified
+                                    </div>
+                                ) : (
+                                    <div className="flex items-center gap-2 text-muted-foreground">
+                                        <Circle className="h-5 w-5" /> Pending
+                                    </div>
+                                )}
+                            </TableCell>
+                            <TableCell className="font-medium">{waybill.waybillNumber}</TableCell>
+                            <TableCell>{waybill.receiverName}</TableCell>
+                            <TableCell>{waybill.receiverCity}</TableCell>
+                            <TableCell className="text-center">
+                                <div className="flex items-center justify-center gap-2">
+                                    <Box className="h-4 w-4 text-muted-foreground" />
+                                    {waybill.numberOfBoxes}
+                                </div>
+                            </TableCell>
+                        </TableRow>
+                    );
+                })}
+                </TableBody>
+            </Table>
+            </CardContent>
+        </Card>
+     </div>
+    </div>
+  );
 }
 
+
+export default function ScanManifestPageWrapper() {
+    return (
+        <Suspense fallback={<div className="flex justify-center items-center h-64"><Loader2 className="h-16 w-16 animate-spin text-primary" /></div>}>
+            <ScanManifestPage />
+        </Suspense>
+    )
+}
