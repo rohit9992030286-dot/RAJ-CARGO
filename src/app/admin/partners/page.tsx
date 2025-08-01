@@ -125,7 +125,7 @@ export default function PartnerManagementPage() {
             <Card>
                 <CardHeader>
                     <CardTitle>Create New Association</CardTitle>
-                    <CardDescription>Select a Hub Partner and a Booking Partner to link them.</CardDescription>
+                    <CardDescription>Select a Hub Partner and link them with a Booking Partner.</CardDescription>
                 </CardHeader>
                 <CardContent className="grid sm:grid-cols-3 gap-4">
                      <Select value={selectedHub || ''} onValueChange={setSelectedHub}>

@@ -56,25 +56,25 @@ export function useManifests() {
     if (userIsHub) {
         const associations = getAssociations();
         const associatedBookingPartners = associations[user.partnerCode || ''] || [];
+        const isAssociatedHub = Object.values(associations).flat().includes(user.partnerCode);
 
         return context.manifests.filter(manifest => {
-            // Show incoming manifests from associated booking partners
+            // Show incoming manifests from booking partners this hub is associated with.
             if (manifest.origin === 'booking' && (manifest.status === 'Dispatched' || manifest.status === 'Received')) {
-                // If hub has associations, filter by them. Otherwise, show all.
-                if (Object.keys(associations).length > 0 && associatedBookingPartners.length === 0 && !Object.values(associations).flat().includes(user.partnerCode)) {
-                    // This hub is not associated with any booking partner, so it shouldn't see any booking manifests unless it's a "catch-all" hub.
-                    // For simplicity, we assume if a hub has no associations defined for it, it sees nothing from booking.
-                    // A hub that IS an association target for another hub is not covered here, adjust if needed.
-                    return false;
-                }
+                // If this hub has been explicitly assigned booking partners, check if the manifest creator is one of them.
                 if (associatedBookingPartners.length > 0) {
                     return associatedBookingPartners.includes(manifest.creatorPartnerCode);
                 }
-                 // If no associations are defined AT ALL for this hub, show all booking manifests by default.
+                // If this hub has NO booking partners assigned to it, but associations EXIST for OTHER hubs,
+                // it should not see any booking manifests (it's not a catch-all).
+                if(Object.keys(associations).length > 0) {
+                    return false;
+                }
+                // If NO associations are defined in the system AT ALL, the hub acts as a catch-all and sees everything.
                 return true;
             }
             
-            // Show all manifests created by this hub
+            // Show all manifests created by this hub for outbound dispatch.
             if (manifest.origin === 'hub' && manifest.creatorPartnerCode === user.partnerCode) {
                 return true;
             }
