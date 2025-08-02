@@ -20,8 +20,8 @@ const RATES_STORAGE_KEY = 'rajcargo-pincode-rates';
 
 interface Rate {
   id: string;
-  pincode?: string; // Keep for backward compatibility if needed, but not used in new logic
-  rate: number;
+  baseCharge: number;
+  weightCharge: number;
   partnerCode: string;
   state: string;
 }
@@ -89,6 +89,11 @@ export function WaybillForm({ initialData, onSave, onCancel }: WaybillFormProps)
       name: 'receiverState'
   });
 
+  const packageWeight = useWatch({
+      control: form.control,
+      name: 'packageWeight'
+  });
+
   useEffect(() => {
     const values = getInitialValues(initialData);
     if (!initialData) {
@@ -127,11 +132,12 @@ export function WaybillForm({ initialData, onSave, onCancel }: WaybillFormProps)
     );
 
     if (matchedRate) {
-        form.setValue('shipmentValue', matchedRate.rate, { shouldValidate: true });
+        const finalValue = matchedRate.baseCharge + (packageWeight * matchedRate.weightCharge);
+        form.setValue('shipmentValue', finalValue, { shouldValidate: true });
     } else {
         form.setValue('shipmentValue', 0, { shouldValidate: true });
     }
-  }, [receiverState, rates, form, initialData, user?.partnerCode]);
+  }, [receiverState, packageWeight, rates, form, initialData, user?.partnerCode]);
 
   const onSubmit = (data: WaybillFormData) => {
     const waybillToSave: Waybill = {
@@ -461,7 +467,7 @@ export function WaybillForm({ initialData, onSave, onCancel }: WaybillFormProps)
                     <FormLabel>Shipment Value (₹)</FormLabel>
                     <div className="relative">
                       <FormControl>
-                        <Input type="number" step="0.01" placeholder="e.g., 150.00" {...field} onChange={e => field.onChange(+e.target.value)} className="pl-10" />
+                        <Input type="number" step="0.01" placeholder="e.g., 150.00" {...field} onChange={e => field.onChange(+e.target.value)} className="pl-10" readOnly />
                       </FormControl>
                       <IconWrapper><IndianRupee /></IconWrapper>
                     </div>
