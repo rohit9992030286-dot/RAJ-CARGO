@@ -52,28 +52,65 @@ export default function EditManifestPage() {
   const handleAddWaybill = () => {
     setError(null);
     if (!waybillNumber) {
-      setError('Please enter a waybill number.');
-      return;
+        setError('Please enter a waybill number or range.');
+        return;
     }
-    // Search in all waybills, not just filtered ones
-    const waybill = allWaybills.find(w => w.waybillNumber === waybillNumber && w.partnerCode === user?.partnerCode);
-    if (!waybill) {
-      setError('Waybill not found for your partner code.');
-      return;
-    }
-    if (waybill.status !== 'Pending') {
-      setError(`Waybill #${waybill.waybillNumber} cannot be added as it is already ${waybill.status}.`);
-      return;
-    }
-    if (manifest?.waybillIds.includes(waybill.id)) {
-      setError(`Waybill #${waybill.waybillNumber} is already in the manifest.`);
-      return;
+
+    const input = waybillNumber.trim();
+    const rangeMatch = input.match(/^([a-zA-Z-]+)?(\d+)-(\d+)$/);
+
+    let addedWaybills: string[] = [];
+    let skippedMessages: string[] = [];
+
+    const addSingleWaybill = (wbNumber: string) => {
+        const waybill = allWaybills.find(w => w.waybillNumber === wbNumber && w.partnerCode === user?.partnerCode);
+        if (!waybill) {
+            skippedMessages.push(`Waybill #${wbNumber} not found for your partner code.`);
+            return;
+        }
+        if (waybill.status !== 'Pending') {
+            skippedMessages.push(`Waybill #${waybill.waybillNumber} is already ${waybill.status}.`);
+            return;
+        }
+        if (manifest?.waybillIds.includes(waybill.id) || addedWaybills.includes(waybill.id)) {
+            skippedMessages.push(`Waybill #${waybill.waybillNumber} is already in the manifest.`);
+            return;
+        }
+        addedWaybills.push(waybill.id);
+    };
+
+    if (rangeMatch) {
+        const prefix = rangeMatch[1] || '';
+        const start = parseInt(rangeMatch[2], 10);
+        const end = parseInt(rangeMatch[3], 10);
+
+        if (isNaN(start) || isNaN(end) || start > end) {
+            setError("Invalid Range: Start number must be less than or equal to the end number.");
+            return;
+        }
+        
+        for (let i = start; i <= end; i++) {
+            addSingleWaybill(`${prefix}${i}`);
+        }
+    } else {
+        addSingleWaybill(input);
     }
     
-    if (manifest) {
-      const updatedWaybills = [...manifest.waybillIds, waybill.id];
-      setManifest({ ...manifest, waybillIds: updatedWaybills });
+    if (addedWaybills.length > 0 && manifest) {
+        setManifest({ ...manifest, waybillIds: [...manifest.waybillIds, ...addedWaybills] });
     }
+    
+    if (addedWaybills.length > 0) {
+        toast({
+            title: "Waybills Added",
+            description: `${addedWaybills.length} waybill(s) added to manifest. ${skippedMessages.length} skipped.`,
+        });
+    }
+
+    if (skippedMessages.length > 0) {
+        setError(`${skippedMessages.length} waybill(s) could not be added. ${skippedMessages.join(' ')}`);
+    }
+
     setWaybillNumber('');
   };
 
@@ -155,7 +192,7 @@ export default function EditManifestPage() {
             <div className="flex gap-2">
               <Input
                 id="waybill-number"
-                placeholder="Enter Waybill Number (e.g., SW-123456)"
+                placeholder="Enter Waybill Number or Range (e.g., SW-101-105)"
                 value={waybillNumber}
                 onChange={(e) => setWaybillNumber(e.target.value)}
                 onKeyDown={(e) => e.key === 'Enter' && handleAddWaybill()}
