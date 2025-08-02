@@ -40,7 +40,7 @@ Cities to sort:
 - {{{this}}}
 {{/each}}
 
-Available Pallet Numbers: {{jsonStringify palletNumbers}}
+Available Pallet Numbers: {{#each palletNumbers}}{{{this}}}{{#unless @last}}, {{/unless}}{{/each}}
 
 Return the result as a JSON object where the keys are the city names and the values are the assigned pallet numbers.`,
 });
