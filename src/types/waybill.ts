@@ -1,3 +1,4 @@
+
 import { z } from 'zod';
 
 // Base schema for fields shared between the form and the data model
@@ -16,6 +17,7 @@ const baseWaybillSchema = z.object({
   receiverAddress: z.string().min(10, 'Please enter a valid receiver address.'),
   receiverCity: z.string().min(2, 'Receiver city must be at least 2 characters.'),
   receiverPincode: z.string().min(5, 'Pincode must be at least 5 digits.'),
+  receiverState: z.string().min(2, 'Receiver state is required.'),
   receiverPhone: z.string().min(10, 'Please enter a valid receiver phone number.'),
 
   packageDescription: z.string().min(3, 'Description must be at least 3 characters.'),

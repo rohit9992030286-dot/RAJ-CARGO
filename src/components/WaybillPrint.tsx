@@ -2,7 +2,7 @@
 'use client';
 
 import { Waybill } from '@/types/waybill';
-import { Truck, User, MapPin, Phone, Calendar, Hash, Box, Weight, IndianRupee, Package, FileText } from 'lucide-react';
+import { Truck, User, MapPin, Phone, Calendar, Hash, Box, Weight, IndianRupee, Package, FileText, Globe } from 'lucide-react';
 
 interface WaybillPrintProps {
   waybill: Waybill;
@@ -42,6 +42,7 @@ export function WaybillPrint({ waybill }: WaybillPrintProps) {
           <div className="space-y-3">
             <p className="flex items-center gap-3 text-lg"><User className="h-5 w-5 text-gray-500 shrink-0" /> <span className="font-semibold">{waybill.receiverName}</span></p>
             <p className="flex items-start gap-3"><MapPin className="h-5 w-5 text-gray-500 shrink-0 mt-1" /> {waybill.receiverAddress}, {waybill.receiverCity}, {waybill.receiverPincode}</p>
+            <p className="flex items-start gap-3"><Globe className="h-5 w-5 text-gray-500 shrink-0" /> {waybill.receiverState}</p>
             <p className="flex items-center gap-3"><Phone className="h-5 w-5 text-gray-500 shrink-0" /> {waybill.receiverPhone}</p>
           </div>
         </div>

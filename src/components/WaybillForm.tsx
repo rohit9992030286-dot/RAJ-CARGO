@@ -10,19 +10,21 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
 import { Waybill, waybillFormSchema, WaybillFormData } from '@/types/waybill';
-import { User, Phone, Package, Weight, Calendar, ListChecks, Save, XCircle, MapPin, Hash, Box, IndianRupee, Clock, Building, Loader2, FileText } from 'lucide-react';
+import { User, Phone, Package, Weight, Calendar, ListChecks, Save, XCircle, MapPin, Hash, Box, IndianRupee, Clock, Building, Globe, Loader2, FileText } from 'lucide-react';
 import { Textarea } from './ui/textarea';
 import { useState, useEffect } from 'react';
 import { useWaybillInventory } from '@/hooks/useWaybillInventory';
 import { useAuth } from '@/hooks/useAuth';
 
-interface WaybillFormProps {
-  initialData?: Waybill;
-  onSave: (data: Waybill) => boolean; // Return boolean to indicate success
-  onCancel: () => void;
-}
-
 const RATES_STORAGE_KEY = 'rajcargo-pincode-rates';
+
+interface Rate {
+  id: string;
+  pincode: string;
+  rate: number;
+  partnerCode: string;
+  state: string;
+}
 
 const getInitialValues = (initialData?: Waybill): WaybillFormData => {
     const defaults = {
@@ -39,6 +41,7 @@ const getInitialValues = (initialData?: Waybill): WaybillFormData => {
         receiverCity: '',
         receiverPincode: '',
         receiverPhone: '',
+        receiverState: '',
         packageDescription: '',
         packageWeight: 0,
         numberOfBoxes: 1,
@@ -61,7 +64,7 @@ export function WaybillForm({ initialData, onSave, onCancel }: WaybillFormProps)
   const { toast } = useToast();
   const { availablePartnerInventory, isInventoryLoaded } = useWaybillInventory();
   const { user } = useAuth();
-  const [rates, setRates] = useState<Record<string, number>>({});
+  const [rates, setRates] = useState<Rate[]>([]);
 
   const form = useForm<WaybillFormData>({
     resolver: zodResolver(waybillFormSchema),
@@ -77,6 +80,11 @@ export function WaybillForm({ initialData, onSave, onCancel }: WaybillFormProps)
   const receiverPincode = useWatch({
       control: form.control,
       name: 'receiverPincode'
+  });
+
+  const receiverState = useWatch({
+      control: form.control,
+      name: 'receiverState'
   });
 
   useEffect(() => {
@@ -100,12 +108,8 @@ export function WaybillForm({ initialData, onSave, onCancel }: WaybillFormProps)
       try {
           const storedRates = localStorage.getItem(RATES_STORAGE_KEY);
           if (storedRates) {
-              const parsedRates: {pincode: string, rate: number}[] = JSON.parse(storedRates);
-              const ratesMap = parsedRates.reduce((acc, curr) => {
-                  acc[curr.pincode] = curr.rate;
-                  return acc;
-              }, {} as Record<string, number>);
-              setRates(ratesMap);
+              const parsedRates: Rate[] = JSON.parse(storedRates);
+              setRates(parsedRates);
           }
       } catch (error) {
           console.error("Failed to load rates for form", error);
@@ -113,15 +117,20 @@ export function WaybillForm({ initialData, onSave, onCancel }: WaybillFormProps)
   }, []);
 
   useEffect(() => {
-    // Don't auto-update if we are editing an existing record
-    if (initialData) return;
+    if (initialData || !user?.partnerCode) return;
 
-    if (receiverPincode && rates[receiverPincode] !== undefined) {
-        form.setValue('shipmentValue', rates[receiverPincode], { shouldValidate: true });
+    const matchedRate = rates.find(rate => 
+      rate.pincode === receiverPincode &&
+      rate.partnerCode === user.partnerCode &&
+      rate.state.toLowerCase() === receiverState.toLowerCase()
+    );
+
+    if (matchedRate) {
+        form.setValue('shipmentValue', matchedRate.rate, { shouldValidate: true });
     } else {
         form.setValue('shipmentValue', 0, { shouldValidate: true });
     }
-  }, [receiverPincode, rates, form, initialData]);
+  }, [receiverPincode, receiverState, rates, form, initialData, user?.partnerCode]);
 
   const onSubmit = (data: WaybillFormData) => {
     const waybillToSave: Waybill = {
@@ -302,6 +311,22 @@ export function WaybillForm({ initialData, onSave, onCancel }: WaybillFormProps)
                         <Input placeholder="e.g., Los Angeles" {...field} className="pl-10" />
                       </FormControl>
                       <IconWrapper><Building /></IconWrapper>
+                    </div>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="receiverState"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>State</FormLabel>
+                    <div className="relative">
+                      <FormControl>
+                        <Input placeholder="e.g., California" {...field} className="pl-10" />
+                      </FormControl>
+                      <IconWrapper><Globe /></IconWrapper>
                     </div>
                     <FormMessage />
                   </FormItem>
