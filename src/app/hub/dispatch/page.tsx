@@ -46,13 +46,15 @@ export default function HubDispatchPage() {
         if (!manifestsLoaded || !waybillsLoaded) return [];
 
         const hubReceivedManifests = allManifests.filter(m => ['Received', 'Short Received'].includes(m.status));
+        const dispatchedFromHubWbIds = new Set(allManifests.filter(m => m.origin === 'hub').flatMap(m => m.waybillIds));
+        
         const verifiedWaybillIds = new Set<string>();
 
         hubReceivedManifests.forEach(manifest => {
             manifest.verifiedBoxIds?.forEach(boxId => {
                 const waybillNumber = boxId.substring(0, boxId.lastIndexOf('-'));
                 const waybill = allWaybills.find(wb => wb.waybillNumber === waybillNumber);
-                if (waybill && waybill.status !== 'Out for Delivery' && waybill.status !== 'Delivered') {
+                if (waybill && !dispatchedFromHubWbIds.has(waybill.id)) {
                     verifiedWaybillIds.add(waybill.id);
                 }
             });
