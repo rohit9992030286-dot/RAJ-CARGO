@@ -132,7 +132,10 @@ export function WaybillForm({ initialData, onSave, onCancel }: WaybillFormProps)
     );
 
     if (matchedRate) {
-        const finalValue = matchedRate.baseCharge + (packageWeight * matchedRate.weightCharge);
+        let finalValue = matchedRate.baseCharge;
+        if (packageWeight > 25) {
+            finalValue += (packageWeight * matchedRate.weightCharge);
+        }
         form.setValue('shipmentValue', finalValue, { shouldValidate: true });
     } else {
         form.setValue('shipmentValue', 0, { shouldValidate: true });
