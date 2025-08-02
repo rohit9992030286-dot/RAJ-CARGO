@@ -17,7 +17,6 @@ import { format, isBefore, differenceInHours } from 'date-fns';
 import { Input } from '@/components/ui/input';
 import { cn } from '@/lib/utils';
 import { Progress } from '@/components/ui/progress';
-import { textToSpeech } from '@/ai/flows/tts';
 
 interface ExpectedBox {
     waybillId: string;
@@ -147,18 +146,7 @@ function ScanManifestPage() {
     }
   }, [expectedBoxes, palletAssignments, isAssignmentLoading, allManifests, allWaybills]);
 
-  const playAudio = async (text: string) => {
-      try {
-        const audioData = await textToSpeech(text);
-        const audio = new Audio(audioData);
-        audio.play();
-      } catch (error) {
-        console.error("Failed to play audio:", error);
-      }
-  };
-
-
-  const handleVerifyBox = async () => {
+  const handleVerifyBox = () => {
       setError(null);
       setLastScanResult(null);
       const scannedId = inputValue.trim();
@@ -175,12 +163,10 @@ function ScanManifestPage() {
           const assignedPallet = palletAssignments[box.destination];
           if(assignedPallet) {
             setLastScanResult({ boxId: scannedId, pallet: assignedPallet });
-            await playAudio(`Pallet ${assignedPallet}`);
           }
           toast({ title: "Verified", description: `Box #${scannedId} confirmed.`});
       } else {
           setError(`Box ID #${scannedId} is not part of this manifest.`);
-          await playAudio("Not for this manifest");
       }
       scanInputRef.current?.focus();
   };
