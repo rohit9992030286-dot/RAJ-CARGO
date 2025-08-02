@@ -48,7 +48,7 @@ export function useManifests() {
     updateManifest: context.updateManifest,
     deleteManifest: context.deleteManifest,
     getManifestById: context.getManifestById,
+    getManifestByNumber: context.getManifestByNumber,
     isLoaded: context.isLoaded,
   };
 }
-
