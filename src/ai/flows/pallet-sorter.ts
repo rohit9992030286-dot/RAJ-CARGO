@@ -31,6 +31,7 @@ const prompt = ai.definePrompt({
   name: 'palletSorterPrompt',
   input: {schema: PalletSorterInputSchema},
   output: {schema: PalletSorterOutputSchema},
+  model: 'googleai/gemini-2.0-flash',
   prompt: `You are a logistics expert responsible for sorting boxes onto pallets. You will be given a list of unique destination cities from a manifest and a list of available pallet numbers.
 
 Your task is to assign each city to one of the available pallet numbers. Ensure every city gets a pallet number. If there are more cities than pallets, you can assign multiple cities to the same pallet, but try to keep it one city per pallet if possible.
