@@ -14,6 +14,8 @@ export const manifestSchema = z.object({
   creatorPartnerCode: z.string(),
   verifiedBoxIds: z.array(z.string()).optional(),
   palletAssignments: z.record(z.number()).optional(),
+  deliveryPartnerCode: z.string().optional(),
+  deliveryPartnerName: z.string().optional(),
 });
 
 export type Manifest = z.infer<typeof manifestSchema>;
