@@ -202,7 +202,7 @@ export default function HubDispatchPage() {
                                                     <TableHead className="w-[50px]"></TableHead>
                                                     <TableHead>Waybill #</TableHead>
                                                     <TableHead>Receiver</TableHead>
-                                                    <TableHead>Booking Partner</TableHead>
+                                                    <TableHead className="text-center">Pallet #</TableHead>
                                                 </TableRow>
                                             </TableHeader>
                                             <TableBody>
@@ -224,7 +224,7 @@ export default function HubDispatchPage() {
                                                         </TableCell>
                                                         <TableCell className="font-medium">{wb.waybillNumber}</TableCell>
                                                         <TableCell>{wb.receiverName}</TableCell>
-                                                        <TableCell>{wb.partnerCode || 'N/A'}</TableCell>
+                                                        <TableCell className="text-center font-bold">{data.pallet || 'N/A'}</TableCell>
                                                     </TableRow>
                                                 ))}
                                             </TableBody>
