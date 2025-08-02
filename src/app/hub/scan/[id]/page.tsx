@@ -9,7 +9,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { ArrowLeft, Box, CheckCircle, Loader2, ScanLine, XCircle, AlertCircle, Circle, ArrowRight, Save } from 'lucide-react';
+import { ArrowLeft, Box, CheckCircle, Loader2, ScanLine, XCircle, AlertCircle, Circle, ArrowRight, Save, Pallet } from 'lucide-react';
 import { Waybill } from '@/types/waybill';
 import { Manifest } from '@/types/manifest';
 import { useToast } from '@/hooks/use-toast';
@@ -17,6 +17,7 @@ import { format } from 'date-fns';
 import { Input } from '@/components/ui/input';
 import { cn } from '@/lib/utils';
 import { Progress } from '@/components/ui/progress';
+import { sortIntoPallets } from '@/ai/flows/pallet-sorter';
 
 interface ExpectedBox {
     waybillId: string;
@@ -25,6 +26,11 @@ interface ExpectedBox {
     totalBoxes: number;
     boxId: string;
     destination: string;
+}
+
+interface LastScanResult {
+    boxId: string;
+    pallet: number;
 }
 
 function ScanManifestPage() {
@@ -42,6 +48,10 @@ function ScanManifestPage() {
   const [inputValue, setInputValue] = useState('');
   const [error, setError] = useState<string | null>(null);
   const scanInputRef = useRef<HTMLInputElement>(null);
+  const [palletAssignments, setPalletAssignments] = useState<Record<string, number>>({});
+  const [isAiLoading, setIsAiLoading] = useState(false);
+  const [lastScanResult, setLastScanResult] = useState<LastScanResult | null>(null);
+
 
   useEffect(() => {
     if (manifestId && manifestsLoaded) {
@@ -78,20 +88,43 @@ function ScanManifestPage() {
         });
     });
   },[manifest, getWaybillById]);
+  
+  useEffect(() => {
+    if (expectedBoxes.length > 0) {
+        const uniqueCities = [...new Set(expectedBoxes.map(b => b.destination))];
+        const palletNumbers = Array.from({ length: 100 }, (_, i) => i + 1);
+        setIsAiLoading(true);
+        sortIntoPallets({ cities: uniqueCities, palletNumbers })
+            .then(result => {
+                setPalletAssignments(result.assignments);
+            })
+            .catch(err => {
+                console.error("AI Pallet Sorter Error:", err);
+                toast({ title: "AI Sorter Failed", description: "Could not get pallet assignments.", variant: "destructive"});
+            })
+            .finally(() => setIsAiLoading(false));
+    }
+  }, [expectedBoxes, toast]);
+
 
   const handleVerifyBox = () => {
       setError(null);
+      setLastScanResult(null);
       const scannedId = inputValue.trim();
       if (!scannedId) {
           setError("Please scan or enter a box ID.");
           return;
       }
       
-      const boxExistsInManifest = expectedBoxes.some(box => box.boxId === scannedId);
+      const box = expectedBoxes.find(box => box.boxId === scannedId);
 
-      if (boxExistsInManifest) {
+      if (box) {
           setScannedBoxIds(prev => new Set(prev).add(scannedId));
           setInputValue('');
+          const assignedPallet = palletAssignments[box.destination];
+          if(assignedPallet) {
+            setLastScanResult({ boxId: scannedId, pallet: assignedPallet });
+          }
           toast({ title: "Verified", description: `Box #${scannedId} confirmed.`});
       } else {
           setError(`Box ID #${scannedId} is not part of this manifest.`);
@@ -180,6 +213,17 @@ function ScanManifestPage() {
                         <AlertDescription>{error}</AlertDescription>
                     </Alert>
                     )}
+                    {lastScanResult && (
+                        <Alert variant="default" className="bg-primary/10 border-primary/20">
+                            <Pallet className="h-5 w-5 text-primary"/>
+                            <AlertTitle className="text-xl font-bold">
+                                Place on Pallet #{lastScanResult.pallet}
+                            </AlertTitle>
+                            <AlertDescription>
+                                Box <strong>{lastScanResult.boxId}</strong> goes to Pallet #{lastScanResult.pallet}.
+                            </AlertDescription>
+                        </Alert>
+                    )}
                 </CardContent>
             </Card>
 
@@ -231,11 +275,13 @@ function ScanManifestPage() {
                     <TableHead>Box ID</TableHead>
                     <TableHead>Waybill #</TableHead>
                     <TableHead>Destination</TableHead>
+                    <TableHead>Pallet</TableHead>
                 </TableRow>
                 </TableHeader>
                 <TableBody>
                 {expectedBoxes.map((box) => {
                     const isVerified = scannedBoxIds.has(box.boxId);
+                    const pallet = palletAssignments[box.destination];
                     return (
                         <TableRow key={box.boxId} className={cn(isVerified && 'bg-green-50/50 dark:bg-green-900/20')}>
                             <TableCell>
@@ -252,6 +298,10 @@ function ScanManifestPage() {
                             <TableCell className="font-medium font-mono">{box.boxId}</TableCell>
                             <TableCell>{box.waybillNumber}</TableCell>
                             <TableCell>{box.destination}</TableCell>
+                            <TableCell>
+                                {isAiLoading && <Loader2 className="h-4 w-4 animate-spin" />}
+                                {pallet && <span className="font-semibold">{pallet}</span>}
+                            </TableCell>
                         </TableRow>
                     );
                 })}
