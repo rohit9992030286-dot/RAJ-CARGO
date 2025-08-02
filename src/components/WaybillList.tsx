@@ -17,6 +17,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { Checkbox } from '@/components/ui/checkbox';
 import {
     Table,
@@ -34,9 +35,9 @@ import {
     DropdownMenuSeparator,
     DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import { Pencil, Trash2, Truck, PlusCircle, Printer, MoreHorizontal, Lock, Check, X } from 'lucide-react';
+import { Pencil, Trash2, Truck, PlusCircle, Printer, MoreHorizontal, Lock, Check, X, AlertTriangle } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { format } from 'date-fns';
+import { format, differenceInHours, isBefore } from 'date-fns';
 
 
 interface WaybillListProps {
@@ -77,6 +78,20 @@ export function WaybillList({
   };
 
   const allOnPageSelected = waybills.length > 0 && waybills.every(w => selectedWaybillIds.includes(w.id));
+  
+  const checkEWayBillExpiry = (expiryDateString?: string) => {
+    if (!expiryDateString) return null;
+    const expiryDate = new Date(expiryDateString);
+    const now = new Date();
+    if (isBefore(expiryDate, now)) {
+        return { message: "E-Way Bill Expired!", isCritical: true };
+    }
+    const hoursLeft = differenceInHours(expiryDate, now);
+    if (hoursLeft <= 48) {
+        return { message: `E-Way Bill expires in ${hoursLeft} hours.`, isCritical: false };
+    }
+    return null;
+  }
 
 
   if (waybills.length === 0) {
@@ -97,6 +112,7 @@ export function WaybillList({
 
   return (
     <div className="border rounded-md">
+       <TooltipProvider>
        <Table>
             <TableHeader>
                 <TableRow>
@@ -119,6 +135,7 @@ export function WaybillList({
             <TableBody>
                 {waybills.map((waybill) => {
                     const isLocked = waybill.status === 'In Transit' || waybill.status === 'Delivered' || waybill.status === 'Out for Delivery';
+                    const expiryInfo = checkEWayBillExpiry(waybill.eWayBillExpiryDate);
                     return (
                         <TableRow key={waybill.id}>
                             <TableCell>
@@ -128,7 +145,19 @@ export function WaybillList({
                                     aria-label={`Select waybill ${waybill.waybillNumber}`}
                                 />
                             </TableCell>
-                            <TableCell className="font-medium">{waybill.waybillNumber}</TableCell>
+                            <TableCell className="font-medium flex items-center gap-2">
+                                {waybill.waybillNumber}
+                                {expiryInfo && (
+                                     <Tooltip>
+                                        <TooltipTrigger>
+                                            <AlertTriangle className={cn("h-4 w-4", expiryInfo.isCritical ? "text-destructive" : "text-amber-500")} />
+                                        </TooltipTrigger>
+                                        <TooltipContent>
+                                            <p>{expiryInfo.message}</p>
+                                        </TooltipContent>
+                                    </Tooltip>
+                                )}
+                            </TableCell>
                             <TableCell>{format(new Date(waybill.shippingDate), 'PP')}</TableCell>
                             <TableCell>{waybill.senderName}</TableCell>
                             <TableCell>{waybill.receiverName}</TableCell>
@@ -204,6 +233,7 @@ export function WaybillList({
                 })}
             </TableBody>
        </Table>
+       </TooltipProvider>
     </div>
   );
 }

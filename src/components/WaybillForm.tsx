@@ -32,6 +32,7 @@ const getInitialValues = (initialData?: Waybill): WaybillFormData => {
         waybillNumber: '',
         invoiceNumber: '',
         eWayBillNo: '',
+        eWayBillExpiryDate: '',
         senderName: '',
         senderAddress: '',
         senderCity: '',
@@ -510,26 +511,48 @@ export function WaybillForm({ initialData, onSave, onCancel }: WaybillFormProps)
                   </FormItem>
                 )}
               />
-              <FormField
-                control={form.control}
-                name="eWayBillNo"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>
-                      E-Way Bill No
-                      {shipmentValue >= 50000 && <span className="text-destructive">*</span>}
-                    </FormLabel>
-                    <div className="relative">
-                      <FormControl>
-                        <Input placeholder="E-Way Bill Number" {...field} className="pl-10" />
-                      </FormControl>
-                      <IconWrapper><FileText /></IconWrapper>
-                    </div>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+              <div />
             </div>
+             <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-4">
+                 <FormField
+                    control={form.control}
+                    name="eWayBillNo"
+                    render={({ field }) => (
+                    <FormItem>
+                        <FormLabel>
+                        E-Way Bill No
+                        {shipmentValue >= 50000 && <span className="text-destructive">*</span>}
+                        </FormLabel>
+                        <div className="relative">
+                        <FormControl>
+                            <Input placeholder="E-Way Bill Number" {...field} className="pl-10" />
+                        </FormControl>
+                        <IconWrapper><FileText /></IconWrapper>
+                        </div>
+                        <FormMessage />
+                    </FormItem>
+                    )}
+                />
+                <FormField
+                    control={form.control}
+                    name="eWayBillExpiryDate"
+                    render={({ field }) => (
+                    <FormItem>
+                        <FormLabel>
+                         E-Way Expiry
+                        {shipmentValue >= 50000 && <span className="text-destructive">*</span>}
+                        </FormLabel>
+                         <div className="relative">
+                          <FormControl>
+                            <Input type="date" {...field} className="pl-10" />
+                          </FormControl>
+                           <IconWrapper><Calendar /></IconWrapper>
+                        </div>
+                        <FormMessage />
+                    </FormItem>
+                    )}
+                />
+             </div>
             <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-4">
                  <FormField
                     control={form.control}

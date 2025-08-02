@@ -6,6 +6,7 @@ const baseWaybillSchema = z.object({
   waybillNumber: z.string().min(1, 'Waybill number is required.'),
   invoiceNumber: z.string().min(1, 'Invoice number is required.'),
   eWayBillNo: z.string().optional(),
+  eWayBillExpiryDate: z.string().optional(),
   
   senderName: z.string().min(2, 'Sender name must be at least 2 characters.'),
   senderAddress: z.string().min(10, 'Please enter a valid sender address.'),
@@ -40,6 +41,13 @@ export const waybillFormSchema = baseWaybillSchema.superRefine((data, ctx) => {
                 code: z.ZodIssueCode.custom,
                 path: ['eWayBillNo'],
                 message: 'E-Way Bill number is required for shipment value of ₹50,000 or more.',
+            });
+        }
+        if (!data.eWayBillExpiryDate) {
+             ctx.addIssue({
+                code: z.ZodIssueCode.custom,
+                path: ['eWayBillExpiryDate'],
+                message: 'E-Way Bill expiry date is required for these shipments.',
             });
         }
     }
