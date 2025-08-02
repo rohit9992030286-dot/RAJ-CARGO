@@ -12,7 +12,7 @@ import { Input } from '@/components/ui/input';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Loader2, UserPlus, Trash2, User as UserIcon, KeyRound, Shield, Briefcase, BookCopy, Cpu, Truck, Pencil, XCircle } from 'lucide-react';
+import { Loader2, UserPlus, Trash2, User as UserIcon, KeyRound, Shield, Briefcase, BookCopy, Cpu, Truck, Pencil, XCircle, CheckSquare } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { Badge } from '@/components/ui/badge';
 import {
@@ -41,6 +41,7 @@ type UserFormData = z.infer<typeof userFormSchema>;
 const roles = [
     { id: 'booking', label: 'Booking', icon: BookCopy },
     { id: 'hub', label: 'Hub', icon: Cpu },
+    { id: 'delivery', label: 'Delivery', icon: CheckSquare },
 ];
 
 export default function UserManagementPage() {
@@ -86,7 +87,7 @@ export default function UserManagementPage() {
         const userToUpdate: NewUser = {
             ...editingUser,
             ...data,
-            roles: data.roles as ('booking' | 'hub')[],
+            roles: data.roles as ('booking' | 'hub' | 'delivery')[],
         };
         const success = updateUser(userToUpdate);
          if (success) {
@@ -101,7 +102,7 @@ export default function UserManagementPage() {
         const newUser: NewUser = {
             ...data,
             role: 'staff' as 'staff',
-            roles: data.roles as ('booking' | 'hub')[],
+            roles: data.roles as ('booking' | 'hub' | 'delivery')[],
         };
 
         const success = addUser(newUser);

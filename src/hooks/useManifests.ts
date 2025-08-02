@@ -31,7 +31,7 @@ export function useManifests() {
         return manifests.filter(manifest => manifest.origin === 'booking' && manifest.creatorPartnerCode === userPartnerCode);
     }
 
-    // Hub users see manifests created by booking offices to verify
+    // Hub users see manifests dispatched by booking offices to verify
     if (userRoles.includes('hub')) {
         return manifests.filter(manifest => manifest.status === 'Dispatched' && manifest.origin === 'booking');
     }

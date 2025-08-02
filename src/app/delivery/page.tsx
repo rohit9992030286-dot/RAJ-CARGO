@@ -38,18 +38,20 @@ interface WaybillForDelivery extends Waybill {
 }
 
 export default function DeliveryPage() {
-  const { manifests, isLoaded: manifestsLoaded } = useManifests();
+  const { allManifests, isLoaded: manifestsLoaded } = useManifests();
   const { allWaybills, updateWaybill, getWaybillById, isLoaded: waybillsLoaded } = useWaybills();
   const { user, isLoading: isAuthLoading } = useAuth();
 
   const waybillsForDelivery = useMemo(() => {
     const waybillsToDeliver: WaybillForDelivery[] = [];
     
-    manifests.forEach(manifest => {
+    allManifests.forEach(manifest => {
+        if(manifest.origin !== 'hub') return;
+        
         manifest.waybillIds.forEach(waybillId => {
             const waybill = getWaybillById(waybillId);
-            if (waybill && ['In Transit', 'Out for Delivery', 'Returned'].includes(waybill.status)) {
-                waybillsToDeliver.push({
+            if (waybill && ['Out for Delivery', 'Delivered', 'Returned'].includes(waybill.status) || (waybill && waybill.status === 'In Transit' && manifest.origin === 'hub')) {
+                 waybillsToDeliver.push({
                     ...waybill,
                     manifestDate: manifest.date,
                 });
@@ -59,7 +61,7 @@ export default function DeliveryPage() {
 
     return waybillsToDeliver;
 
-  }, [manifests, getWaybillById]);
+  }, [allManifests, getWaybillById]);
   
   const handleUpdateStatus = (id: string, status: Waybill['status']) => {
     const waybill = allWaybills.find(w => w.id === id);

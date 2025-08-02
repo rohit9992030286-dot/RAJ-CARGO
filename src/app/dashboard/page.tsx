@@ -3,7 +3,7 @@
 
 import Link from 'next/link';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
-import { ArrowRight, BookCopy, Cpu, Shield, Loader2, LogOut } from 'lucide-react';
+import { ArrowRight, BookCopy, Cpu, Shield, Loader2, LogOut, CheckSquare } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/hooks/useAuth';
 import { useRouter } from 'next/navigation';
@@ -36,6 +36,7 @@ export default function DashboardPage() {
   const isAdmin = user.role === 'admin';
   const hasBookingRole = user.roles?.includes('booking') || isAdmin;
   const hasHubRole = user.roles?.includes('hub') || isAdmin;
+  const hasDeliveryRole = user.roles?.includes('delivery') || isAdmin;
 
   return (
     <div className="flex flex-col min-h-screen bg-gray-50 dark:bg-black">
@@ -97,6 +98,29 @@ export default function DashboardPage() {
                             <Link href="/hub" className="w-full">
                                 <Button className="w-full">
                                     Go to Hub <ArrowRight className="ml-2 h-4 w-4" />
+                                </Button>
+                            </Link>
+                        </CardFooter>
+                    </Card>
+                )}
+                {hasDeliveryRole && (
+                     <Card className="hover:shadow-lg transition-shadow">
+                        <CardHeader>
+                            <div className="flex items-center gap-4">
+                                <CheckSquare className="h-10 w-10 text-primary" />
+                                <div>
+                                    <CardTitle className="text-2xl">Delivery System</CardTitle>
+                                    <CardDescription>Manage final delivery of shipments.</CardDescription>
+                                </div>
+                            </div>
+                        </CardHeader>
+                        <CardContent>
+                            <p>View waybills assigned for delivery and update their status in real-time. Track delivered and returned packages.</p>
+                        </CardContent>
+                        <CardFooter>
+                            <Link href="/delivery" className="w-full">
+                                <Button className="w-full">
+                                    Go to Delivery <ArrowRight className="ml-2 h-4 w-4" />
                                 </Button>
                             </Link>
                         </CardFooter>
