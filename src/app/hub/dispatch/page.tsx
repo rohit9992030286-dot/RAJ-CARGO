@@ -11,11 +11,12 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Loader2, Package, Send, Truck, User, Phone, Briefcase } from 'lucide-react';
+import { Loader2, Package, Send, Truck, User, Phone, Briefcase, Building } from 'lucide-react';
 import { format } from 'date-fns';
 import { useToast } from '@/hooks/use-toast';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/hooks/useAuth';
+import { Badge } from '@/components/ui/badge';
 
 export default function HubDispatchPage() {
     const { allManifests, isLoaded: manifestsLoaded, addManifest } = useManifests();
@@ -49,6 +50,18 @@ export default function HubDispatchPage() {
         return Array.from(verifiedWaybillIds).map(id => allWaybills.find(wb => wb.id === id)).filter((wb): wb is Waybill => !!wb);
 
     }, [allManifests, allWaybills, manifestsLoaded, waybillsLoaded]);
+
+    const waybillsByCity = useMemo(() => {
+        return verifiedWaybillsForDispatch.reduce((acc, wb) => {
+            const city = wb.receiverCity;
+            if (!acc[city]) {
+                acc[city] = [];
+            }
+            acc[city].push(wb);
+            return acc;
+        }, {} as Record<string, Waybill[]>);
+    }, [verifiedWaybillsForDispatch]);
+
 
     const handleCreateDispatch = () => {
         if (selectedWaybillIds.length === 0) {
@@ -90,15 +103,15 @@ export default function HubDispatchPage() {
         setDriverContact('');
     };
 
-    const isAllSelected = verifiedWaybillsForDispatch.length > 0 && selectedWaybillIds.length === verifiedWaybillsForDispatch.length;
-
-    const handleSelectAll = (checked: boolean) => {
+    const handleSelectCity = (city: string, checked: boolean) => {
+        const cityWaybillIds = waybillsByCity[city].map(wb => wb.id);
         if (checked) {
-            setSelectedWaybillIds(verifiedWaybillsForDispatch.map(wb => wb.id));
+            setSelectedWaybillIds(prev => [...new Set([...prev, ...cityWaybillIds])]);
         } else {
-            setSelectedWaybillIds([]);
+            setSelectedWaybillIds(prev => prev.filter(id => !cityWaybillIds.includes(id)));
         }
     };
+    
 
     if (!manifestsLoaded || !waybillsLoaded) {
         return (
@@ -115,67 +128,82 @@ export default function HubDispatchPage() {
                 <p className="text-muted-foreground">Create and manage manifests for final delivery.</p>
             </div>
             
-            <div className="grid lg:grid-cols-3 gap-8">
-                <div className="lg:col-span-2">
-                    <Card>
-                        <CardHeader>
-                            <CardTitle>Verified Waybills Ready for Dispatch</CardTitle>
-                            <CardDescription>Select waybills to include in a new outbound manifest.</CardDescription>
-                        </CardHeader>
-                        <CardContent>
-                             {verifiedWaybillsForDispatch.length > 0 ? (
-                                 <Table>
-                                    <TableHeader>
-                                        <TableRow>
-                                            <TableHead className="w-[50px]">
-                                                <Checkbox
-                                                    checked={isAllSelected}
-                                                    onCheckedChange={(checked) => handleSelectAll(!!checked)}
-                                                    aria-label="Select all"
+            <div className="grid lg:grid-cols-3 gap-8 items-start">
+                <div className="lg:col-span-2 space-y-6">
+                     {Object.keys(waybillsByCity).length > 0 ? (
+                        Object.entries(waybillsByCity).map(([city, waybills]) => {
+                             const cityWaybillIds = waybills.map(wb => wb.id);
+                             const isAllSelectedInCity = cityWaybillIds.every(id => selectedWaybillIds.includes(id));
+                             const isSomeSelectedInCity = cityWaybillIds.some(id => selectedWaybillIds.includes(id));
+
+                            return (
+                                <Card key={city}>
+                                    <CardHeader>
+                                        <div className="flex items-center gap-4">
+                                            <div className="flex items-center space-x-2">
+                                                 <Checkbox
+                                                    id={`select-all-${city}`}
+                                                    checked={isAllSelectedInCity}
+                                                    onCheckedChange={(checked) => handleSelectCity(city, !!checked)}
+                                                    aria-label={`Select all for ${city}`}
                                                 />
-                                            </TableHead>
-                                            <TableHead>Waybill #</TableHead>
-                                            <TableHead>Receiver</TableHead>
-                                            <TableHead>Destination</TableHead>
-                                            <TableHead>Booking Partner</TableHead>
-                                        </TableRow>
-                                    </TableHeader>
-                                    <TableBody>
-                                        {verifiedWaybillsForDispatch.map(wb => (
-                                            <TableRow 
-                                                key={wb.id} 
-                                                data-state={selectedWaybillIds.includes(wb.id) && "selected"}
-                                            >
-                                                <TableCell>
-                                                    <Checkbox
-                                                        checked={selectedWaybillIds.includes(wb.id)}
-                                                        onCheckedChange={(checked) => {
-                                                            setSelectedWaybillIds(prev => 
-                                                                checked ? [...prev, wb.id] : prev.filter(id => id !== wb.id)
-                                                            )
-                                                        }}
-                                                        aria-label={`Select waybill ${wb.waybillNumber}`}
-                                                    />
-                                                </TableCell>
-                                                <TableCell className="font-medium">{wb.waybillNumber}</TableCell>
-                                                <TableCell>{wb.receiverName}</TableCell>
-                                                <TableCell>{wb.receiverCity}</TableCell>
-                                                <TableCell>{wb.partnerCode || 'N/A'}</TableCell>
-                                            </TableRow>
-                                        ))}
-                                    </TableBody>
-                                 </Table>
-                             ) : (
-                                <div className="text-center py-16 border-2 border-dashed rounded-lg">
-                                    <Package className="mx-auto h-12 w-12 text-muted-foreground" />
-                                    <h3 className="mt-4 text-lg font-semibold">No Verified Waybills</h3>
-                                    <p className="mt-1 text-sm text-muted-foreground">
-                                        Once you verify incoming manifests, the waybills will appear here.
-                                    </p>
-                                </div>
-                             )}
-                        </CardContent>
-                    </Card>
+                                                <label htmlFor={`select-all-${city}`} className="text-lg font-semibold flex items-center gap-2">
+                                                    <Building className="h-5 w-5 text-muted-foreground" />
+                                                    Destination: {city}
+                                                </label>
+                                            </div>
+                                            <Badge variant="secondary">{waybills.length} Waybill(s)</Badge>
+                                        </div>
+                                    </CardHeader>
+                                    <CardContent className="pl-2 pr-0 pb-0">
+                                         <Table>
+                                            <TableHeader>
+                                                <TableRow>
+                                                    <TableHead className="w-[50px]"></TableHead>
+                                                    <TableHead>Waybill #</TableHead>
+                                                    <TableHead>Receiver</TableHead>
+                                                    <TableHead>Booking Partner</TableHead>
+                                                </TableRow>
+                                            </TableHeader>
+                                            <TableBody>
+                                                {waybills.map(wb => (
+                                                    <TableRow 
+                                                        key={wb.id} 
+                                                        data-state={selectedWaybillIds.includes(wb.id) && "selected"}
+                                                    >
+                                                        <TableCell>
+                                                            <Checkbox
+                                                                checked={selectedWaybillIds.includes(wb.id)}
+                                                                onCheckedChange={(checked) => {
+                                                                    setSelectedWaybillIds(prev => 
+                                                                        checked ? [...prev, wb.id] : prev.filter(id => id !== wb.id)
+                                                                    )
+                                                                }}
+                                                                aria-label={`Select waybill ${wb.waybillNumber}`}
+                                                            />
+                                                        </TableCell>
+                                                        <TableCell className="font-medium">{wb.waybillNumber}</TableCell>
+                                                        <TableCell>{wb.receiverName}</TableCell>
+                                                        <TableCell>{wb.partnerCode || 'N/A'}</TableCell>
+                                                    </TableRow>
+                                                ))}
+                                            </TableBody>
+                                         </Table>
+                                    </CardContent>
+                                </Card>
+                            )
+                        })
+                     ) : (
+                        <Card className="lg:col-span-2">
+                             <CardContent className="text-center py-16 border-2 border-dashed rounded-lg">
+                                <Package className="mx-auto h-12 w-12 text-muted-foreground" />
+                                <h3 className="mt-4 text-lg font-semibold">No Verified Waybills</h3>
+                                <p className="mt-1 text-sm text-muted-foreground">
+                                    Once you verify incoming manifests, the waybills will appear here.
+                                </p>
+                            </CardContent>
+                        </Card>
+                     )}
                 </div>
                 
                 <div className="lg:col-span-1">
@@ -219,4 +247,3 @@ export default function HubDispatchPage() {
         </div>
     );
 }
-
