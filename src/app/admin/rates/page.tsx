@@ -14,6 +14,7 @@ import { useToast } from '@/hooks/use-toast';
 import { Loader2, PlusCircle, Trash2, Tags, IndianRupee, Globe, Pencil, Weight } from 'lucide-react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useAuth } from '@/hooks/useAuth';
+import { Badge } from '@/components/ui/badge';
 
 const STORAGE_KEY = 'rajcargo-pincode-rates';
 
