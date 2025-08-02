@@ -33,9 +33,9 @@ export default function DashboardPage() {
         )
     }
 
-  const hasBookingRole = user.roles?.includes('booking');
-  const hasHubRole = user.roles?.includes('hub');
   const isAdmin = user.role === 'admin';
+  const hasBookingRole = user.roles?.includes('booking') || isAdmin;
+  const hasHubRole = user.roles?.includes('hub') || isAdmin;
 
   return (
     <div className="flex flex-col min-h-screen bg-gray-50 dark:bg-black">
