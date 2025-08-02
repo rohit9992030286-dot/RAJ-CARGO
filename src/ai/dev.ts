@@ -4,5 +4,5 @@
 
 import '@/ai/flows/address-autocomplete.ts';
 import '@/ai/flows/state-lookup.ts';
-import '@/ai/flows/pallet-sorter.ts';
 import '@/ai/flows/tts.ts';
+

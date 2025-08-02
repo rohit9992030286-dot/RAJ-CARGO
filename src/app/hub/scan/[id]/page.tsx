@@ -17,8 +17,6 @@ import { format } from 'date-fns';
 import { Input } from '@/components/ui/input';
 import { cn } from '@/lib/utils';
 import { Progress } from '@/components/ui/progress';
-import { sortIntoPallets } from '@/ai/flows/pallet-sorter';
-import { textToSpeech } from '@/ai/flows/tts';
 
 interface ExpectedBox {
     waybillId: string;
@@ -49,11 +47,9 @@ function ScanManifestPage() {
   const [inputValue, setInputValue] = useState('');
   const [error, setError] = useState<string | null>(null);
   const scanInputRef = useRef<HTMLInputElement>(null);
-  const audioPlayerRef = useRef<HTMLAudioElement>(null);
   const [palletAssignments, setPalletAssignments] = useState<Record<string, number>>({});
-  const [isAiLoading, setIsAiLoading] = useState(false);
+  const [isAssignmentLoading, setIsAssignmentLoading] = useState(false);
   const [lastScanResult, setLastScanResult] = useState<LastScanResult | null>(null);
-  const [audioSrc, setAudioSrc] = useState<string | null>(null);
 
 
   useEffect(() => {
@@ -92,58 +88,63 @@ function ScanManifestPage() {
     });
   },[manifest, getWaybillById]);
   
-  // This effect handles the AI pallet sorting logic.
   useEffect(() => {
-    // Only run if we have boxes and pallet assignments haven't been fetched yet.
-    if (expectedBoxes.length > 0 && Object.keys(palletAssignments).length === 0 && !isAiLoading) {
-        
-        // 1. Find all pallets currently occupied by verified, non-dispatched waybills.
+    if (expectedBoxes.length > 0 && Object.keys(palletAssignments).length === 0 && !isAssignmentLoading) {
+        setIsAssignmentLoading(true);
+
+        const citiesOnFloor = new Set<string>();
+        const occupiedPallets = new Set<number>();
+
         const hubReceivedManifests = allManifests.filter(m => ['Received', 'Short Received'].includes(m.status));
-        const verifiedWaybillIds = new Set<string>();
         hubReceivedManifests.forEach(m => {
             m.verifiedBoxIds?.forEach(boxId => {
-                const waybillNumber = boxId.substring(0, boxId.lastIndexOf('-'));
-                const waybill = allWaybills.find(wb => wb.waybillNumber === waybillNumber);
-                if (waybill) verifiedWaybillIds.add(waybill.id);
+                const waybill = allWaybills.find(wb => boxId.startsWith(wb.waybillNumber));
+                if (waybill) {
+                    citiesOnFloor.add(waybill.receiverCity.toUpperCase());
+                }
             });
         });
 
-        const dispatchedHubWaybillIds = new Set<string>(
-            allManifests.filter(m => m.origin === 'hub').flatMap(m => m.waybillIds)
-        );
-
-        const waybillsOnFloor = Array.from(verifiedWaybillIds)
-            .filter(id => !dispatchedHubWaybillIds.has(id))
-            .map(id => allWaybills.find(wb => wb.id === id))
-            .filter((wb): wb is Waybill => !!wb);
-
-        const citiesOnFloor = [...new Set(waybillsOnFloor.map(wb => wb.receiverCity.toUpperCase()))];
+        const dispatchedFromHubWbIds = new Set(allManifests.filter(m => m.origin === 'hub').flatMap(m => m.waybillIds));
+        citiesOnFloor.forEach(city => {
+            const waybillsInCity = allWaybills.filter(wb => wb.receiverCity.toUpperCase() === city && !dispatchedFromHubWbIds.has(wb.id));
+            if (waybillsInCity.length === 0) {
+                citiesOnFloor.delete(city);
+            }
+        });
         
-        // 2. Create the list of available pallets (1-100).
-        const allPalletNumbers = Array.from({ length: 100 }, (_, i) => i + 1);
-        
-        // This is a placeholder for getting occupied pallets. In a real scenario,
-        // this would involve a more complex state management to track which pallets
-        // are tied to which cities currently on the hub floor.
-        // For now, we simulate that the first N pallets are occupied by the cities already on the floor.
-        const occupiedPallets = new Set<number>(Array.from({length: citiesOnFloor.length}, (_, i) => i + 1));
-        const availablePallets = allPalletNumbers.filter(p => !occupiedPallets.has(p));
+        let nextPallet = 1;
+        const floorPalletAssignments: Record<string, number> = {};
+        citiesOnFloor.forEach(city => {
+            floorPalletAssignments[city] = nextPallet;
+            occupiedPallets.add(nextPallet);
+            nextPallet++;
+        });
 
-        // 3. Get the unique cities for the *current* manifest being scanned.
+        const newAssignments: Record<string, number> = {};
         const uniqueCitiesForCurrentManifest = [...new Set(expectedBoxes.map(b => b.destination))];
+        
+        uniqueCitiesForCurrentManifest.forEach(city => {
+            if (floorPalletAssignments[city]) {
+                newAssignments[city] = floorPalletAssignments[city];
+            } else {
+                while(occupiedPallets.has(nextPallet)){
+                    nextPallet++;
+                }
+                if(nextPallet <= 100) {
+                    newAssignments[city] = nextPallet;
+                    occupiedPallets.add(nextPallet);
+                } else {
+                    // Fallback: if all 100 pallets are full, re-use pallet 1.
+                    newAssignments[city] = 1;
+                }
+            }
+        });
 
-        setIsAiLoading(true);
-        sortIntoPallets({ cities: uniqueCitiesForCurrentManifest, palletNumbers: availablePallets })
-            .then(result => {
-                setPalletAssignments(result.assignments);
-            })
-            .catch(err => {
-                console.error("AI Pallet Sorter Error:", err);
-                toast({ title: "AI Sorter Failed", description: "Could not get pallet assignments.", variant: "destructive"});
-            })
-            .finally(() => setIsAiLoading(false));
+        setPalletAssignments(newAssignments);
+        setIsAssignmentLoading(false);
     }
-  }, [expectedBoxes, palletAssignments, isAiLoading, allManifests, allWaybills, toast]);
+  }, [expectedBoxes, palletAssignments, isAssignmentLoading, allManifests, allWaybills]);
 
 
   const handleVerifyBox = async () => {
@@ -163,12 +164,6 @@ function ScanManifestPage() {
           const assignedPallet = palletAssignments[box.destination];
           if(assignedPallet) {
             setLastScanResult({ boxId: scannedId, pallet: assignedPallet });
-            try {
-              const { audio } = await textToSpeech(`Pallet ${assignedPallet}`);
-              setAudioSrc(audio);
-            } catch (ttsError) {
-              console.error("TTS Error:", ttsError);
-            }
           }
           toast({ title: "Verified", description: `Box #${scannedId} confirmed.`});
       } else {
@@ -177,12 +172,6 @@ function ScanManifestPage() {
       scanInputRef.current?.focus();
   };
   
-  useEffect(() => {
-      if (audioSrc && audioPlayerRef.current) {
-          audioPlayerRef.current.play().catch(e => console.error("Audio playback failed", e));
-      }
-  }, [audioSrc]);
-
   const handleSaveAndConfirm = () => {
     if (manifest) {
       const allVerified = expectedBoxes.length > 0 && expectedBoxes.length === scannedBoxIds.size;
@@ -350,7 +339,7 @@ function ScanManifestPage() {
                             <TableCell>{box.waybillNumber}</TableCell>
                             <TableCell>{box.destination}</TableCell>
                             <TableCell>
-                                {isAiLoading && !pallet && <Loader2 className="h-4 w-4 animate-spin" />}
+                                {isAssignmentLoading && !pallet && <Loader2 className="h-4 w-4 animate-spin" />}
                                 {pallet && <span className="font-semibold">{pallet}</span>}
                             </TableCell>
                         </TableRow>
@@ -361,7 +350,6 @@ function ScanManifestPage() {
             </CardContent>
         </Card>
      </div>
-     {audioSrc && <audio ref={audioPlayerRef} src={audioSrc} />}
     </div>
   );
 }
