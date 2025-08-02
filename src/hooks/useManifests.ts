@@ -26,8 +26,14 @@ export function useManifests() {
     const userPartnerCode = user.partnerCode;
     const userRoles = user.roles || [];
     
+    // Booking users see manifests they created
     if (userRoles.includes('booking')) {
-        return manifests.filter(manifest => manifest.creatorPartnerCode === userPartnerCode);
+        return manifests.filter(manifest => manifest.origin === 'booking' && manifest.creatorPartnerCode === userPartnerCode);
+    }
+
+    // Hub users see manifests created by booking offices to verify
+    if (userRoles.includes('hub')) {
+        return manifests.filter(manifest => manifest.status === 'Dispatched' && manifest.origin === 'booking');
     }
     
     return [];
@@ -45,3 +51,4 @@ export function useManifests() {
     isLoaded: context.isLoaded,
   };
 }
+
