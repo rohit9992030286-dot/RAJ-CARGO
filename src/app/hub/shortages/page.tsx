@@ -13,24 +13,25 @@ import { Button } from '@/components/ui/button';
 import { useRouter } from 'next/navigation';
 
 export default function ShortagesPage() {
-    const { manifests, isLoaded: manifestsLoaded } = useManifests();
-    const { allWaybills, isLoaded: waybillsLoaded } = useWaybills();
+    const { allManifests, isLoaded: manifestsLoaded } = useManifests();
+    const { getWaybillById, isLoaded: waybillsLoaded } = useWaybills();
     const router = useRouter();
 
     const shortReceivedManifests = useMemo(() => {
-        return manifests.filter(m => m.status === 'Short Received').map(manifest => {
-            const manifestWaybills = manifest.waybillIds.map(id => allWaybills.find(wb => wb.id === id)).filter(Boolean);
-            
+        return allManifests.filter(m => m.status === 'Short Received').map(manifest => {
             let totalBoxes = 0;
             const waybillDetails: { waybillNumber: string; partnerCode?: string; totalBoxes: number; }[] = [];
             
-            manifestWaybills.forEach(wb => {
-                totalBoxes += wb.numberOfBoxes;
-                waybillDetails.push({ 
-                    waybillNumber: wb.waybillNumber, 
-                    partnerCode: wb.partnerCode,
-                    totalBoxes: wb.numberOfBoxes
-                });
+            manifest.waybillIds.forEach(id => {
+                const wb = getWaybillById(id);
+                if (wb) {
+                    totalBoxes += wb.numberOfBoxes;
+                    waybillDetails.push({ 
+                        waybillNumber: wb.waybillNumber, 
+                        partnerCode: wb.partnerCode,
+                        totalBoxes: wb.numberOfBoxes
+                    });
+                }
             });
 
             const verifiedCount = manifest.verifiedBoxIds?.length || 0;
@@ -44,7 +45,7 @@ export default function ShortagesPage() {
                 shortageCount,
             };
         });
-    }, [manifests, allWaybills]);
+    }, [allManifests, getWaybillById]);
 
     if (!manifestsLoaded || !waybillsLoaded) {
         return (
@@ -91,7 +92,7 @@ export default function ShortagesPage() {
                                         <TableCell>
                                             <div className="flex flex-wrap gap-1">
                                                 {[...new Set(manifest.waybillDetails.map(d => d.partnerCode))].map(pc => (
-                                                    <Badge key={pc} variant="outline">{pc}</Badge>
+                                                    pc ? <Badge key={pc} variant="outline">{pc}</Badge> : null
                                                 ))}
                                             </div>
                                         </TableCell>
