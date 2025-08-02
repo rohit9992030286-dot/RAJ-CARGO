@@ -18,6 +18,7 @@ import { Input } from '@/components/ui/input';
 import { cn } from '@/lib/utils';
 import { Progress } from '@/components/ui/progress';
 import { sortIntoPallets } from '@/ai/flows/pallet-sorter';
+import { textToSpeech } from '@/ai/flows/tts';
 
 interface ExpectedBox {
     waybillId: string;
@@ -48,9 +49,11 @@ function ScanManifestPage() {
   const [inputValue, setInputValue] = useState('');
   const [error, setError] = useState<string | null>(null);
   const scanInputRef = useRef<HTMLInputElement>(null);
+  const audioPlayerRef = useRef<HTMLAudioElement>(null);
   const [palletAssignments, setPalletAssignments] = useState<Record<string, number>>({});
   const [isAiLoading, setIsAiLoading] = useState(false);
   const [lastScanResult, setLastScanResult] = useState<LastScanResult | null>(null);
+  const [audioSrc, setAudioSrc] = useState<string | null>(null);
 
 
   useEffect(() => {
@@ -107,7 +110,7 @@ function ScanManifestPage() {
   }, [expectedBoxes, toast, palletAssignments]);
 
 
-  const handleVerifyBox = () => {
+  const handleVerifyBox = async () => {
       setError(null);
       setLastScanResult(null);
       const scannedId = inputValue.trim();
@@ -124,6 +127,12 @@ function ScanManifestPage() {
           const assignedPallet = palletAssignments[box.destination];
           if(assignedPallet) {
             setLastScanResult({ boxId: scannedId, pallet: assignedPallet });
+            try {
+              const { audio } = await textToSpeech(`Pallet ${assignedPallet}`);
+              setAudioSrc(audio);
+            } catch (ttsError) {
+              console.error("TTS Error:", ttsError);
+            }
           }
           toast({ title: "Verified", description: `Box #${scannedId} confirmed.`});
       } else {
@@ -132,6 +141,12 @@ function ScanManifestPage() {
       scanInputRef.current?.focus();
   };
   
+  useEffect(() => {
+      if (audioSrc && audioPlayerRef.current) {
+          audioPlayerRef.current.play().catch(e => console.error("Audio playback failed", e));
+      }
+  }, [audioSrc]);
+
   const handleSaveAndConfirm = () => {
     if (manifest) {
       const allVerified = expectedBoxes.length > 0 && expectedBoxes.length === scannedBoxIds.size;
@@ -310,6 +325,7 @@ function ScanManifestPage() {
             </CardContent>
         </Card>
      </div>
+     {audioSrc && <audio ref={audioPlayerRef} src={audioSrc} />}
     </div>
   );
 }
