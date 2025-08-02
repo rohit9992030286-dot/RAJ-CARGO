@@ -1,19 +1,22 @@
 
 'use client';
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import { Card, CardHeader, CardTitle, CardContent, CardFooter, CardDescription } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { ScanLine, AlertTriangle, ArrowRight, Truck } from 'lucide-react';
+import { ScanLine, AlertTriangle, ArrowRight, Truck, History, Eye, Loader2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useManifests } from '@/hooks/useManifests';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { format } from 'date-fns';
+import { Badge } from '@/components/ui/badge';
 
 export default function HubDashboardPage() {
     const [manifestNo, setManifestNo] = useState('');
     const router = useRouter();
     const { toast } = useToast();
-    const { getManifestByNumber } = useManifests();
+    const { getManifestByNumber, manifests, isLoaded } = useManifests();
 
     const handleScan = () => {
         const manifestNumber = manifestNo.trim();
@@ -38,6 +41,18 @@ export default function HubDashboardPage() {
             });
         }
     };
+    
+    const verificationHistory = useMemo(() => {
+        return manifests.filter(m => m.status === 'Received' || m.status === 'Short Received');
+    }, [manifests]);
+    
+     if (!isLoaded) {
+        return (
+            <div className="flex justify-center items-center h-64">
+                <Loader2 className="h-16 w-16 animate-spin text-primary" />
+            </div>
+        );
+    }
 
     return (
         <div className="space-y-8">
@@ -88,6 +103,57 @@ export default function HubDashboardPage() {
                     </CardFooter>
                 </Card>
             </div>
+            
+            <Card>
+                <CardHeader>
+                    <CardTitle className="flex items-center gap-3">
+                        <History className="h-6 w-6" />
+                        <span>Verification History</span>
+                    </CardTitle>
+                    <CardDescription>A log of all previously verified manifests.</CardDescription>
+                </CardHeader>
+                <CardContent>
+                    <Table>
+                        <TableHeader>
+                            <TableRow>
+                                <TableHead>Manifest #</TableHead>
+                                <TableHead>Date Verified</TableHead>
+                                <TableHead>Status</TableHead>
+                                <TableHead>Waybills</TableHead>
+                                <TableHead className="text-right">Action</TableHead>
+                            </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                            {verificationHistory.length > 0 ? (
+                                verificationHistory.map(manifest => (
+                                    <TableRow key={manifest.id}>
+                                        <TableCell className="font-mono">{manifest.manifestNo}</TableCell>
+                                        <TableCell>{format(new Date(manifest.date), 'PP')}</TableCell>
+                                        <TableCell>
+                                            <Badge variant={manifest.status === 'Received' ? 'default' : 'destructive'}>
+                                                {manifest.status}
+                                            </Badge>
+                                        </TableCell>
+                                        <TableCell>{manifest.waybillIds.length}</TableCell>
+                                        <TableCell className="text-right">
+                                             <Button variant="ghost" size="icon" onClick={() => router.push(`/hub/scan/${manifest.id}`)}>
+                                                <Eye className="h-4 w-4" />
+                                                <span className="sr-only">View</span>
+                                            </Button>
+                                        </TableCell>
+                                    </TableRow>
+                                ))
+                            ) : (
+                                <TableRow>
+                                    <TableCell colSpan={5} className="text-center h-24">
+                                        No manifests have been verified yet.
+                                    </TableCell>
+                                </TableRow>
+                            )}
+                        </TableBody>
+                    </Table>
+                </CardContent>
+            </Card>
         </div>
     );
 }
