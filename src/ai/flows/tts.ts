@@ -7,12 +7,12 @@
  */
 
 import { ai } from '@/ai/genkit';
+import { googleAI } from '@genkit-ai/googleai';
 import { z } from 'genkit';
 import wav from 'wav';
-import { googleAI } from '@genkit-ai/googleai';
 
 export async function textToSpeech(text: string): Promise<string> {
-    return ttsFlow(text);
+  return ttsFlow(text);
 }
 
 async function toWav(
@@ -28,7 +28,7 @@ async function toWav(
       bitDepth: sampleWidth * 8,
     });
 
-    let bufs: any[] = [];
+    const bufs: any[] = [];
     writer.on('error', reject);
     writer.on('data', function (d) {
       bufs.push(d);
@@ -61,7 +61,7 @@ const ttsFlow = ai.defineFlow(
       },
       prompt: query,
     });
-    if (!media) {
+    if (!media?.url) {
       throw new Error('no media returned');
     }
     const audioBuffer = Buffer.from(
