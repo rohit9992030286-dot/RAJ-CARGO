@@ -11,14 +11,13 @@ import { Input } from '@/components/ui/input';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { useToast } from '@/hooks/use-toast';
-import { Loader2, PlusCircle, Trash2, Tags, MapPin, IndianRupee, Briefcase, Globe } from 'lucide-react';
+import { Loader2, PlusCircle, Trash2, Tags, IndianRupee, Globe, Pencil } from 'lucide-react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useAuth } from '@/hooks/useAuth';
 
 const STORAGE_KEY = 'rajcargo-pincode-rates';
 
 const rateSchema = z.object({
-  pincode: z.string().min(6, 'Pincode must be 6 digits.').max(6, 'Pincode must be 6 digits.'),
   rate: z.coerce.number().min(0, 'Rate must be a positive number.'),
   partnerCode: z.string().min(1, "Please select a partner."),
   state: z.string().min(2, "State is required."),
@@ -43,7 +42,6 @@ export default function RateManagementPage() {
   const form = useForm<RateFormData>({
     resolver: zodResolver(rateSchema),
     defaultValues: {
-      pincode: '',
       rate: 0,
       partnerCode: '',
       state: '',
@@ -65,7 +63,7 @@ export default function RateManagementPage() {
   }, [toast]);
   
   const saveRates = (newRates: Rate[]) => {
-    const sortedRates = newRates.sort((a, b) => a.pincode.localeCompare(b.pincode) || a.partnerCode.localeCompare(b.partnerCode));
+    const sortedRates = newRates.sort((a, b) => a.state.localeCompare(b.state) || a.partnerCode.localeCompare(b.partnerCode));
     setRates(sortedRates);
     localStorage.setItem(STORAGE_KEY, JSON.stringify(sortedRates));
   };
@@ -82,7 +80,7 @@ export default function RateManagementPage() {
       }
     } else {
       // Add new rate
-      const existingRate = newRates.find(r => r.pincode === data.pincode && r.partnerCode === data.partnerCode && r.state.toLowerCase() === data.state.toLowerCase());
+      const existingRate = newRates.find(r => r.partnerCode === data.partnerCode && r.state.toLowerCase() === data.state.toLowerCase());
       if (existingRate) {
         toast({ title: 'Duplicate Rate', description: 'This exact rate combination already exists.', variant: 'destructive'});
         return;
@@ -92,7 +90,7 @@ export default function RateManagementPage() {
     }
 
     saveRates(newRates);
-    form.reset({ pincode: '', rate: 0, partnerCode: '', state: '' });
+    form.reset({ rate: 0, partnerCode: '', state: '' });
     setEditingRateId(null);
   };
 
@@ -119,7 +117,7 @@ export default function RateManagementPage() {
     <div className="space-y-8 max-w-6xl mx-auto">
       <div>
         <h1 className="text-3xl font-bold">Rate Management</h1>
-        <p className="text-muted-foreground">Set and manage shipping rates for different partners, states, and pincodes.</p>
+        <p className="text-muted-foreground">Set and manage shipping rates for different partners and states.</p>
       </div>
 
       <Card>
@@ -127,9 +125,9 @@ export default function RateManagementPage() {
           <form onSubmit={form.handleSubmit(onSubmit)}>
             <CardHeader>
               <CardTitle>{editingRateId ? 'Update Rate' : 'Add New Rate'}</CardTitle>
-              <CardDescription>Enter a partner, state, pincode, and its corresponding shipping rate.</CardDescription>
+              <CardDescription>Enter a partner, state, and its corresponding shipping rate.</CardDescription>
             </CardHeader>
-            <CardContent className="grid sm:grid-cols-2 lg:grid-cols-5 gap-4">
+            <CardContent className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
               <FormField
                 control={form.control}
                 name="partnerCode"
@@ -164,20 +162,6 @@ export default function RateManagementPage() {
               />
               <FormField
                 control={form.control}
-                name="pincode"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Pincode</FormLabel>
-                    <div className="relative">
-                      <FormControl><Input placeholder="e.g., 411041" {...field} className="pl-10" /></FormControl>
-                      <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
-                    </div>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
                 name="rate"
                 render={({ field }) => (
                   <FormItem>
@@ -198,7 +182,7 @@ export default function RateManagementPage() {
             </CardContent>
             {editingRateId && (
                 <CardFooter>
-                    <Button variant="ghost" onClick={() => { setEditingRateId(null); form.reset({ pincode: '', rate: 0, partnerCode: '', state: '' }); }}>
+                    <Button variant="ghost" onClick={() => { setEditingRateId(null); form.reset({ rate: 0, partnerCode: '', state: '' }); }}>
                         Cancel Edit
                     </Button>
                 </CardFooter>
@@ -209,7 +193,7 @@ export default function RateManagementPage() {
       
       <Card>
         <CardHeader>
-          <CardTitle>Current Pincode Rates</CardTitle>
+          <CardTitle>Current Rates</CardTitle>
           <CardDescription>List of all defined shipping rates.</CardDescription>
         </CardHeader>
         <CardContent>
@@ -218,7 +202,6 @@ export default function RateManagementPage() {
               <TableRow>
                 <TableHead>Partner Code</TableHead>
                 <TableHead>State</TableHead>
-                <TableHead>Pincode</TableHead>
                 <TableHead>Rate (₹)</TableHead>
                 <TableHead className="text-right">Action</TableHead>
               </TableRow>
@@ -229,7 +212,6 @@ export default function RateManagementPage() {
                   <TableRow key={rate.id}>
                     <TableCell className="font-medium"><Badge variant="outline">{rate.partnerCode}</Badge></TableCell>
                     <TableCell>{rate.state}</TableCell>
-                    <TableCell>{rate.pincode}</TableCell>
                     <TableCell>{rate.rate.toFixed(2)}</TableCell>
                     <TableCell className="text-right">
                        <Button variant="ghost" size="icon" onClick={() => handleEditRate(rate)}>
@@ -245,7 +227,7 @@ export default function RateManagementPage() {
                 ))
               ) : (
                 <TableRow>
-                  <TableCell colSpan={5} className="h-24 text-center">
+                  <TableCell colSpan={4} className="h-24 text-center">
                     <div className="text-center py-8">
                         <Tags className="mx-auto h-12 w-12 text-muted-foreground" />
                         <h3 className="mt-4 text-lg font-semibold">No Rates Defined</h3>

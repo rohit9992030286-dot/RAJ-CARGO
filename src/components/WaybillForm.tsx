@@ -20,7 +20,7 @@ const RATES_STORAGE_KEY = 'rajcargo-pincode-rates';
 
 interface Rate {
   id: string;
-  pincode: string;
+  pincode?: string; // Keep for backward compatibility if needed, but not used in new logic
   rate: number;
   partnerCode: string;
   state: string;
@@ -60,6 +60,13 @@ const getInitialValues = (initialData?: Waybill): WaybillFormData => {
     return defaults;
 };
 
+interface WaybillFormProps {
+  initialData?: Waybill;
+  onSave: (waybill: Waybill) => boolean;
+  onCancel: () => void;
+}
+
+
 export function WaybillForm({ initialData, onSave, onCancel }: WaybillFormProps) {
   const { toast } = useToast();
   const { availablePartnerInventory, isInventoryLoaded } = useWaybillInventory();
@@ -77,11 +84,6 @@ export function WaybillForm({ initialData, onSave, onCancel }: WaybillFormProps)
       name: 'shipmentValue'
   });
   
-  const receiverPincode = useWatch({
-      control: form.control,
-      name: 'receiverPincode'
-  });
-
   const receiverState = useWatch({
       control: form.control,
       name: 'receiverState'
@@ -120,7 +122,6 @@ export function WaybillForm({ initialData, onSave, onCancel }: WaybillFormProps)
     if (initialData || !user?.partnerCode) return;
 
     const matchedRate = rates.find(rate => 
-      rate.pincode === receiverPincode &&
       rate.partnerCode === user.partnerCode &&
       rate.state.toLowerCase() === receiverState.toLowerCase()
     );
@@ -130,7 +131,7 @@ export function WaybillForm({ initialData, onSave, onCancel }: WaybillFormProps)
     } else {
         form.setValue('shipmentValue', 0, { shouldValidate: true });
     }
-  }, [receiverPincode, receiverState, rates, form, initialData, user?.partnerCode]);
+  }, [receiverState, rates, form, initialData, user?.partnerCode]);
 
   const onSubmit = (data: WaybillFormData) => {
     const waybillToSave: Waybill = {
