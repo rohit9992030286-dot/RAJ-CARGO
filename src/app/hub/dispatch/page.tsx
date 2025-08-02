@@ -53,7 +53,7 @@ export default function HubDispatchPage() {
 
     const waybillsByCity = useMemo(() => {
         return verifiedWaybillsForDispatch.reduce((acc, wb) => {
-            const city = wb.receiverCity;
+            const city = wb.receiverCity.toUpperCase();
             if (!acc[city]) {
                 acc[city] = [];
             }
