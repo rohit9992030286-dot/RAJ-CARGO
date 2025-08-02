@@ -9,14 +9,15 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { ArrowLeft, Box, CheckCircle, Loader2, ScanLine, XCircle, AlertCircle, Circle, ArrowRight, Save, Layers } from 'lucide-react';
+import { ArrowLeft, Box, CheckCircle, Loader2, ScanLine, XCircle, AlertCircle, Circle, ArrowRight, Save, Layers, AlertTriangle } from 'lucide-react';
 import { Waybill } from '@/types/waybill';
 import { Manifest } from '@/types/manifest';
 import { useToast } from '@/hooks/use-toast';
-import { format } from 'date-fns';
+import { format, isBefore, differenceInHours } from 'date-fns';
 import { Input } from '@/components/ui/input';
 import { cn } from '@/lib/utils';
 import { Progress } from '@/components/ui/progress';
+import { textToSpeech } from '@/ai/flows/tts';
 
 interface ExpectedBox {
     waybillId: string;
@@ -25,6 +26,7 @@ interface ExpectedBox {
     totalBoxes: number;
     boxId: string;
     destination: string;
+    eWayBillExpiryDate?: string;
 }
 
 interface LastScanResult {
@@ -50,7 +52,6 @@ function ScanManifestPage() {
   const [palletAssignments, setPalletAssignments] = useState<Record<string, number>>({});
   const [isAssignmentLoading, setIsAssignmentLoading] = useState(false);
   const [lastScanResult, setLastScanResult] = useState<LastScanResult | null>(null);
-
 
   useEffect(() => {
     if (manifestId && manifestsLoaded) {
@@ -82,7 +83,8 @@ function ScanManifestPage() {
                 boxNumber,
                 totalBoxes: waybill.numberOfBoxes,
                 boxId: `${waybill.waybillNumber}-${boxNumber}`,
-                destination: waybill.receiverCity.toUpperCase()
+                destination: waybill.receiverCity.toUpperCase(),
+                eWayBillExpiryDate: waybill.eWayBillExpiryDate,
             };
         });
     });
@@ -135,7 +137,6 @@ function ScanManifestPage() {
                     newAssignments[city] = nextPallet;
                     occupiedPallets.add(nextPallet);
                 } else {
-                    // Fallback: if all 100 pallets are full, re-use pallet 1.
                     newAssignments[city] = 1;
                 }
             }
@@ -145,6 +146,16 @@ function ScanManifestPage() {
         setIsAssignmentLoading(false);
     }
   }, [expectedBoxes, palletAssignments, isAssignmentLoading, allManifests, allWaybills]);
+
+  const playAudio = async (text: string) => {
+      try {
+        const audioData = await textToSpeech(text);
+        const audio = new Audio(audioData);
+        audio.play();
+      } catch (error) {
+        console.error("Failed to play audio:", error);
+      }
+  };
 
 
   const handleVerifyBox = async () => {
@@ -164,10 +175,12 @@ function ScanManifestPage() {
           const assignedPallet = palletAssignments[box.destination];
           if(assignedPallet) {
             setLastScanResult({ boxId: scannedId, pallet: assignedPallet });
+            await playAudio(`Pallet ${assignedPallet}`);
           }
           toast({ title: "Verified", description: `Box #${scannedId} confirmed.`});
       } else {
           setError(`Box ID #${scannedId} is not part of this manifest.`);
+          await playAudio("Not for this manifest");
       }
       scanInputRef.current?.focus();
   };
@@ -195,6 +208,20 @@ function ScanManifestPage() {
   const verifiedCount = scannedBoxIds.size;
   const verificationProgress = totalBoxes > 0 ? (verifiedCount / totalBoxes) * 100 : 0;
   const allVerified = totalBoxes > 0 && totalBoxes === verifiedCount;
+  
+  const checkEWayBillExpiry = (expiryDateString?: string) => {
+    if (!expiryDateString) return null;
+    const expiryDate = new Date(expiryDateString);
+    const now = new Date();
+    if (isBefore(expiryDate, now)) {
+        return { message: "E-Way Bill Expired!", isCritical: true };
+    }
+    const hoursLeft = differenceInHours(expiryDate, now);
+    if (hoursLeft <= 48) {
+        return { message: `E-Way Bill expires in ${hoursLeft} hours.`, isCritical: false };
+    }
+    return null;
+  }
 
   if (!waybillsLoaded || !manifestsLoaded || !manifest) {
     return (
@@ -322,6 +349,7 @@ function ScanManifestPage() {
                 {expectedBoxes.map((box) => {
                     const isVerified = scannedBoxIds.has(box.boxId);
                     const pallet = palletAssignments[box.destination.toUpperCase()];
+                    const expiryInfo = checkEWayBillExpiry(box.eWayBillExpiryDate);
                     return (
                         <TableRow key={box.boxId} className={cn(isVerified && 'bg-green-50/50 dark:bg-green-900/20')}>
                             <TableCell>
@@ -336,7 +364,12 @@ function ScanManifestPage() {
                                 )}
                             </TableCell>
                             <TableCell className="font-medium font-mono">{box.boxId}</TableCell>
-                            <TableCell>{box.waybillNumber}</TableCell>
+                            <TableCell className="flex items-center gap-2">
+                              {box.waybillNumber}
+                              {expiryInfo && (
+                                <AlertTriangle className={cn("h-4 w-4", expiryInfo.isCritical ? "text-destructive" : "text-amber-500")} title={expiryInfo.message} />
+                              )}
+                            </TableCell>
                             <TableCell>{box.destination}</TableCell>
                             <TableCell>
                                 {isAssignmentLoading && !pallet && <Loader2 className="h-4 w-4 animate-spin" />}
