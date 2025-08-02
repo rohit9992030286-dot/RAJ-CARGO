@@ -41,8 +41,8 @@ function ScanManifestPage() {
   
   const manifestId = Array.isArray(params.id) ? params.id[0] : params.id;
   
-  const { getManifestById, updateManifest, isLoaded: manifestsLoaded } = useManifests();
-  const { getWaybillById, isLoaded: waybillsLoaded } = useWaybills();
+  const { getManifestById, updateManifest, allManifests, isLoaded: manifestsLoaded } = useManifests();
+  const { getWaybillById, allWaybills, isLoaded: waybillsLoaded } = useWaybills();
   
   const [manifest, setManifest] = useState<Manifest | null>(null);
   const [scannedBoxIds, setScannedBoxIds] = useState<Set<string>>(new Set());
@@ -92,12 +92,48 @@ function ScanManifestPage() {
     });
   },[manifest, getWaybillById]);
   
+  // This effect handles the AI pallet sorting logic.
   useEffect(() => {
+    // Only run if we have boxes and pallet assignments haven't been fetched yet.
     if (expectedBoxes.length > 0 && Object.keys(palletAssignments).length === 0 && !isAiLoading) {
-        const uniqueCities = [...new Set(expectedBoxes.map(b => b.destination))];
-        const palletNumbers = Array.from({ length: 100 }, (_, i) => i + 1);
+        
+        // 1. Find all pallets currently occupied by verified, non-dispatched waybills.
+        const hubReceivedManifests = allManifests.filter(m => ['Received', 'Short Received'].includes(m.status));
+        const verifiedWaybillIds = new Set<string>();
+        hubReceivedManifests.forEach(m => {
+            m.verifiedBoxIds?.forEach(boxId => {
+                const waybillNumber = boxId.substring(0, boxId.lastIndexOf('-'));
+                const waybill = allWaybills.find(wb => wb.waybillNumber === waybillNumber);
+                if (waybill) verifiedWaybillIds.add(waybill.id);
+            });
+        });
+
+        const dispatchedHubWaybillIds = new Set<string>(
+            allManifests.filter(m => m.origin === 'hub').flatMap(m => m.waybillIds)
+        );
+
+        const waybillsOnFloor = Array.from(verifiedWaybillIds)
+            .filter(id => !dispatchedHubWaybillIds.has(id))
+            .map(id => allWaybills.find(wb => wb.id === id))
+            .filter((wb): wb is Waybill => !!wb);
+
+        const citiesOnFloor = [...new Set(waybillsOnFloor.map(wb => wb.receiverCity.toUpperCase()))];
+        
+        // 2. Create the list of available pallets (1-100).
+        const allPalletNumbers = Array.from({ length: 100 }, (_, i) => i + 1);
+        
+        // This is a placeholder for getting occupied pallets. In a real scenario,
+        // this would involve a more complex state management to track which pallets
+        // are tied to which cities currently on the hub floor.
+        // For now, we simulate that the first N pallets are occupied by the cities already on the floor.
+        const occupiedPallets = new Set<number>(Array.from({length: citiesOnFloor.length}, (_, i) => i + 1));
+        const availablePallets = allPalletNumbers.filter(p => !occupiedPallets.has(p));
+
+        // 3. Get the unique cities for the *current* manifest being scanned.
+        const uniqueCitiesForCurrentManifest = [...new Set(expectedBoxes.map(b => b.destination))];
+
         setIsAiLoading(true);
-        sortIntoPallets({ cities: uniqueCities, palletNumbers })
+        sortIntoPallets({ cities: uniqueCitiesForCurrentManifest, palletNumbers: availablePallets })
             .then(result => {
                 setPalletAssignments(result.assignments);
             })
@@ -107,7 +143,7 @@ function ScanManifestPage() {
             })
             .finally(() => setIsAiLoading(false));
     }
-  }, [expectedBoxes, toast, palletAssignments, isAiLoading]);
+  }, [expectedBoxes, palletAssignments, isAiLoading, allManifests, allWaybills, toast]);
 
 
   const handleVerifyBox = async () => {
@@ -119,7 +155,7 @@ function ScanManifestPage() {
           return;
       }
       
-      const box = expectedBoxes.find(box => box.boxId === scannedId);
+      const box = expectedBoxes.find(b => b.boxId === scannedId);
 
       if (box) {
           setScannedBoxIds(prev => new Set(prev).add(scannedId));
@@ -296,7 +332,7 @@ function ScanManifestPage() {
                 <TableBody>
                 {expectedBoxes.map((box) => {
                     const isVerified = scannedBoxIds.has(box.boxId);
-                    const pallet = palletAssignments[box.destination];
+                    const pallet = palletAssignments[box.destination.toUpperCase()];
                     return (
                         <TableRow key={box.boxId} className={cn(isVerified && 'bg-green-50/50 dark:bg-green-900/20')}>
                             <TableCell>
