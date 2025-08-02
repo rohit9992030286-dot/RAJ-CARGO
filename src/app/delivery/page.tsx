@@ -43,14 +43,21 @@ export default function DeliveryPage() {
   const { user, isLoading: isAuthLoading } = useAuth();
 
   const waybillsForDelivery = useMemo(() => {
+    if (!user) return [];
+    
     const waybillsToDeliver: WaybillForDelivery[] = [];
     
-    allManifests.forEach(manifest => {
-        if(manifest.origin !== 'hub') return;
-        
+    // 1. Find manifests assigned to the current delivery partner.
+    const partnerManifests = allManifests.filter(manifest => 
+      manifest.origin === 'hub' && manifest.deliveryPartnerCode === user.partnerCode
+    );
+
+    // 2. Get all waybills from those assigned manifests.
+    partnerManifests.forEach(manifest => {
         manifest.waybillIds.forEach(waybillId => {
             const waybill = getWaybillById(waybillId);
-            if (waybill && ['Out for Delivery', 'Delivered', 'Returned'].includes(waybill.status) || (waybill && waybill.status === 'In Transit' && manifest.origin === 'hub')) {
+            // 3. Include if the waybill is still active (not yet returned or cancelled in a prior step)
+            if (waybill && (waybill.status === 'Out for Delivery' || waybill.status === 'Delivered' || waybill.status === 'Returned')) {
                  waybillsToDeliver.push({
                     ...waybill,
                     manifestDate: manifest.date,
@@ -61,7 +68,7 @@ export default function DeliveryPage() {
 
     return waybillsToDeliver;
 
-  }, [allManifests, getWaybillById]);
+  }, [allManifests, getWaybillById, user]);
   
   const handleUpdateStatus = (id: string, status: Waybill['status']) => {
     const waybill = allWaybills.find(w => w.id === id);
