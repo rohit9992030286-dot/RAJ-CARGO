@@ -11,12 +11,14 @@ import { useManifests } from '@/hooks/useManifests';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { format } from 'date-fns';
 import { Badge } from '@/components/ui/badge';
+import { useWaybills } from '@/hooks/useWaybills';
 
 export default function HubDashboardPage() {
     const [manifestNo, setManifestNo] = useState('');
     const router = useRouter();
     const { toast } = useToast();
     const { getManifestByNumber, manifests, isLoaded } = useManifests();
+    const { getWaybillById, isLoaded: waybillsLoaded } = useWaybills();
 
     const handleScan = () => {
         const manifestNumber = manifestNo.trim();
@@ -43,10 +45,23 @@ export default function HubDashboardPage() {
     };
     
     const verificationHistory = useMemo(() => {
-        return manifests.filter(m => m.status === 'Received' || m.status === 'Short Received');
-    }, [manifests]);
+        return manifests.filter(m => m.status === 'Received' || m.status === 'Short Received')
+            .map(manifest => {
+                const totalBoxes = manifest.waybillIds.reduce((acc, id) => {
+                    const wb = getWaybillById(id);
+                    return acc + (wb?.numberOfBoxes || 0);
+                }, 0);
+                const verifiedCount = manifest.verifiedBoxIds?.length || 0;
+                return {
+                    ...manifest,
+                    totalBoxes,
+                    verifiedCount,
+                    shortageCount: totalBoxes - verifiedCount
+                };
+            });
+    }, [manifests, getWaybillById]);
     
-     if (!isLoaded) {
+     if (!isLoaded || !waybillsLoaded) {
         return (
             <div className="flex justify-center items-center h-64">
                 <Loader2 className="h-16 w-16 animate-spin text-primary" />
@@ -117,9 +132,11 @@ export default function HubDashboardPage() {
                         <TableHeader>
                             <TableRow>
                                 <TableHead>Manifest #</TableHead>
-                                <TableHead>Date Verified</TableHead>
+                                <TableHead>Dispatch Date</TableHead>
                                 <TableHead>Status</TableHead>
-                                <TableHead>Waybills</TableHead>
+                                <TableHead className="text-center">Expected</TableHead>
+                                <TableHead className="text-center">Received</TableHead>
+                                <TableHead className="text-center">Shortage</TableHead>
                                 <TableHead className="text-right">Action</TableHead>
                             </TableRow>
                         </TableHeader>
@@ -134,7 +151,9 @@ export default function HubDashboardPage() {
                                                 {manifest.status}
                                             </Badge>
                                         </TableCell>
-                                        <TableCell>{manifest.waybillIds.length}</TableCell>
+                                        <TableCell className="text-center font-medium">{manifest.totalBoxes}</TableCell>
+                                        <TableCell className="text-center text-green-600 font-medium">{manifest.verifiedCount}</TableCell>
+                                        <TableCell className="text-center text-destructive font-bold">{manifest.shortageCount > 0 ? manifest.shortageCount : '-'}</TableCell>
                                         <TableCell className="text-right">
                                              <Button variant="ghost" size="icon" onClick={() => router.push(`/hub/scan/${manifest.id}`)}>
                                                 <Eye className="h-4 w-4" />
@@ -145,7 +164,7 @@ export default function HubDashboardPage() {
                                 ))
                             ) : (
                                 <TableRow>
-                                    <TableCell colSpan={5} className="text-center h-24">
+                                    <TableCell colSpan={7} className="text-center h-24">
                                         No manifests have been verified yet.
                                     </TableCell>
                                 </TableRow>
