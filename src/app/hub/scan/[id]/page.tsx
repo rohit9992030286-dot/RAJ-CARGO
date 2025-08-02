@@ -9,7 +9,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { ArrowLeft, Box, CheckCircle, Loader2, ScanLine, XCircle, AlertCircle, Circle, ArrowRight, Save, Pallet } from 'lucide-react';
+import { ArrowLeft, Box, CheckCircle, Loader2, ScanLine, XCircle, AlertCircle, Circle, ArrowRight, Save, Layers } from 'lucide-react';
 import { Waybill } from '@/types/waybill';
 import { Manifest } from '@/types/manifest';
 import { useToast } from '@/hooks/use-toast';
@@ -90,7 +90,7 @@ function ScanManifestPage() {
   },[manifest, getWaybillById]);
   
   useEffect(() => {
-    if (expectedBoxes.length > 0) {
+    if (expectedBoxes.length > 0 && Object.keys(palletAssignments).length === 0) {
         const uniqueCities = [...new Set(expectedBoxes.map(b => b.destination))];
         const palletNumbers = Array.from({ length: 100 }, (_, i) => i + 1);
         setIsAiLoading(true);
@@ -104,7 +104,7 @@ function ScanManifestPage() {
             })
             .finally(() => setIsAiLoading(false));
     }
-  }, [expectedBoxes, toast]);
+  }, [expectedBoxes, toast, palletAssignments]);
 
 
   const handleVerifyBox = () => {
@@ -215,7 +215,7 @@ function ScanManifestPage() {
                     )}
                     {lastScanResult && (
                         <Alert variant="default" className="bg-primary/10 border-primary/20">
-                            <Pallet className="h-5 w-5 text-primary"/>
+                            <Layers className="h-5 w-5 text-primary"/>
                             <AlertTitle className="text-xl font-bold">
                                 Place on Pallet #{lastScanResult.pallet}
                             </AlertTitle>
@@ -299,7 +299,7 @@ function ScanManifestPage() {
                             <TableCell>{box.waybillNumber}</TableCell>
                             <TableCell>{box.destination}</TableCell>
                             <TableCell>
-                                {isAiLoading && <Loader2 className="h-4 w-4 animate-spin" />}
+                                {isAiLoading && !pallet && <Loader2 className="h-4 w-4 animate-spin" />}
                                 {pallet && <span className="font-semibold">{pallet}</span>}
                             </TableCell>
                         </TableRow>
