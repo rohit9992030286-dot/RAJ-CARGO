@@ -86,14 +86,14 @@ function ScanManifestPage() {
                 boxNumber,
                 totalBoxes: waybill.numberOfBoxes,
                 boxId: `${waybill.waybillNumber}-${boxNumber}`,
-                destination: waybill.receiverCity
+                destination: waybill.receiverCity.toUpperCase()
             };
         });
     });
   },[manifest, getWaybillById]);
   
   useEffect(() => {
-    if (expectedBoxes.length > 0 && Object.keys(palletAssignments).length === 0) {
+    if (expectedBoxes.length > 0 && Object.keys(palletAssignments).length === 0 && !isAiLoading) {
         const uniqueCities = [...new Set(expectedBoxes.map(b => b.destination))];
         const palletNumbers = Array.from({ length: 100 }, (_, i) => i + 1);
         setIsAiLoading(true);
@@ -107,7 +107,7 @@ function ScanManifestPage() {
             })
             .finally(() => setIsAiLoading(false));
     }
-  }, [expectedBoxes, toast, palletAssignments]);
+  }, [expectedBoxes, toast, palletAssignments, isAiLoading]);
 
 
   const handleVerifyBox = async () => {
