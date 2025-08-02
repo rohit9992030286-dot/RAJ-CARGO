@@ -43,32 +43,33 @@ export default function DeliveryPage() {
   const { user, isLoading: isAuthLoading } = useAuth();
 
   const waybillsForDelivery = useMemo(() => {
-    if (!user) return [];
-    
+    if (!user || !isAuthLoading || !manifestsLoaded || !waybillsLoaded) return [];
+
     const waybillsToDeliver: WaybillForDelivery[] = [];
-    
-    // 1. Find manifests assigned to the current delivery partner.
-    const partnerManifests = allManifests.filter(manifest => 
+    const processedWaybillIds = new Set<string>();
+
+    const partnerOutboundManifests = allManifests.filter(manifest =>
       manifest.origin === 'hub' && manifest.deliveryPartnerCode === user.partnerCode
     );
 
-    // 2. Get all waybills from those assigned manifests.
-    partnerManifests.forEach(manifest => {
-        manifest.waybillIds.forEach(waybillId => {
-            const waybill = getWaybillById(waybillId);
-            // 3. Include if the waybill is still active (not yet returned or cancelled in a prior step)
-            if (waybill && (waybill.status === 'Out for Delivery' || waybill.status === 'Delivered' || waybill.status === 'Returned')) {
-                 waybillsToDeliver.push({
-                    ...waybill,
-                    manifestDate: manifest.date,
-                });
-            }
-        });
+    partnerOutboundManifests.forEach(manifest => {
+      manifest.waybillIds.forEach(waybillId => {
+        if (processedWaybillIds.has(waybillId)) return;
+
+        const waybill = getWaybillById(waybillId);
+        if (waybill && (waybill.status === 'Out for Delivery' || waybill.status === 'Delivered' || waybill.status === 'Returned')) {
+          waybillsToDeliver.push({
+            ...waybill,
+            manifestDate: manifest.date,
+          });
+          processedWaybillIds.add(waybillId);
+        }
+      });
     });
 
     return waybillsToDeliver;
+  }, [allManifests, getWaybillById, user, isAuthLoading, manifestsLoaded, waybillsLoaded]);
 
-  }, [allManifests, getWaybillById, user]);
   
   const handleUpdateStatus = (id: string, status: Waybill['status']) => {
     const waybill = allWaybills.find(w => w.id === id);
