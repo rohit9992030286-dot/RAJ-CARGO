@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import { Card, CardHeader, CardTitle, CardContent, CardFooter, CardDescription } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { ScanLine, AlertCircle, ArrowRight, Truck } from 'lucide-react';
+import { ScanLine, AlertTriangle, ArrowRight, Truck } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useManifests } from '@/hooks/useManifests';
 
