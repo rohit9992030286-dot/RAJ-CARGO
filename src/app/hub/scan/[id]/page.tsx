@@ -139,7 +139,7 @@ function ScanManifestPage() {
             <ArrowLeft className="mr-2 h-4 w-4" /> Back to Hub Dashboard
           </Button>
           <h1 className="text-3xl font-bold mt-4">
-            Verify Manifest M-{manifest.id.substring(0,8)}
+            Verify Manifest {manifest.manifestNo}
           </h1>
           <p className="text-muted-foreground">
             Dispatched on {format(new Date(manifest.date), 'PPP')} with vehicle {manifest.vehicleNo || 'N/A'}.

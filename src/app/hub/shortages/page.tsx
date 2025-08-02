@@ -73,7 +73,7 @@ export default function ShortagesPage() {
                         <Table>
                             <TableHeader>
                                 <TableRow>
-                                    <TableHead>Manifest ID</TableHead>
+                                    <TableHead>Manifest #</TableHead>
                                     <TableHead>Date Received</TableHead>
                                     <TableHead>Booking Partner(s)</TableHead>
                                     <TableHead>Waybill(s)</TableHead>
@@ -86,7 +86,7 @@ export default function ShortagesPage() {
                             <TableBody>
                                 {shortReceivedManifests.map(manifest => (
                                     <TableRow key={manifest.id}>
-                                        <TableCell className="font-mono">M-{manifest.id.substring(0,8)}</TableCell>
+                                        <TableCell className="font-mono">{manifest.manifestNo}</TableCell>
                                         <TableCell>{format(new Date(manifest.date), 'PP')}</TableCell>
                                         <TableCell>
                                             <div className="flex flex-wrap gap-1">

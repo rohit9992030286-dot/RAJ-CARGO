@@ -3,6 +3,7 @@ import { z } from 'zod';
 
 export const manifestSchema = z.object({
   id: z.string().uuid(),
+  manifestNo: z.string(),
   date: z.string().min(1, 'Manifest date is required.'),
   vehicleNo: z.string().min(1, 'Vehicle number is required.'),
   driverName: z.string().optional(),

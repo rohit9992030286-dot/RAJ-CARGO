@@ -175,7 +175,7 @@ export default function EditManifestPage() {
             <ArrowLeft className="mr-2 h-4 w-4" /> Back to Manifests
           </Button>
           <h1 className="text-3xl font-bold mt-4">
-            {isDispatched ? 'Viewing' : 'Editing'} Manifest M-{manifest.id.substring(0,8)}
+            {isDispatched ? 'Viewing' : 'Editing'} Manifest {manifest.manifestNo}
           </h1>
           <p className="text-muted-foreground">
             Created on {format(new Date(manifest.date), 'PPP')}

@@ -10,29 +10,30 @@ import { useToast } from '@/hooks/use-toast';
 import { useManifests } from '@/hooks/useManifests';
 
 export default function HubDashboardPage() {
-    const [manifestId, setManifestId] = useState('');
+    const [manifestNo, setManifestNo] = useState('');
     const router = useRouter();
     const { toast } = useToast();
-    const { getManifestById } = useManifests();
+    const { getManifestByNumber } = useManifests();
 
     const handleScan = () => {
-        if (!manifestId.trim()) {
+        const manifestNumber = manifestNo.trim();
+        if (!manifestNumber) {
             toast({
-                title: 'Manifest ID required',
-                description: 'Please enter a manifest ID to start verification.',
+                title: 'Manifest Number required',
+                description: 'Please enter a manifest number to start verification.',
                 variant: 'destructive',
             });
             return;
         }
 
-        const manifestExists = !!getManifestById(manifestId.trim());
+        const manifest = getManifestByNumber(manifestNumber);
 
-        if (manifestExists) {
-            router.push(`/hub/scan/${manifestId.trim()}`);
+        if (manifest) {
+            router.push(`/hub/scan/${manifest.id}`);
         } else {
             toast({
                 title: 'Manifest Not Found',
-                description: `No manifest with ID M-${manifestId.trim().substring(0,8)} found.`,
+                description: `No manifest with number ${manifestNumber} found.`,
                 variant: 'destructive',
             });
         }
@@ -52,14 +53,14 @@ export default function HubDashboardPage() {
                             <ScanLine className="h-6 w-6" />
                             <span>Scan to Verify Incoming Shipment</span>
                         </CardTitle>
-                        <CardDescription>Enter a Manifest ID to begin the verification process.</CardDescription>
+                        <CardDescription>Enter a Manifest Number to begin the verification process.</CardDescription>
                     </CardHeader>
                     <CardContent className="space-y-4">
                         <div className="flex gap-2">
                             <Input
-                                placeholder="Enter Manifest ID (e.g., ...)"
-                                value={manifestId}
-                                onChange={(e) => setManifestId(e.target.value)}
+                                placeholder="Enter Manifest Number (e.g., M-RC-1001)"
+                                value={manifestNo}
+                                onChange={(e) => setManifestNo(e.target.value)}
                                 onKeyDown={(e) => e.key === 'Enter' && handleScan()}
                                 className="font-mono"
                             />

@@ -85,7 +85,7 @@ export default function ManifestListPage() {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Manifest ID</TableHead>
+                <TableHead>Manifest #</TableHead>
                 <TableHead>Date</TableHead>
                 <TableHead>Destinations</TableHead>
                 <TableHead>Vehicle No.</TableHead>
@@ -101,7 +101,7 @@ export default function ManifestListPage() {
                   const details = getManifestDetails(manifest);
                   return (
                     <TableRow key={manifest.id}>
-                      <TableCell className="font-medium truncate" style={{maxWidth: '100px'}}>M-{manifest.id.substring(0, 8)}</TableCell>
+                      <TableCell className="font-medium">{manifest.manifestNo}</TableCell>
                       <TableCell>{format(new Date(manifest.date), 'PPP')}</TableCell>
                       <TableCell className="truncate" style={{maxWidth: '150px'}}>{details.destinations}</TableCell>
                       <TableCell>{manifest.vehicleNo || 'N/A'}</TableCell>

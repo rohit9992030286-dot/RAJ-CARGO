@@ -6,7 +6,7 @@ import { Waybill } from '@/types/waybill';
 import { Manifest } from '@/types/manifest';
 import { useToast } from '@/hooks/use-toast';
 import { Loader2 } from 'lucide-react';
-import { useAuth } from '@/hooks/useAuth';
+import { useAuth } from '@/hooks/useAuth.tsx';
 import { InventoryItem } from '@/types/inventory';
 
 const WAYBILL_STORAGE_KEY = 'rajcargo-waybills';
@@ -22,10 +22,11 @@ interface DataContextType {
   updateWaybill: (updatedWaybill: Waybill) => void;
   deleteWaybill: (id: string) => void;
   getWaybillById: (id: string) => Waybill | undefined;
-  addManifest: (manifest: Omit<Manifest, 'creatorPartnerCode'>) => string;
+  addManifest: (manifest: Omit<Manifest, 'creatorPartnerCode' | 'manifestNo'>) => string;
   updateManifest: (updatedManifest: Manifest) => void;
   deleteManifest: (id: string) => void;
   getManifestById: (id: string) => Manifest | undefined;
+  getManifestByNumber: (manifestNo: string) => Manifest | undefined;
   addWaybillToInventory: (item: InventoryItem) => boolean;
   removeWaybillFromInventory: (waybillNumber: string) => void;
   markWaybillAsUsed: (waybillNumber: string, isUsed: boolean) => void;
@@ -35,7 +36,7 @@ export const DataContext = createContext<DataContextType | undefined>(undefined)
 
 export function DataProvider({ children }: { children: ReactNode }) {
   const [waybillsData, setWaybillsData] = useState<Waybill[]>([]);
-  const [manifestsData, setManifestsData] = useState<Manifest[]>([]);
+  const [manifestsData, setManifestsData] = useState<Manifest[]>([]));
   const [waybillInventoryData, setWaybillInventoryData] = useState<InventoryItem[]>([]);
   const [isLoaded, setIsLoaded] = useState(false);
   const { toast } = useToast();
@@ -55,8 +56,12 @@ export function DataProvider({ children }: { children: ReactNode }) {
       if (manifestItems) {
         const parsedManifests = JSON.parse(manifestItems);
         if (Array.isArray(parsedManifests)) {
-          // migration for creatorPartnerCode
-          const migratedManifests = parsedManifests.map(m => ({ ...m, creatorPartnerCode: m.creatorPartnerCode || m.partnerCode || '' }));
+          // migration for creatorPartnerCode and manifestNo
+          const migratedManifests = parsedManifests.map((m, index) => ({
+             ...m, 
+             creatorPartnerCode: m.creatorPartnerCode || m.partnerCode || '',
+             manifestNo: m.manifestNo || `M-RC-${1001 + index}` // Simple migration
+            }));
           setManifestsData(migratedManifests);
         }
       }
@@ -208,24 +213,26 @@ export function DataProvider({ children }: { children: ReactNode }) {
     return waybillsData.find(w => w.id === id);
   }, [waybillsData]);
 
-  const addManifest = useCallback((manifest: Omit<Manifest, 'creatorPartnerCode'>) => {
+  const addManifest = useCallback((manifest: Omit<Manifest, 'creatorPartnerCode' | 'manifestNo'>) => {
+    const newManifestNumber = `M-RC-${1001 + manifestsData.length}`;
     const manifestToSave: Manifest = {
         ...manifest,
+        manifestNo: newManifestNumber,
         creatorPartnerCode: user?.partnerCode || '',
     };
     setManifestsData(prev => [manifestToSave, ...prev]);
     toast({
         title: 'Manifest Created',
-        description: `Manifest M-${manifest.id.substring(0,8)} has been created.`,
+        description: `Manifest ${newManifestNumber} has been created.`,
     });
     return manifest.id;
-  }, [toast, user]);
+  }, [toast, user, manifestsData.length]);
 
   const updateManifest = useCallback((updatedManifest: Manifest) => {
     setManifestsData(prev => prev.map(m => (m.id === updatedManifest.id ? updatedManifest : m)));
     toast({
         title: 'Manifest Updated',
-        description: `Manifest M-${updatedManifest.id.substring(0,8)} has been saved.`,
+        description: `Manifest ${updatedManifest.manifestNo} has been saved.`,
     });
   }, [toast]);
 
@@ -245,6 +252,10 @@ export function DataProvider({ children }: { children: ReactNode }) {
 
   const getManifestById = useCallback((id: string) => {
     return manifestsData.find(m => m.id === id);
+  }, [manifestsData]);
+
+  const getManifestByNumber = useCallback((manifestNo: string) => {
+    return manifestsData.find(m => m.manifestNo === manifestNo);
   }, [manifestsData]);
 
   const addWaybillToInventory = useCallback((item: InventoryItem) => {
@@ -272,6 +283,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
     updateManifest,
     deleteManifest,
     getManifestById,
+    getManifestByNumber,
     addWaybillToInventory,
     removeWaybillFromInventory,
     markWaybillAsUsed,
