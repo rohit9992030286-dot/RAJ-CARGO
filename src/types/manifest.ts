@@ -13,6 +13,7 @@ export const manifestSchema = z.object({
   origin: z.enum(['booking', 'hub']).default('booking'),
   creatorPartnerCode: z.string(),
   verifiedBoxIds: z.array(z.string()).optional(),
+  palletAssignments: z.record(z.number()).optional(),
 });
 
 export type Manifest = z.infer<typeof manifestSchema>;

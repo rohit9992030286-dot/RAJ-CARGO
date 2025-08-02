@@ -60,6 +60,9 @@ function ScanManifestPage() {
         if (existingManifest.verifiedBoxIds) {
             setScannedBoxIds(new Set(existingManifest.verifiedBoxIds));
         }
+        if (existingManifest.palletAssignments) {
+            setPalletAssignments(existingManifest.palletAssignments);
+        }
       } else {
         toast({ title: "Manifest not found", variant: "destructive"});
         router.push('/hub');
@@ -90,7 +93,7 @@ function ScanManifestPage() {
   },[manifest, getWaybillById]);
   
   useEffect(() => {
-    if (expectedBoxes.length > 0 && Object.keys(palletAssignments).length === 0 && !isAssignmentLoading) {
+    if (expectedBoxes.length > 0 && Object.keys(palletAssignments).length === 0 && !isAssignmentLoading && manifest?.status === 'Dispatched') {
         setIsAssignmentLoading(true);
 
         const citiesOnFloor = new Set<string>();
@@ -98,12 +101,12 @@ function ScanManifestPage() {
 
         const hubReceivedManifests = allManifests.filter(m => ['Received', 'Short Received'].includes(m.status));
         hubReceivedManifests.forEach(m => {
-            m.verifiedBoxIds?.forEach(boxId => {
-                const waybill = allWaybills.find(wb => boxId.startsWith(wb.waybillNumber));
-                if (waybill) {
-                    citiesOnFloor.add(waybill.receiverCity.toUpperCase());
-                }
-            });
+            if (m.palletAssignments) {
+                Object.entries(m.palletAssignments).forEach(([city, pallet]) => {
+                    citiesOnFloor.add(city);
+                    occupiedPallets.add(pallet);
+                })
+            }
         });
 
         const dispatchedFromHubWbIds = new Set(allManifests.filter(m => m.origin === 'hub').flatMap(m => m.waybillIds));
@@ -117,9 +120,10 @@ function ScanManifestPage() {
         let nextPallet = 1;
         const floorPalletAssignments: Record<string, number> = {};
         citiesOnFloor.forEach(city => {
-            floorPalletAssignments[city] = nextPallet;
-            occupiedPallets.add(nextPallet);
-            nextPallet++;
+            const palletForCity = hubReceivedManifests.find(m => m.palletAssignments?.[city])?.palletAssignments?.[city];
+            if(palletForCity){
+                floorPalletAssignments[city] = palletForCity;
+            }
         });
 
         const newAssignments: Record<string, number> = {};
@@ -136,7 +140,7 @@ function ScanManifestPage() {
                     newAssignments[city] = nextPallet;
                     occupiedPallets.add(nextPallet);
                 } else {
-                    newAssignments[city] = 1;
+                    newAssignments[city] = 1; // Fallback to 1 if all 100 are somehow taken
                 }
             }
         });
@@ -144,7 +148,7 @@ function ScanManifestPage() {
         setPalletAssignments(newAssignments);
         setIsAssignmentLoading(false);
     }
-  }, [expectedBoxes, palletAssignments, isAssignmentLoading, allManifests, allWaybills]);
+  }, [expectedBoxes, palletAssignments, isAssignmentLoading, allManifests, allWaybills, manifest?.status]);
 
   const handleVerifyBox = () => {
       setError(null);
@@ -180,6 +184,7 @@ function ScanManifestPage() {
           ...manifest,
           status: newStatus,
           verifiedBoxIds: Array.from(scannedBoxIds),
+          palletAssignments: palletAssignments
       });
 
       toast({

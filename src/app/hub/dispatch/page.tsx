@@ -11,7 +11,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Loader2, Package, Send, Truck, User, Phone, Briefcase, Building } from 'lucide-react';
+import { Loader2, Package, Send, Truck, User, Phone, Briefcase, Building, Layers } from 'lucide-react';
 import { format } from 'date-fns';
 import { useToast } from '@/hooks/use-toast';
 import { useRouter } from 'next/navigation';
@@ -52,15 +52,27 @@ export default function HubDispatchPage() {
     }, [allManifests, allWaybills, manifestsLoaded, waybillsLoaded]);
 
     const waybillsByCity = useMemo(() => {
+        const hubReceivedManifests = allManifests.filter(m => ['Received', 'Short Received'].includes(m.status));
+
         return verifiedWaybillsForDispatch.reduce((acc, wb) => {
             const city = wb.receiverCity.toUpperCase();
             if (!acc[city]) {
-                acc[city] = [];
+                acc[city] = { waybills: [], pallet: undefined };
             }
-            acc[city].push(wb);
+            acc[city].waybills.push(wb);
+
+            if (!acc[city].pallet) {
+                for (const manifest of hubReceivedManifests) {
+                    if (manifest.palletAssignments && manifest.palletAssignments[city]) {
+                        acc[city].pallet = manifest.palletAssignments[city];
+                        break;
+                    }
+                }
+            }
+
             return acc;
-        }, {} as Record<string, Waybill[]>);
-    }, [verifiedWaybillsForDispatch]);
+        }, {} as Record<string, { waybills: Waybill[], pallet?: number }>);
+    }, [verifiedWaybillsForDispatch, allManifests]);
 
 
     const handleCreateDispatch = () => {
@@ -104,7 +116,7 @@ export default function HubDispatchPage() {
     };
 
     const handleSelectCity = (city: string, checked: boolean) => {
-        const cityWaybillIds = waybillsByCity[city].map(wb => wb.id);
+        const cityWaybillIds = waybillsByCity[city].waybills.map(wb => wb.id);
         if (checked) {
             setSelectedWaybillIds(prev => [...new Set([...prev, ...cityWaybillIds])]);
         } else {
@@ -131,28 +143,36 @@ export default function HubDispatchPage() {
             <div className="grid lg:grid-cols-3 gap-8 items-start">
                 <div className="lg:col-span-2 space-y-6">
                      {Object.keys(waybillsByCity).length > 0 ? (
-                        Object.entries(waybillsByCity).map(([city, waybills]) => {
-                             const cityWaybillIds = waybills.map(wb => wb.id);
+                        Object.entries(waybillsByCity).map(([city, data]) => {
+                             const cityWaybillIds = data.waybills.map(wb => wb.id);
                              const isAllSelectedInCity = cityWaybillIds.every(id => selectedWaybillIds.includes(id));
                              const isSomeSelectedInCity = cityWaybillIds.some(id => selectedWaybillIds.includes(id));
 
                             return (
                                 <Card key={city}>
                                     <CardHeader>
-                                        <div className="flex items-center gap-4">
-                                            <div className="flex items-center space-x-2">
-                                                 <Checkbox
-                                                    id={`select-all-${city}`}
-                                                    checked={isAllSelectedInCity}
-                                                    onCheckedChange={(checked) => handleSelectCity(city, !!checked)}
-                                                    aria-label={`Select all for ${city}`}
-                                                />
-                                                <label htmlFor={`select-all-${city}`} className="text-lg font-semibold flex items-center gap-2">
-                                                    <Building className="h-5 w-5 text-muted-foreground" />
-                                                    Destination: {city}
-                                                </label>
+                                        <div className="flex items-center justify-between gap-4">
+                                            <div className="flex items-center gap-4">
+                                                <div className="flex items-center space-x-2">
+                                                    <Checkbox
+                                                        id={`select-all-${city}`}
+                                                        checked={isAllSelectedInCity}
+                                                        onCheckedChange={(checked) => handleSelectCity(city, !!checked)}
+                                                        aria-label={`Select all for ${city}`}
+                                                    />
+                                                    <label htmlFor={`select-all-${city}`} className="text-lg font-semibold flex items-center gap-2">
+                                                        <Building className="h-5 w-5 text-muted-foreground" />
+                                                        Destination: {city}
+                                                    </label>
+                                                </div>
+                                                <Badge variant="secondary">{data.waybills.length} Waybill(s)</Badge>
                                             </div>
-                                            <Badge variant="secondary">{waybills.length} Waybill(s)</Badge>
+                                            {data.pallet && (
+                                                <Badge variant="outline" className="text-base font-bold py-1 px-3">
+                                                    <Layers className="mr-2 h-4 w-4" />
+                                                    Pallet #{data.pallet}
+                                                </Badge>
+                                            )}
                                         </div>
                                     </CardHeader>
                                     <CardContent className="pl-2 pr-0 pb-0">
@@ -166,7 +186,7 @@ export default function HubDispatchPage() {
                                                 </TableRow>
                                             </TableHeader>
                                             <TableBody>
-                                                {waybills.map(wb => (
+                                                {data.waybills.map(wb => (
                                                     <TableRow 
                                                         key={wb.id} 
                                                         data-state={selectedWaybillIds.includes(wb.id) && "selected"}
