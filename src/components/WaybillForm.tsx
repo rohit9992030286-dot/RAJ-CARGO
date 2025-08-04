@@ -15,7 +15,6 @@ import { Textarea } from './ui/textarea';
 import { useState, useEffect } from 'react';
 import { useWaybillInventory } from '@/hooks/useWaybillInventory';
 import { useAuth } from '@/hooks/useAuth';
-import { stateLookup } from '@/ai/flows/state-lookup';
 
 const getInitialValues = (initialData?: Waybill): WaybillFormData => {
     const defaults = {
@@ -63,7 +62,6 @@ export function WaybillForm({ initialData, onSave, onCancel }: WaybillFormProps)
   const { toast } = useToast();
   const { availablePartnerInventory, isInventoryLoaded } = useWaybillInventory();
   const { user } = useAuth();
-  const [isStateLoading, setIsStateLoading] = useState(false);
 
   const form = useForm<WaybillFormData>({
     resolver: zodResolver(waybillFormSchema),
@@ -74,11 +72,6 @@ export function WaybillForm({ initialData, onSave, onCancel }: WaybillFormProps)
   const shipmentValue = useWatch({
       control: form.control,
       name: 'shipmentValue'
-  });
-  
-  const receiverCity = useWatch({
-      control: form.control,
-      name: 'receiverCity'
   });
 
   useEffect(() => {
@@ -97,27 +90,6 @@ export function WaybillForm({ initialData, onSave, onCancel }: WaybillFormProps)
     form.reset(values);
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [initialData]);
-  
-  useEffect(() => {
-      const city = receiverCity.trim();
-      if(city.length < 3) return;
-
-      const handler = setTimeout(async () => {
-          setIsStateLoading(true);
-          try {
-              const result = await stateLookup({city});
-              if(result.state) {
-                  form.setValue('receiverState', result.state, { shouldValidate: true });
-              }
-          } catch(e) {
-              console.error(e);
-          } finally {
-              setIsStateLoading(false);
-          }
-      }, 500);
-
-      return () => clearTimeout(handler);
-  }, [receiverCity, form]);
 
   const onSubmit = (data: WaybillFormData) => {
     const waybillToSave: Waybill = {
@@ -313,11 +285,7 @@ export function WaybillForm({ initialData, onSave, onCancel }: WaybillFormProps)
                       <FormControl>
                         <Input placeholder="e.g., California" {...field} className="pl-10" />
                       </FormControl>
-                       {isStateLoading ? (
-                        <IconWrapper><Loader2 className="animate-spin" /></IconWrapper>
-                       ) : (
-                        <IconWrapper><Globe /></IconWrapper>
-                       )}
+                      <IconWrapper><Globe /></IconWrapper>
                     </div>
                     <FormMessage />
                   </FormItem>
