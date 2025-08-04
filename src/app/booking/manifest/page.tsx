@@ -8,15 +8,17 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
-import { PlusCircle, Eye, Pencil, Trash2, Truck, Loader2 } from 'lucide-react';
+import { PlusCircle, Eye, Pencil, Trash2, Truck, Loader2, Search } from 'lucide-react';
 import { Manifest } from '@/types/manifest';
 import { format } from 'date-fns';
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
+import { Input } from '@/components/ui/input';
 
 export default function ManifestListPage() {
   const router = useRouter();
   const { manifests, deleteManifest, isLoaded: manifestsLoaded } = useManifests();
   const { waybills, getWaybillById, isLoaded: waybillsLoaded } = useWaybills();
+  const [searchTerm, setSearchTerm] = useState('');
   
   const handleCreateManifest = () => {
     router.push('/booking/manifest/create');
@@ -32,8 +34,12 @@ export default function ManifestListPage() {
   };
   
   const bookingManifests = useMemo(() => {
-    return manifests.filter(m => m.origin === 'booking');
-  }, [manifests]);
+    let filtered = manifests.filter(m => m.origin === 'booking');
+    if (searchTerm) {
+        filtered = filtered.filter(m => m.manifestNo.toLowerCase().includes(searchTerm.toLowerCase()));
+    }
+    return filtered;
+  }, [manifests, searchTerm]);
 
   if (!manifestsLoaded || !waybillsLoaded) {
     return (
@@ -76,10 +82,24 @@ export default function ManifestListPage() {
       
       <Card>
         <CardHeader>
-          <CardTitle>All Manifests</CardTitle>
-          <CardDescription>
-            You have {bookingManifests.length} manifest(s).
-          </CardDescription>
+          <div className="flex justify-between items-center">
+            <div>
+              <CardTitle>All Manifests</CardTitle>
+              <CardDescription>
+                You have {bookingManifests.length} manifest(s).
+              </CardDescription>
+            </div>
+            <div className="relative max-w-sm w-full">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+                <Input 
+                    type="search"
+                    placeholder="Search by Manifest No..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    className="pl-10 font-mono"
+                />
+            </div>
+          </div>
         </CardHeader>
         <CardContent>
           <Table>
@@ -131,7 +151,9 @@ export default function ManifestListPage() {
                     <div className="text-center py-8">
                         <Truck className="mx-auto h-12 w-12 text-muted-foreground" />
                         <h3 className="mt-4 text-lg font-semibold">No Manifests Yet</h3>
-                        <p className="mt-1 text-sm text-muted-foreground">Get started by creating your first manifest.</p>
+                        <p className="mt-1 text-sm text-muted-foreground">
+                            {searchTerm ? 'No manifests match your search.' : 'Get started by creating your first manifest.'}
+                        </p>
                         <div className="mt-6">
                             <Button onClick={handleCreateManifest}>
                                 <PlusCircle className="mr-2 h-4 w-4" />

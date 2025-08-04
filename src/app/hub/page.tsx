@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import { Card, CardHeader, CardTitle, CardContent, CardFooter, CardDescription } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { ScanLine, AlertTriangle, ArrowRight, Truck, History, Eye, Loader2 } from 'lucide-react';
+import { ScanLine, AlertTriangle, ArrowRight, Truck, History, Eye, Loader2, Search } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useManifests } from '@/hooks/useManifests';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
@@ -15,6 +15,7 @@ import { useWaybills } from '@/hooks/useWaybills';
 
 export default function HubDashboardPage() {
     const [manifestNo, setManifestNo] = useState('');
+    const [historySearchTerm, setHistorySearchTerm] = useState('');
     const router = useRouter();
     const { toast } = useToast();
     const { getManifestByNumber, manifests, isLoaded } = useManifests();
@@ -45,7 +46,7 @@ export default function HubDashboardPage() {
     };
     
     const verificationHistory = useMemo(() => {
-        return manifests.filter(m => m.status === 'Received' || m.status === 'Short Received')
+        let history = manifests.filter(m => m.status === 'Received' || m.status === 'Short Received')
             .map(manifest => {
                 const totalBoxes = manifest.waybillIds.reduce((acc, id) => {
                     const wb = getWaybillById(id);
@@ -59,7 +60,14 @@ export default function HubDashboardPage() {
                     shortageCount: totalBoxes - verifiedCount
                 };
             });
-    }, [manifests, getWaybillById]);
+        
+        if (historySearchTerm) {
+            history = history.filter(m => m.manifestNo.toLowerCase().includes(historySearchTerm.toLowerCase()));
+        }
+
+        return history;
+
+    }, [manifests, getWaybillById, historySearchTerm]);
     
      if (!isLoaded || !waybillsLoaded) {
         return (
@@ -121,11 +129,25 @@ export default function HubDashboardPage() {
             
             <Card>
                 <CardHeader>
-                    <CardTitle className="flex items-center gap-3">
-                        <History className="h-6 w-6" />
-                        <span>Verification History</span>
-                    </CardTitle>
-                    <CardDescription>A log of all previously verified manifests.</CardDescription>
+                    <div className="flex justify-between items-center">
+                         <div>
+                            <CardTitle className="flex items-center gap-3">
+                                <History className="h-6 w-6" />
+                                <span>Verification History</span>
+                            </CardTitle>
+                            <CardDescription>A log of all previously verified manifests.</CardDescription>
+                         </div>
+                        <div className="relative max-w-sm w-full">
+                            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+                            <Input 
+                                type="search"
+                                placeholder="Search by Manifest No..."
+                                value={historySearchTerm}
+                                onChange={(e) => setHistorySearchTerm(e.target.value)}
+                                className="pl-10 font-mono"
+                            />
+                        </div>
+                    </div>
                 </CardHeader>
                 <CardContent>
                     <Table>
@@ -165,7 +187,7 @@ export default function HubDashboardPage() {
                             ) : (
                                 <TableRow>
                                     <TableCell colSpan={7} className="text-center h-24">
-                                        No manifests have been verified yet.
+                                         {historySearchTerm ? 'No manifests match your search.' : 'No manifests have been verified yet.'}
                                     </TableCell>
                                 </TableRow>
                             )}

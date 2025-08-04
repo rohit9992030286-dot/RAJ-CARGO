@@ -1,24 +1,32 @@
 
 'use client';
 
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import { useManifests } from '@/hooks/useManifests';
 import { useWaybills } from '@/hooks/useWaybills';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Loader2, History, Printer } from 'lucide-react';
+import { Loader2, History, Printer, Search } from 'lucide-react';
 import { format } from 'date-fns';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 
 export default function OutboundHistoryPage() {
     const { allManifests, isLoaded: manifestsLoaded } = useManifests();
     const { isLoaded: waybillsLoaded } = useWaybills();
+    const [searchTerm, setSearchTerm] = useState('');
 
     const outboundHistory = useMemo(() => {
         if (!manifestsLoaded) return [];
-        return allManifests.filter(m => m.origin === 'hub');
-    }, [allManifests, manifestsLoaded]);
+        let history = allManifests.filter(m => m.origin === 'hub');
+
+        if (searchTerm) {
+            history = history.filter(m => m.manifestNo.toLowerCase().includes(searchTerm.toLowerCase()));
+        }
+
+        return history;
+    }, [allManifests, manifestsLoaded, searchTerm]);
     
     const handlePrintManifest = (manifestId: string) => {
         window.open(`/print/manifest?id=${manifestId}`, '_blank');
@@ -41,10 +49,24 @@ export default function OutboundHistoryPage() {
 
             <Card>
                 <CardHeader>
-                    <CardTitle>Dispatch History</CardTitle>
-                    <CardDescription>
-                       Found {outboundHistory.length} outbound manifest(s).
-                    </CardDescription>
+                    <div className="flex justify-between items-center">
+                        <div>
+                            <CardTitle>Dispatch History</CardTitle>
+                            <CardDescription>
+                            Found {outboundHistory.length} outbound manifest(s).
+                            </CardDescription>
+                        </div>
+                        <div className="relative max-w-sm w-full">
+                            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+                            <Input 
+                                type="search"
+                                placeholder="Search by Manifest No..."
+                                value={searchTerm}
+                                onChange={(e) => setSearchTerm(e.target.value)}
+                                className="pl-10 font-mono"
+                            />
+                        </div>
+                    </div>
                 </CardHeader>
                 <CardContent>
                     {outboundHistory.length > 0 ? (
@@ -83,7 +105,7 @@ export default function OutboundHistoryPage() {
                             <History className="mx-auto h-12 w-12 text-muted-foreground" />
                             <h3 className="mt-4 text-lg font-semibold">No Outbound History</h3>
                             <p className="mt-1 text-sm text-muted-foreground">
-                                No manifests have been dispatched from the hub yet.
+                                {searchTerm ? 'No manifests match your search.' : 'No manifests have been dispatched from the hub yet.'}
                             </p>
                         </div>
                     )}
