@@ -214,7 +214,17 @@ export function DataProvider({ children }: { children: ReactNode }) {
   }, [waybillsData]);
 
   const addManifest = useCallback((manifest: Omit<Manifest, 'creatorPartnerCode' | 'manifestNo'>) => {
-    const newManifestNumber = `M-RC-${1001 + manifestsData.length}`;
+    const bookingManifestsCount = manifestsData.filter(m => m.origin === 'booking').length;
+    const hubManifestsCount = manifestsData.filter(m => m.origin === 'hub').length;
+    
+    let newManifestNumber: string;
+
+    if (manifest.origin === 'hub') {
+        newManifestNumber = `M-D-RC-${1000001 + hubManifestsCount}`;
+    } else {
+        newManifestNumber = `M-RC-${1001 + bookingManifestsCount}`;
+    }
+
     const manifestToSave: Manifest = {
         ...manifest,
         manifestNo: newManifestNumber,
@@ -226,7 +236,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
         description: `Manifest ${newManifestNumber} has been created.`,
     });
     return manifest.id;
-  }, [toast, user, manifestsData.length]);
+  }, [toast, user, manifestsData]);
 
   const updateManifest = useCallback((updatedManifest: Manifest) => {
     setManifestsData(prev => prev.map(m => (m.id === updatedManifest.id ? updatedManifest : m)));
