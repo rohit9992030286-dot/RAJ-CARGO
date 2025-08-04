@@ -20,10 +20,11 @@ export function WaybillSticker({ waybill, boxNumber, totalBoxes }: WaybillSticke
     <div className={cn(baseClasses, sizeClasses)}>
         {/* Top: Barcode and Waybill Number - Height: 35% */}
         <div className="text-center border-b-2 border-black flex flex-col items-center justify-center" style={{ height: '35%' }}>
+            <p className="font-bold text-sm">RAJ CARGO</p>
             <div className={cn("mx-auto flex justify-center items-center", 'w-full h-auto')}>
                 <Barcode 
                   value={waybill.waybillNumber} 
-                  height={40} 
+                  height={30} 
                   displayValue={false} 
                   width={2} 
                   margin={0}
