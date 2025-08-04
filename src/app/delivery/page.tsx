@@ -68,7 +68,7 @@ export default function DeliveryPage() {
     );
 
     if (searchTerm) {
-      partnerOutboundManifests = partnerOutboundManifests.filter(m => m.manifestNo.includes(searchTerm));
+      partnerOutboundManifests = partnerOutboundManifests.filter(m => m.manifestNo.toLowerCase().includes(searchTerm.toLowerCase()));
     }
 
     return partnerOutboundManifests.map(manifest => ({
@@ -137,7 +137,7 @@ export default function DeliveryPage() {
                 </div>
            </div>
            <CardDescription>
-                Found {manifestsForDelivery.length} manifest(s) assigned to you.
+                Found {manifestsForDelivery.length} manifest(s) assigned to you for delivery.
            </CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
@@ -149,7 +149,7 @@ export default function DeliveryPage() {
                             <Truck className="h-6 w-6 text-primary"/>
                             <div>
                                 <CardTitle className="text-xl">{manifest.manifestNo}</CardTitle>
-                                <CardDescription>Dispatched on {format(new Date(manifest.date), 'PPP')}</CardDescription>
+                                <CardDescription>Dispatched from Hub on {format(new Date(manifest.date), 'PPP')}</CardDescription>
                             </div>
                         </div>
                         <Badge variant="secondary">{manifest.waybills.length} Waybills</Badge>
