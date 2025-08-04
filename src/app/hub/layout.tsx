@@ -2,10 +2,10 @@
 'use client';
 import { useState, useEffect, ReactNode } from 'react';
 import Link from 'next/link';
-import { Menu, Settings, Cpu, LayoutDashboard, Truck, LogOut, Loader2, AlertTriangle, ScanLine } from 'lucide-react';
+import { Menu, Settings, Cpu, LayoutDashboard, Truck, LogOut, Loader2, AlertTriangle, ScanLine, History } from 'lucide-react';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
 import { Button } from '@/components/ui/button';
-import { useAuth } from '@/hooks/useAuth';
+import { useAuth } from '@/hooks/useAuth.tsx';
 import { useRouter } from 'next/navigation';
 import { useToast } from '@/hooks/use-toast';
 import { DataProvider } from '@/components/DataContext';
@@ -38,6 +38,12 @@ function NavLinks({ onLinkClick, onLogout }: { onLinkClick?: () => void; onLogou
                     <Link href="/hub/dispatch" onClick={onLinkClick} className="flex items-center gap-3 p-3 rounded-lg hover:bg-primary/10 hover:text-primary transition-colors">
                         <Truck className="h-5 w-5" />
                         <span>Outbound Dispatch</span>
+                    </Link>
+                </li>
+                 <li>
+                    <Link href="/hub/outbound-history" onClick={onLinkClick} className="flex items-center gap-3 p-3 rounded-lg hover:bg-primary/10 hover:text-primary transition-colors">
+                        <History className="h-5 w-5" />
+                        <span>Outbound History</span>
                     </Link>
                 </li>
             </ul>
