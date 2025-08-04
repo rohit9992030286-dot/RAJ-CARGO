@@ -61,10 +61,14 @@ function PrintStickersContent() {
     @media print {
       @page {
         size: ${stickerSize === '75mm' ? '75mm 75mm' : '9cm 7.3cm'};
-        margin: 0;
+        margin: ${stickerSize === '75mm' ? '1mm' : '0'};
       }
       body {
         -webkit-print-color-adjust: exact;
+        margin: 0;
+      }
+      .sticker-container {
+        page-break-after: always;
       }
     }
   `;
@@ -75,7 +79,7 @@ function PrintStickersContent() {
       <style>{printStyles}</style>
       <div className="bg-white">
         {allStickers.map(({ waybill, boxNumber, totalBoxes }, index) => (
-          <div key={`${waybill.id}-${boxNumber}`} className="print:page-break-after-always">
+          <div key={`${waybill.id}-${boxNumber}`} className="sticker-container">
               <StickerComponent 
                 waybill={waybill}
                 boxNumber={boxNumber}
