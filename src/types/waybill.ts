@@ -31,6 +31,8 @@ const baseWaybillSchema = z.object({
   
   status: z.enum(['Pending', 'In Transit', 'Out for Delivery', 'Delivered', 'Cancelled', 'Returned']),
   partnerCode: z.string().optional(),
+  deliveryDate: z.string().optional(),
+  receivedBy: z.string().optional(),
 });
 
 // Schema for the form data, with the superRefine for conditional validation.
