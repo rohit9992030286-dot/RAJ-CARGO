@@ -87,19 +87,9 @@ export function WaybillForm({ initialData, onSave, onCancel }: WaybillFormProps)
       name: 'shipmentValue'
   });
   
-  const receiverState = useWatch({
-      control: form.control,
-      name: 'receiverState'
-  });
-  
   const receiverCity = useWatch({
       control: form.control,
       name: 'receiverCity'
-  });
-
-  const packageWeight = useWatch({
-      control: form.control,
-      name: 'packageWeight'
   });
 
   useEffect(() => {
@@ -139,37 +129,6 @@ export function WaybillForm({ initialData, onSave, onCancel }: WaybillFormProps)
 
       return () => clearTimeout(handler);
   }, [receiverCity, form]);
-
-  useEffect(() => {
-      try {
-          const storedRates = localStorage.getItem(RATES_STORAGE_KEY);
-          if (storedRates) {
-              const parsedRates: Rate[] = JSON.parse(storedRates);
-              setRates(parsedRates);
-          }
-      } catch (error) {
-          console.error("Failed to load rates for form", error);
-      }
-  }, []);
-
-  useEffect(() => {
-    if (initialData || !user?.partnerCode) return;
-
-    const matchedRate = rates.find(rate => 
-      rate.partnerCode === user.partnerCode &&
-      rate.state.toLowerCase() === receiverState.toLowerCase()
-    );
-
-    if (matchedRate) {
-        let finalValue = matchedRate.baseCharge;
-        if (packageWeight > 25) {
-            finalValue += (packageWeight * matchedRate.weightCharge);
-        }
-        form.setValue('shipmentValue', finalValue, { shouldValidate: true });
-    } else {
-        form.setValue('shipmentValue', 0, { shouldValidate: true });
-    }
-  }, [receiverState, packageWeight, rates, form, initialData, user?.partnerCode]);
 
   const onSubmit = (data: WaybillFormData) => {
     const waybillToSave: Waybill = {
@@ -503,7 +462,7 @@ export function WaybillForm({ initialData, onSave, onCancel }: WaybillFormProps)
                     <FormLabel>Shipment Value (₹)</FormLabel>
                     <div className="relative">
                       <FormControl>
-                        <Input type="number" step="0.01" placeholder="e.g., 150.00" {...field} onChange={e => field.onChange(+e.target.value)} className="pl-10" readOnly />
+                        <Input type="number" step="0.01" placeholder="e.g., 150.00" {...field} onChange={e => field.onChange(+e.target.value)} className="pl-10" />
                       </FormControl>
                       <IconWrapper><IndianRupee /></IconWrapper>
                     </div>
