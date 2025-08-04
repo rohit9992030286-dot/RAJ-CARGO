@@ -3,6 +3,7 @@
 
 import { Waybill } from '@/types/waybill';
 import { Truck, User, MapPin, Phone, Calendar, Hash, Box, Weight, IndianRupee, Package, FileText, Globe } from 'lucide-react';
+import Barcode from 'react-barcode';
 
 interface WaybillPrintProps {
   waybill: Waybill;
@@ -22,8 +23,15 @@ export function WaybillPrint({ waybill }: WaybillPrintProps) {
         </div>
         <div className="text-right">
           <h2 className="text-xl font-bold uppercase tracking-wider text-gray-500">Waybill</h2>
-          <p className="text-2xl font-bold text-primary">#{waybill.waybillNumber}</p>
-          <p className="text-sm text-gray-500">Invoice #{waybill.invoiceNumber}</p>
+           <div className="flex justify-end">
+             <Barcode 
+                value={waybill.waybillNumber}
+                height={40}
+                width={1.5}
+                fontSize={14}
+             />
+           </div>
+          <p className="text-sm text-gray-500 mt-1">Invoice #{waybill.invoiceNumber}</p>
         </div>
       </header>
       
@@ -72,7 +80,7 @@ export function WaybillPrint({ waybill }: WaybillPrintProps) {
                 <p className="font-semibold text-purple-800">Declared Value</p>
                 <p className="text-2xl font-bold">₹{waybill.shipmentValue.toFixed(2)}</p>
             </div>
-             {waybill.eWayBillNo && (
+             {waybill.shipmentValue >= 50000 && waybill.eWayBillNo && (
                  <div className="bg-slate-50 p-4 rounded-lg border border-slate-200 col-span-3">
                     <FileText className="h-8 w-8 text-slate-500 mx-auto mb-2" />
                     <p className="font-semibold text-slate-800">E-Way Bill Number</p>
