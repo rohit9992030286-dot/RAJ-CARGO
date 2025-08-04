@@ -61,14 +61,23 @@ function PrintStickersContent() {
     @media print {
       @page {
         size: ${stickerSize === '75mm' ? '75mm 75mm' : '9cm 7.3cm'};
-        margin: ${stickerSize === '75mm' ? '1mm' : '0'};
-      }
-      body {
-        -webkit-print-color-adjust: exact;
         margin: 0;
+      }
+      html, body {
+        width: ${stickerSize === '75mm' ? '75mm' : '9cm'};
+        height: ${stickerSize === '75mm' ? '75mm' : '7.3cm'};
+        margin: 0;
+        padding: 0;
+        -webkit-print-color-adjust: exact;
       }
       .sticker-container {
         page-break-after: always;
+        width: 100%;
+        height: 100%;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        box-sizing: border-box;
       }
     }
   `;
