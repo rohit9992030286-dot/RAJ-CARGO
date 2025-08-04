@@ -22,6 +22,9 @@ const StateLookupOutputSchema = z.object({
 export type StateLookupOutput = z.infer<typeof StateLookupOutputSchema>;
 
 export async function stateLookup(input: StateLookupInput): Promise<StateLookupOutput> {
+  if (!ai.getConfig().model) {
+    return { state: '' };
+  }
   return stateLookupFlow(input);
 }
 

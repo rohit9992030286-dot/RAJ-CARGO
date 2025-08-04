@@ -9,7 +9,8 @@
  */
 
 
-import {z} import {ai} from '@/ai/genkit';from 'genkit';
+import {z} from 'genkit';
+import {ai} from '@/ai/genkit';
 
 const AddressAutocompleteInputSchema = z.object({
   partialAddress: z.string().describe('The partial address entered by the user.'),
@@ -22,6 +23,9 @@ const AddressAutocompleteOutputSchema = z.object({
 export type AddressAutocompleteOutput = z.infer<typeof AddressAutocompleteOutputSchema>;
 
 export async function addressAutocomplete(input: AddressAutocompleteInput): Promise<AddressAutocompleteOutput> {
+  if (!ai.getConfig().model) {
+    return { suggestions: [] };
+  }
   return addressAutocompleteFlow(input);
 }
 
