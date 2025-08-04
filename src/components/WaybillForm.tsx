@@ -17,16 +17,6 @@ import { useWaybillInventory } from '@/hooks/useWaybillInventory';
 import { useAuth } from '@/hooks/useAuth';
 import { stateLookup } from '@/ai/flows/state-lookup';
 
-const RATES_STORAGE_KEY = 'rajcargo-pincode-rates';
-
-interface Rate {
-  id: string;
-  baseCharge: number;
-  weightCharge: number;
-  partnerCode: string;
-  state: string;
-}
-
 const getInitialValues = (initialData?: Waybill): WaybillFormData => {
     const defaults = {
         waybillNumber: '',
@@ -49,7 +39,7 @@ const getInitialValues = (initialData?: Waybill): WaybillFormData => {
         numberOfBoxes: 1,
         shipmentValue: 0,
         shippingDate: new Date().toISOString().split('T')[0],
-        shippingTime: '10:00',
+        shippingTime: new Date().toTimeString().split(' ')[0].substring(0, 5),
         status: 'Pending' as 'Pending',
         partnerCode: '',
     };
@@ -73,7 +63,6 @@ export function WaybillForm({ initialData, onSave, onCancel }: WaybillFormProps)
   const { toast } = useToast();
   const { availablePartnerInventory, isInventoryLoaded } = useWaybillInventory();
   const { user } = useAuth();
-  const [rates, setRates] = useState<Rate[]>([]);
   const [isStateLoading, setIsStateLoading] = useState(false);
 
   const form = useForm<WaybillFormData>({
@@ -472,46 +461,48 @@ export function WaybillForm({ initialData, onSave, onCancel }: WaybillFormProps)
               />
               <div />
             </div>
-             <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-4">
-                 <FormField
-                    control={form.control}
-                    name="eWayBillNo"
-                    render={({ field }) => (
-                    <FormItem>
-                        <FormLabel>
-                        E-Way Bill No
-                        {shipmentValue >= 50000 && <span className="text-destructive">*</span>}
-                        </FormLabel>
-                        <div className="relative">
-                        <FormControl>
-                            <Input placeholder="E-Way Bill Number" {...field} className="pl-10" />
-                        </FormControl>
-                        <IconWrapper><FileText /></IconWrapper>
-                        </div>
-                        <FormMessage />
-                    </FormItem>
-                    )}
-                />
-                <FormField
-                    control={form.control}
-                    name="eWayBillExpiryDate"
-                    render={({ field }) => (
-                    <FormItem>
-                        <FormLabel>
-                         E-Way Expiry
-                        {shipmentValue >= 50000 && <span className="text-destructive">*</span>}
-                        </FormLabel>
-                         <div className="relative">
-                          <FormControl>
-                            <Input type="date" {...field} className="pl-10" />
-                          </FormControl>
-                           <IconWrapper><Calendar /></IconWrapper>
-                        </div>
-                        <FormMessage />
-                    </FormItem>
-                    )}
-                />
-             </div>
+             {shipmentValue >= 50000 && (
+                <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-4">
+                    <FormField
+                        control={form.control}
+                        name="eWayBillNo"
+                        render={({ field }) => (
+                        <FormItem>
+                            <FormLabel>
+                            E-Way Bill No
+                            <span className="text-destructive">*</span>
+                            </FormLabel>
+                            <div className="relative">
+                            <FormControl>
+                                <Input placeholder="E-Way Bill Number" {...field} className="pl-10" />
+                            </FormControl>
+                            <IconWrapper><FileText /></IconWrapper>
+                            </div>
+                            <FormMessage />
+                        </FormItem>
+                        )}
+                    />
+                    <FormField
+                        control={form.control}
+                        name="eWayBillExpiryDate"
+                        render={({ field }) => (
+                        <FormItem>
+                            <FormLabel>
+                            E-Way Expiry
+                            <span className="text-destructive">*</span>
+                            </FormLabel>
+                            <div className="relative">
+                            <FormControl>
+                                <Input type="date" {...field} className="pl-10" />
+                            </FormControl>
+                            <IconWrapper><Calendar /></IconWrapper>
+                            </div>
+                            <FormMessage />
+                        </FormItem>
+                        )}
+                    />
+                </div>
+             )}
             <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-4">
                  <FormField
                     control={form.control}
@@ -521,7 +512,7 @@ export function WaybillForm({ initialData, onSave, onCancel }: WaybillFormProps)
                         <FormLabel>Shipping Date</FormLabel>
                         <div className="relative">
                           <FormControl>
-                            <Input type="date" {...field} className="pl-10" />
+                            <Input type="date" {...field} className="pl-10" disabled />
                           </FormControl>
                            <IconWrapper><Calendar /></IconWrapper>
                         </div>
@@ -537,7 +528,7 @@ export function WaybillForm({ initialData, onSave, onCancel }: WaybillFormProps)
                         <FormLabel>Shipping Time</FormLabel>
                         <div className="relative">
                           <FormControl>
-                            <Input type="time" {...field} className="pl-10" />
+                            <Input type="time" {...field} className="pl-10" disabled />
                           </FormControl>
                            <IconWrapper><Clock /></IconWrapper>
                         </div>
@@ -551,7 +542,7 @@ export function WaybillForm({ initialData, onSave, onCancel }: WaybillFormProps)
                     render={({ field }) => (
                     <FormItem>
                         <FormLabel>Status</FormLabel>
-                        <Select onValueChange={field.onChange} defaultValue={field.value}>
+                        <Select onValueChange={field.onChange} value={field.value} disabled>
                             <FormControl>
                             <div className="relative">
                                 <SelectTrigger className="pl-10">
@@ -562,11 +553,6 @@ export function WaybillForm({ initialData, onSave, onCancel }: WaybillFormProps)
                             </FormControl>
                             <SelectContent>
                                 <SelectItem value="Pending">Pending</SelectItem>
-                                <SelectItem value="In Transit">In Transit</SelectItem>
-                                <SelectItem value="Out for Delivery">Out for Delivery</SelectItem>
-                                <SelectItem value="Delivered">Delivered</SelectItem>
-                                <SelectItem value="Cancelled">Cancelled</SelectItem>
-                                <SelectItem value="Returned">Returned</SelectItem>
                             </SelectContent>
                         </Select>
                         <FormMessage />

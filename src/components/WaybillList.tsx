@@ -165,23 +165,13 @@ export function WaybillList({
                             <TableCell>
                                 <DropdownMenu>
                                     <DropdownMenuTrigger asChild>
-                                        <Button variant="outline" size="sm" className="w-[120px] justify-between" disabled={isLocked && waybill.status !== 'Out for Delivery'}>
+                                        <Button variant="outline" size="sm" className="w-[120px] justify-between" disabled>
                                             <Badge variant={statusVariantMap[waybill.status] || 'default'} className="p-1">
                                                 {waybill.status}
                                             </Badge>
-                                            {(!isLocked || waybill.status === 'Out for Delivery') && <MoreHorizontal className="w-4 h-4 ml-2" />}
+                                             <MoreHorizontal className="w-4 h-4 ml-2" />
                                         </Button>
                                     </DropdownMenuTrigger>
-                                    <DropdownMenuContent>
-                                        <DropdownMenuLabel>Change Status</DropdownMenuLabel>
-                                        <DropdownMenuSeparator />
-                                        {statusOptions.map(status => (
-                                            <DropdownMenuItem key={status} onClick={() => onUpdateStatus(waybill.id, status)}>
-                                                {status}
-                                                {waybill.status === status && <Check className="w-4 h-4 ml-auto" />}
-                                            </DropdownMenuItem>
-                                        ))}
-                                    </DropdownMenuContent>
                                 </DropdownMenu>
                             </TableCell>
                             <TableCell className="text-right">
