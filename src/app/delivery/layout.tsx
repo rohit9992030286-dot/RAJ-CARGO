@@ -30,9 +30,9 @@ function NavLinks({ onLinkClick, onLogout }: { onLinkClick?: () => void, onLogou
                 </Link>
                 </li>
                 <li>
-                <Link href="/delivery/delivered" onClick={onLinkClick} className="flex items-center gap-3 p-3 rounded-lg hover:bg-primary/10 hover:text-primary transition-colors">
+                <Link href="/delivery/history" onClick={onLinkClick} className="flex items-center gap-3 p-3 rounded-lg hover:bg-primary/10 hover:text-primary transition-colors">
                     <History className="h-5 w-5" />
-                    <span>Delivered History</span>
+                    <span>Delivery History</span>
                 </Link>
                 </li>
             </ul>
