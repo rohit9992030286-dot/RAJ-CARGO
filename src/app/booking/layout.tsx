@@ -3,7 +3,7 @@
 import { useState, useEffect, ReactNode } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
-import { Home, BookCopy, PlusCircle, ScanLine, Menu, Settings, Settings2, Truck, Cpu, LayoutDashboard, CheckCircle, LogOut } from 'lucide-react';
+import { Menu, Settings, Settings2, Truck, Cpu, LayoutDashboard, CheckCircle, LogOut } from 'lucide-react';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/hooks/useAuth.tsx';
@@ -13,71 +13,6 @@ import { useToast } from '@/hooks/use-toast';
 import { DataProvider } from '@/components/DataContext';
 import { Logo } from '@/components/Logo';
 
-function NavLinks({ onLinkClick, onLogout }: { onLinkClick?: () => void, onLogout: () => void }) {
-    return (
-        <nav className="p-4 flex flex-col h-full">
-            <ul className="space-y-2 flex-grow">
-                <li>
-                    <Link href="/dashboard" onClick={onLinkClick} className="flex items-center gap-3 p-3 rounded-lg hover:bg-primary/10 hover:text-primary transition-colors">
-                        <LayoutDashboard className="h-5 w-5" />
-                        <span>Main Dashboard</span>
-                    </Link>
-                </li>
-                <li className="px-3 py-2 text-xs font-semibold text-muted-foreground uppercase">Booking</li>
-                <li>
-                    <Link href="/booking" onClick={onLinkClick} className="flex items-center gap-3 p-3 rounded-lg hover:bg-primary/10 hover:text-primary transition-colors">
-                        <Home className="h-5 w-5" />
-                        <span>Booking Dashboard</span>
-                    </Link>
-                </li>
-                <li>
-                    <Link href="/booking/waybills/create" onClick={onLinkClick} className="flex items-center gap-3 p-3 rounded-lg hover:bg-primary/10 hover:text-primary transition-colors">
-                        <PlusCircle className="h-5 w-5" />
-                        <span>Create Waybill</span>
-                    </Link>
-                </li>
-                <li>
-                    <Link href="/booking/waybills" onClick={onLinkClick} className="flex items-center gap-3 p-3 rounded-lg hover:bg-primary/10 hover:text-primary transition-colors">
-                        <BookCopy className="h-5 w-5" />
-                        <span>Waybill Book</span>
-                    </Link>
-                </li>
-                <li>
-                    <Link href="/booking/manifest" onClick={onLinkClick} className="flex items-center gap-3 p-3 rounded-lg hover:bg-primary/10 hover:text-primary transition-colors">
-                        <Truck className="h-5 w-5" />
-                        <span>Dispatch Manifests</span>
-                    </Link>
-                </li>
-                <li>
-                    <Link href="/booking/delivered" onClick={onLinkClick} className="flex items-center gap-3 p-3 rounded-lg hover:bg-primary/10 hover:text-primary transition-colors">
-                        <CheckCircle className="h-5 w-5" />
-                        <span>Delivered Waybills</span>
-                    </Link>
-                </li>
-                <li>
-                    <Link href="/booking/print-sticker" onClick={onLinkClick} className="flex items-center gap-3 p-3 rounded-lg hover:bg-primary/10 hover:text-primary transition-colors">
-                        <ScanLine className="h-5 w-5" />
-                        <span>Print Sticker</span>
-                    </Link>
-                </li>
-            </ul>
-            <div className="space-y-2 border-t pt-4">
-                <Link href="/booking/configuration" onClick={onLinkClick} className="flex items-center gap-3 p-3 rounded-lg hover:bg-primary/10 hover:text-primary transition-colors">
-                    <Settings2 className="h-5 w-5" />
-                    <span>Configuration</span>
-                </Link>
-                <Link href="/booking/settings" onClick={onLinkClick} className="flex items-center gap-3 p-3 rounded-lg hover:bg-primary/10 hover:text-primary transition-colors">
-                    <Settings className="h-5 w-5" />
-                    <span>Settings</span>
-                </Link>
-                 <Button variant="ghost" onClick={onLogout} className="w-full justify-start flex items-center gap-3 p-3 rounded-lg hover:bg-destructive/10 hover:text-destructive transition-colors text-base">
-                    <LogOut className="h-5 w-5" />
-                    <span>Logout</span>
-                </Button>
-            </div>
-        </nav>
-    );
-}
 
 function BookingLayoutContent({
   children,
@@ -125,34 +60,18 @@ function BookingLayoutContent({
   return (
     <DataProvider>
       <div className="flex min-h-screen bg-background">
-        <aside className="w-64 bg-card border-r hidden lg:flex lg:flex-col">
-          <div className="flex items-center justify-center p-6 border-b">
-            <Logo />
-          </div>
-          <NavLinks onLogout={handleLogout}/>
-        </aside>
         <div className="flex-1 flex flex-col">
-          <header className="flex h-16 items-center gap-4 border-b bg-card px-6 lg:hidden">
-              <Sheet open={isSheetOpen} onOpenChange={setIsSheetOpen}>
-                  <SheetTrigger asChild>
-                      <Button variant="outline" size="icon">
-                          <Menu className="h-6 w-6" />
-                          <span className="sr-only">Toggle navigation menu</span>
-                      </Button>
-                  </SheetTrigger>
-                  <SheetContent side="left" className="flex flex-col p-0 bg-card">
-                      <SheetHeader>
-                          <SheetTitle className="sr-only">Navigation Menu</SheetTitle>
-                      </SheetHeader>
-                      <div className="flex items-center justify-center p-4 border-b">
-                          <Logo />
-                      </div>
-                      <NavLinks onLinkClick={handleLinkClick} onLogout={handleLogout} />
-                  </SheetContent>
-              </Sheet>
-              <div className="flex-1">
+          <header className="flex h-16 items-center gap-4 border-b bg-card px-6">
+              <div className="flex-shrink-0">
+                  <Link href="/dashboard"><Logo /></Link>
+              </div>
+              <div className="flex-1 text-center">
                    <h1 className="font-semibold text-xl text-primary">RAJ CARGO - BOOKING</h1>
               </div>
+              <Button variant="ghost" onClick={handleLogout} className="text-base">
+                  <LogOut className="mr-2 h-5 w-5" />
+                  <span>Logout</span>
+              </Button>
           </header>
           <main className="flex-1 p-4 md:p-8 bg-background">
               {children}
