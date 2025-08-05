@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { useWaybills } from '@/hooks/useWaybills';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow, TableFooter } from '@/components/ui/table';
@@ -17,30 +17,69 @@ import * as XLSX from 'xlsx';
 import { saveAs } from 'file-saver';
 import { DateRange } from 'react-day-picker';
 
-export default function ValueReportPage() {
+const RATE_STORAGE_KEY = 'rajcargo-pincode-rates';
+
+interface Rate {
+  id: string;
+  partnerCode: string;
+  state: string;
+  baseCharge: number;
+  weightCharge: number;
+}
+
+interface ReportRow extends Waybill {
+    freightCharge: number;
+}
+
+export default function SalesReportPage() {
   const { allWaybills, isLoaded } = useWaybills();
   const [dateRange, setDateRange] = useState<DateRange | undefined>(undefined);
+  const [rates, setRates] = useState<Rate[]>([]);
+  const [ratesLoaded, setRatesLoaded] = useState(false);
 
-  const filteredWaybills = useMemo(() => {
-    if (!dateRange?.from) {
-      return allWaybills;
+  useEffect(() => {
+    try {
+      const storedRates = localStorage.getItem(RATE_STORAGE_KEY);
+      if (storedRates) {
+        setRates(JSON.parse(storedRates));
+      }
+    } catch (error) {
+      console.error("Failed to load rates:", error);
+    } finally {
+      setRatesLoaded(true);
     }
-    const fromDate = dateRange.from;
-    // If only `from` is selected, `to` is the same day. If both, use `to`.
-    const toDate = dateRange.to || dateRange.from;
+  }, []);
 
-    return allWaybills.filter(w => {
-        const waybillDate = new Date(w.shippingDate);
-        // Add a day to `toDate` to make the range inclusive of the end date.
-        const toDateInclusive = new Date(toDate);
-        toDateInclusive.setDate(toDateInclusive.getDate() + 1);
+  const reportData = useMemo(() => {
+    if (!isLoaded || !ratesLoaded) return [];
 
-        return waybillDate >= fromDate && waybillDate < toDateInclusive;
+    let filteredWaybills = allWaybills;
+    if (dateRange?.from) {
+      const fromDate = dateRange.from;
+      const toDate = dateRange.to || dateRange.from;
+
+      filteredWaybills = allWaybills.filter(w => {
+          const waybillDate = new Date(w.shippingDate);
+          const toDateInclusive = new Date(toDate);
+          toDateInclusive.setDate(toDateInclusive.getDate() + 1);
+          return waybillDate >= fromDate && waybillDate < toDateInclusive;
+      });
+    }
+
+    const ratesMap = new Map(rates.map(r => `${r.partnerCode}-${r.state.toLowerCase()}`));
+
+    return filteredWaybills.map(wb => {
+        const rate = rates.find(r => r.partnerCode === wb.partnerCode && r.state.toLowerCase() === wb.receiverState.toLowerCase());
+        let freightCharge = 0;
+        if (rate) {
+            freightCharge = rate.baseCharge + (rate.weightCharge * wb.packageWeight);
+        }
+        return { ...wb, freightCharge };
     });
-  }, [allWaybills, dateRange]);
+  }, [allWaybills, dateRange, rates, isLoaded, ratesLoaded]);
 
 
-  if (!isLoaded) {
+  if (!isLoaded || !ratesLoaded) {
     return (
       <div className="flex justify-center items-center h-64">
         <Loader2 className="h-16 w-16 animate-spin text-primary" />
@@ -48,43 +87,43 @@ export default function ValueReportPage() {
     );
   }
 
-  const totalValue = filteredWaybills.reduce((total, waybill) => total + waybill.shipmentValue, 0);
+  const totalCharge = reportData.reduce((total, row) => total + row.freightCharge, 0);
 
   const handleDownloadExcel = () => {
-    if (filteredWaybills.length === 0) {
+    if (reportData.length === 0) {
       return;
     }
 
-    const dataToExport = filteredWaybills.map(wb => ({
-        'Waybill #': wb.waybillNumber,
-        'Partner': wb.partnerCode || 'N/A',
-        'Date': format(new Date(wb.shippingDate), 'PP'),
-        'Receiver Name': wb.receiverName,
-        'Receiver Pincode': wb.receiverPincode,
-        'Declared Value (₹)': wb.shipmentValue,
+    const dataToExport = reportData.map(row => ({
+        'Waybill #': row.waybillNumber,
+        'Partner': row.partnerCode || 'N/A',
+        'Date': format(new Date(row.shippingDate), 'PP'),
+        'Receiver Name': row.receiverName,
+        'Receiver State': row.receiverState,
+        'Weight (Kg)': row.packageWeight,
+        'Freight Charge (₹)': row.freightCharge,
     }));
 
     const worksheet = XLSX.utils.json_to_sheet(dataToExport);
     const workbook = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(workbook, worksheet, "Value Report");
+    XLSX.utils.book_append_sheet(workbook, worksheet, "Sales Report");
 
-    // Add a totals row
     XLSX.utils.sheet_add_aoa(worksheet, [
-        ["", "", "", "", "Total Value", totalValue]
+        ["", "", "", "", "", "Total Charge", totalCharge]
     ], { origin: -1 });
 
     const excelBuffer = XLSX.write(workbook, { bookType: 'xlsx', type: 'array' });
     const data = new Blob([excelBuffer], {type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;charset=UTF-8'});
     
     const dateString = dateRange?.from ? `${format(dateRange.from, 'yyyy-MM-dd')}_to_${format(dateRange.to || dateRange.from, 'yyyy-MM-dd')}` : 'all_time';
-    saveAs(data, `value_report_${dateString}.xlsx`);
+    saveAs(data, `sales_report_${dateString}.xlsx`);
   };
 
   return (
     <div className="space-y-8">
       <div>
-        <h1 className="text-3xl font-bold">Shipment Value Report</h1>
-        <p className="text-muted-foreground">A detailed breakdown of declared values for all waybills across the system.</p>
+        <h1 className="text-3xl font-bold">Sales Report</h1>
+        <p className="text-muted-foreground">A detailed breakdown of freight charges for all waybills.</p>
       </div>
       
       <Card>
@@ -93,7 +132,7 @@ export default function ValueReportPage() {
             <div>
               <CardTitle>All Shipments</CardTitle>
               <CardDescription>
-                Showing {filteredWaybills.length} of {allWaybills.length} total waybill(s).
+                Showing {reportData.length} of {allWaybills.length} total waybill(s).
               </CardDescription>
             </div>
             <div className="flex items-center gap-2">
@@ -131,7 +170,7 @@ export default function ValueReportPage() {
                   </PopoverContent>
               </Popover>
               {dateRange && <Button variant="ghost" size="sm" onClick={() => setDateRange(undefined)}>Clear</Button>}
-               <Button onClick={handleDownloadExcel} variant="outline" size="sm" disabled={filteredWaybills.length === 0}>
+               <Button onClick={handleDownloadExcel} variant="outline" size="sm" disabled={reportData.length === 0}>
                     <FileDown className="mr-2 h-4 w-4" /> Export Excel
                 </Button>
             </div>
@@ -144,26 +183,28 @@ export default function ValueReportPage() {
                 <TableHead>Waybill #</TableHead>
                 <TableHead>Partner</TableHead>
                 <TableHead>Date</TableHead>
-                <TableHead>Receiver Name</TableHead>
-                <TableHead>Receiver Pincode</TableHead>
-                <TableHead className="text-right">Declared Value (₹)</TableHead>
+                <TableHead>Receiver</TableHead>
+                <TableHead>Receiver State</TableHead>
+                <TableHead className="text-right">Weight (kg)</TableHead>
+                <TableHead className="text-right">Freight Charge (₹)</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
-              {filteredWaybills.length > 0 ? (
-                filteredWaybills.map((waybill) => (
-                  <TableRow key={waybill.id}>
-                    <TableCell className="font-medium">{waybill.waybillNumber}</TableCell>
-                    <TableCell><Badge variant="outline">{waybill.partnerCode || 'N/A'}</Badge></TableCell>
-                    <TableCell>{format(new Date(waybill.shippingDate), 'PP')}</TableCell>
-                    <TableCell>{waybill.receiverName}</TableCell>
-                    <TableCell>{waybill.receiverPincode}</TableCell>
-                    <TableCell className="text-right font-mono">{waybill.shipmentValue.toLocaleString('en-IN')}</TableCell>
+              {reportData.length > 0 ? (
+                reportData.map((row) => (
+                  <TableRow key={row.id}>
+                    <TableCell className="font-medium">{row.waybillNumber}</TableCell>
+                    <TableCell><Badge variant="outline">{row.partnerCode || 'N/A'}</Badge></TableCell>
+                    <TableCell>{format(new Date(row.shippingDate), 'PP')}</TableCell>
+                    <TableCell>{row.receiverName}</TableCell>
+                    <TableCell>{row.receiverState}</TableCell>
+                    <TableCell className="text-right">{row.packageWeight.toFixed(2)}</TableCell>
+                    <TableCell className="text-right font-mono">{row.freightCharge.toLocaleString('en-IN')}</TableCell>
                   </TableRow>
                 ))
               ) : (
                 <TableRow>
-                  <TableCell colSpan={6} className="h-24 text-center">
+                  <TableCell colSpan={7} className="h-24 text-center">
                     No shipment data available for the selected date range.
                   </TableCell>
                 </TableRow>
@@ -171,10 +212,10 @@ export default function ValueReportPage() {
             </TableBody>
             <TableFooter>
                 <TableRow className="font-bold text-lg">
-                    <TableCell colSpan={5}>{dateRange?.from ? 'Total Declared Value for selected range' : 'Total Declared Value'}</TableCell>
+                    <TableCell colSpan={6}>{dateRange?.from ? 'Total Freight Charge for selected range' : 'Total Freight Charge'}</TableCell>
                     <TableCell className="text-right font-mono flex items-center justify-end gap-2">
                         <IndianRupee className="h-5 w-5" />
-                        {totalValue.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                        {totalCharge.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                     </TableCell>
                 </TableRow>
             </TableFooter>

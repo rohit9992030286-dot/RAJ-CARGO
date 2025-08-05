@@ -87,9 +87,9 @@ function AdminLayout({
             </Link>
         </li>
         <li>
-            <Link href="/admin/value-report" onClick={onLinkClick} className="flex items-center gap-3 p-3 rounded-lg hover:bg-primary/10 hover:text-primary transition-colors">
+            <Link href="/admin/sales-report" onClick={onLinkClick} className="flex items-center gap-3 p-3 rounded-lg hover:bg-primary/10 hover:text-primary transition-colors">
                 <IndianRupee className="h-5 w-5" />
-                <span>Value Report</span>
+                <span>Sales Report</span>
             </Link>
         </li>
         <li>
