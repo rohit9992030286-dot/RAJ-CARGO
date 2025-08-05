@@ -26,7 +26,7 @@ import {
 
 
 export default function DeliverySheetPage() {
-    const { manifests, isLoaded: manifestsLoaded } = useManifests();
+    const { manifests, allManifests, isLoaded: manifestsLoaded } = useManifests();
     const { allWaybills, getWaybillById, updateWaybill, isLoaded: waybillsLoaded } = useWaybills();
     const { toast } = useToast();
     const [searchTerm, setSearchTerm] = useState('');
@@ -34,9 +34,21 @@ export default function DeliverySheetPage() {
     const outForDeliveryWaybills = useMemo(() => {
         if (!manifestsLoaded || !waybillsLoaded) return [];
 
-        let waybills = manifests.flatMap(m => m.waybillIds)
-            .map(id => getWaybillById(id))
-            .filter((wb): wb is Waybill => !!wb && wb.status === 'Out for Delivery');
+        const outForDeliveryIds = new Set<string>();
+
+        // We should look through all manifests assigned to delivery people, not just the current user.
+        const deliveryManifests = allManifests.filter(m => m.origin === 'hub');
+
+        deliveryManifests.forEach(m => {
+            m.waybillIds.forEach(id => {
+                const wb = getWaybillById(id);
+                if (wb && wb.status === 'Out for Delivery') {
+                    outForDeliveryIds.add(id);
+                }
+            });
+        });
+        
+        let waybills = Array.from(outForDeliveryIds).map(id => getWaybillById(id)).filter((wb): wb is Waybill => !!wb);
 
         if (searchTerm) {
             waybills = waybills.filter(wb =>
@@ -47,7 +59,8 @@ export default function DeliverySheetPage() {
         }
 
         return waybills;
-    }, [manifests, allWaybills, getWaybillById, manifestsLoaded, waybillsLoaded, searchTerm]);
+    }, [allManifests, getWaybillById, manifestsLoaded, waybillsLoaded, searchTerm]);
+
 
     const handleUpdateStatus = (waybill: Waybill, newStatus: 'Delivered' | 'Returned') => {
         updateWaybill({
@@ -62,16 +75,20 @@ export default function DeliverySheetPage() {
     };
 
     const waybillsByManifest = useMemo(() => {
-        return outForDeliveryWaybills.reduce((acc, wb) => {
-            const manifest = manifests.find(m => m.waybillIds.includes(wb.id));
-            if (manifest) {
-                if (!acc[manifest.id]) {
-                    acc[manifest.id] = { manifestInfo: manifest, waybills: [] };
+        // use 'manifests' here which is already filtered for the current delivery user
+        return manifests
+            .map(manifest => {
+                const wbs = manifest.waybillIds
+                    .map(id => outForDeliveryWaybills.find(wb => wb.id === id))
+                    .filter((wb): wb is Waybill => !!wb);
+                
+                return {
+                    manifestInfo: manifest,
+                    waybills: wbs
                 }
-                acc[manifest.id].waybills.push(wb);
-            }
-            return acc;
-        }, {} as Record<string, { manifestInfo: typeof manifests[0]; waybills: Waybill[] }>);
+            })
+            .filter(item => item.waybills.length > 0);
+
     }, [outForDeliveryWaybills, manifests]);
 
 
@@ -103,8 +120,8 @@ export default function DeliverySheetPage() {
                 </div>
             </div>
 
-            {Object.keys(waybillsByManifest).length > 0 ? (
-                Object.values(waybillsByManifest).map(({ manifestInfo, waybills }) => (
+            {waybillsByManifest.length > 0 ? (
+                waybillsByManifest.map(({ manifestInfo, waybills }) => (
                     <Card key={manifestInfo.id}>
                         <CardHeader>
                             <CardTitle>Manifest: {manifestInfo.manifestNo}</CardTitle>
