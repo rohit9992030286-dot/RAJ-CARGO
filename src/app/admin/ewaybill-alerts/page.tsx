@@ -33,9 +33,9 @@ export default function EWayBillAlertsPage() {
                     isExpired: isBefore(expiryDate, now),
                 };
             })
-            .filter(wb => wb.isExpired || wb.hoursLeft <= 48); // Expired or expiring within 48 hours
+            .filter(wb => wb.isExpired || wb.hoursLeft <= 48); 
 
-        return alerts.sort((a,b) => a.hoursLeft - b.hoursLeft);
+        return relevantWaybills.sort((a,b) => a.hoursLeft - b.hoursLeft);
 
     }, [allWaybills, isLoaded]);
     
