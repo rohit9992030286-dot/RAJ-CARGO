@@ -35,6 +35,11 @@ export function useManifests() {
     if (userRoles.includes('hub')) {
         return manifests.filter(manifest => manifest.status === 'Dispatched' && manifest.origin === 'booking');
     }
+
+    // Delivery users see manifests assigned to them
+    if (userRoles.includes('delivery')) {
+        return manifests.filter(manifest => manifest.origin === 'hub' && manifest.deliveryPartnerCode === userPartnerCode);
+    }
     
     return [];
 

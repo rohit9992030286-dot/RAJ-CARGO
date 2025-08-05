@@ -15,12 +15,14 @@ import { Loader2, Package, Send, Truck, User, Phone, Briefcase, Building, Layers
 import { format } from 'date-fns';
 import { useToast } from '@/hooks/use-toast';
 import { useRouter } from 'next/navigation';
-import { useAuth } from '@/hooks/useAuth';
+import { useAuth, User as AuthUser } from '@/hooks/useAuth';
 import { Badge } from '@/components/ui/badge';
+import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@/components/ui/select';
 
 export default function HubDispatchPage() {
     const { allManifests, isLoaded: manifestsLoaded, addManifest } = useManifests();
     const { allWaybills, isLoaded: waybillsLoaded, updateWaybill } = useWaybills();
+    const { users } = useAuth();
     const [selectedWaybillIds, setSelectedWaybillIds] = useState<string[]>([]);
     const { toast } = useToast();
     const router = useRouter();
@@ -28,7 +30,11 @@ export default function HubDispatchPage() {
     const [vehicleNo, setVehicleNo] = useState('');
     const [driverName, setDriverName] = useState('');
     const [driverContact, setDriverContact] = useState('');
+    const [deliveryPartnerCode, setDeliveryPartnerCode] = useState<string | null>(null);
 
+    const deliveryPartners = useMemo(() => {
+        return users.filter(u => u.roles.includes('delivery'));
+    }, [users]);
 
     const verifiedWaybillsForDispatch = useMemo(() => {
         if (!manifestsLoaded || !waybillsLoaded) return [];
@@ -81,10 +87,12 @@ export default function HubDispatchPage() {
             toast({ title: 'No Waybills Selected', description: 'Please select at least one waybill to dispatch.', variant: 'destructive'});
             return;
         }
-        if (!vehicleNo.trim() || !driverName.trim() || !driverContact.trim()) {
-            toast({ title: 'All Fields Required', description: 'Please fill in all vehicle and driver details.', variant: 'destructive'});
+        if (!vehicleNo.trim() || !driverName.trim() || !driverContact.trim() || !deliveryPartnerCode) {
+            toast({ title: 'All Fields Required', description: 'Please fill in all vehicle, driver, and delivery partner details.', variant: 'destructive'});
             return;
         }
+
+        const partner = deliveryPartners.find(p => p.partnerCode === deliveryPartnerCode);
 
         const newManifestId = addManifest({
             id: crypto.randomUUID(),
@@ -94,6 +102,8 @@ export default function HubDispatchPage() {
             vehicleNo: vehicleNo,
             driverName: driverName,
             driverContact: driverContact,
+            deliveryPartnerCode: deliveryPartnerCode,
+            deliveryPartnerName: partner?.username,
             origin: 'hub',
         });
 
@@ -114,6 +124,7 @@ export default function HubDispatchPage() {
         setVehicleNo('');
         setDriverName('');
         setDriverContact('');
+        setDeliveryPartnerCode(null);
     };
 
     const handleSelectCity = (city: string, checked: boolean) => {
@@ -253,6 +264,21 @@ export default function HubDispatchPage() {
                                     <Phone className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
                                     <Input id="driver-contact" placeholder="Driver's phone number" value={driverContact} onChange={e => setDriverContact(e.target.value)} className="pl-10"/>
                                 </div>
+                            </div>
+                            <div>
+                                <Label htmlFor="delivery-partner">Assign to Delivery Partner</Label>
+                                <Select value={deliveryPartnerCode || ''} onValueChange={setDeliveryPartnerCode}>
+                                    <SelectTrigger id="delivery-partner" className="mt-1">
+                                        <SelectValue placeholder="Select a delivery partner" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        {deliveryPartners.map(partner => (
+                                            <SelectItem key={partner.username} value={partner.partnerCode!}>
+                                                {partner.username} ({partner.partnerCode})
+                                            </SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
                             </div>
                         </CardContent>
                         <CardFooter>
