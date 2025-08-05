@@ -32,9 +32,9 @@ const adminLinks = [
         iconColor: 'text-rose-600 dark:text-rose-300'
     },
      {
-        href: '/admin/sales',
-        title: 'Sales Report',
-        description: 'View financial reports for all partners.',
+        href: '/admin/value-report',
+        title: 'Value Report',
+        description: 'View total declared value of all shipments.',
         icon: IndianRupee,
         iconBgColor: 'bg-green-100 dark:bg-green-900/50',
         iconColor: 'text-green-600 dark:text-green-300'

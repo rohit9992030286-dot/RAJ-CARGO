@@ -17,7 +17,7 @@ import * as XLSX from 'xlsx';
 import { saveAs } from 'file-saver';
 import { DateRange } from 'react-day-picker';
 
-export default function SalesReportPage() {
+export default function ValueReportPage() {
   const { allWaybills, isLoaded } = useWaybills();
   const [dateRange, setDateRange] = useState<DateRange | undefined>(undefined);
 
@@ -48,7 +48,7 @@ export default function SalesReportPage() {
     );
   }
 
-  const totalSales = filteredWaybills.reduce((total, waybill) => total + waybill.shipmentValue, 0);
+  const totalValue = filteredWaybills.reduce((total, waybill) => total + waybill.shipmentValue, 0);
 
   const handleDownloadExcel = () => {
     if (filteredWaybills.length === 0) {
@@ -61,37 +61,37 @@ export default function SalesReportPage() {
         'Date': format(new Date(wb.shippingDate), 'PP'),
         'Receiver Name': wb.receiverName,
         'Receiver Pincode': wb.receiverPincode,
-        'Charge (₹)': wb.shipmentValue,
+        'Declared Value (₹)': wb.shipmentValue,
     }));
 
     const worksheet = XLSX.utils.json_to_sheet(dataToExport);
     const workbook = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(workbook, worksheet, "Sales Report");
+    XLSX.utils.book_append_sheet(workbook, worksheet, "Value Report");
 
     // Add a totals row
     XLSX.utils.sheet_add_aoa(worksheet, [
-        ["", "", "", "", "Total Sales", totalSales]
+        ["", "", "", "", "Total Value", totalValue]
     ], { origin: -1 });
 
     const excelBuffer = XLSX.write(workbook, { bookType: 'xlsx', type: 'array' });
     const data = new Blob([excelBuffer], {type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;charset=UTF-8'});
     
     const dateString = dateRange?.from ? `${format(dateRange.from, 'yyyy-MM-dd')}_to_${format(dateRange.to || dateRange.from, 'yyyy-MM-dd')}` : 'all_time';
-    saveAs(data, `sales_report_${dateString}.xlsx`);
+    saveAs(data, `value_report_${dateString}.xlsx`);
   };
 
   return (
     <div className="space-y-8">
       <div>
-        <h1 className="text-3xl font-bold">Global Sales Report</h1>
-        <p className="text-muted-foreground">A detailed breakdown of charges for all waybills across the system.</p>
+        <h1 className="text-3xl font-bold">Shipment Value Report</h1>
+        <p className="text-muted-foreground">A detailed breakdown of declared values for all waybills across the system.</p>
       </div>
       
       <Card>
         <CardHeader>
           <div className="flex justify-between items-center gap-4 flex-wrap">
             <div>
-              <CardTitle>All Transactions</CardTitle>
+              <CardTitle>All Shipments</CardTitle>
               <CardDescription>
                 Showing {filteredWaybills.length} of {allWaybills.length} total waybill(s).
               </CardDescription>
@@ -146,7 +146,7 @@ export default function SalesReportPage() {
                 <TableHead>Date</TableHead>
                 <TableHead>Receiver Name</TableHead>
                 <TableHead>Receiver Pincode</TableHead>
-                <TableHead className="text-right">Charge (₹)</TableHead>
+                <TableHead className="text-right">Declared Value (₹)</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -164,17 +164,17 @@ export default function SalesReportPage() {
               ) : (
                 <TableRow>
                   <TableCell colSpan={6} className="h-24 text-center">
-                    No sales data available for the selected date range.
+                    No shipment data available for the selected date range.
                   </TableCell>
                 </TableRow>
               )}
             </TableBody>
             <TableFooter>
                 <TableRow className="font-bold text-lg">
-                    <TableCell colSpan={5}>{dateRange?.from ? 'Total for selected range' : 'Total Sales'}</TableCell>
+                    <TableCell colSpan={5}>{dateRange?.from ? 'Total Declared Value for selected range' : 'Total Declared Value'}</TableCell>
                     <TableCell className="text-right font-mono flex items-center justify-end gap-2">
                         <IndianRupee className="h-5 w-5" />
-                        {totalSales.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                        {totalValue.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                     </TableCell>
                 </TableRow>
             </TableFooter>
