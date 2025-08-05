@@ -328,7 +328,7 @@ export function WaybillForm({ initialData, onSave, onCancel }: WaybillFormProps)
                                 <SelectTrigger className="pl-10">
                                     <SelectValue placeholder={!isInventoryLoaded ? "Loading..." : "Select from inventory"} />
                                 </SelectTrigger>
-                                <IconWrapper><Hash /></IconWrapper>
+                                <IconWrapper>{isInventoryLoaded ? <Hash /> : <Loader2 className="animate-spin" />}</IconWrapper>
                                 </div>
                             </FormControl>
                             <SelectContent>
