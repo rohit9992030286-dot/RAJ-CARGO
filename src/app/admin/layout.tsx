@@ -99,6 +99,12 @@ function AdminLayout({
           </Link>
         </li>
         <li>
+          <Link href="/admin/ewaybill-alerts" onClick={onLinkClick} className="flex items-center gap-3 p-3 rounded-lg hover:bg-primary/10 hover:text-primary transition-colors">
+            <AlertTriangle className="h-5 w-5" />
+            <span>E-Way Bill Alerts</span>
+          </Link>
+        </li>
+        <li>
           <Link href="/admin/account" onClick={onLinkClick} className="flex items-center gap-3 p-3 rounded-lg hover:bg-primary/10 hover:text-primary transition-colors">
             <KeyRound className="h-5 w-5" />
             <span>Account Settings</span>

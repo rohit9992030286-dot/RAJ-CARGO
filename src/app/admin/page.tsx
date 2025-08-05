@@ -2,7 +2,7 @@
 'use client';
 import Link from 'next/link';
 import { Card, CardHeader, CardTitle, CardContent, CardDescription, CardFooter } from '@/components/ui/card';
-import { Users, ArrowRight, Activity, IndianRupee, Tags, List, KeyRound } from 'lucide-react';
+import { Users, ArrowRight, Activity, IndianRupee, Tags, List, KeyRound, AlertTriangle } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 
@@ -46,6 +46,14 @@ const adminLinks = [
         icon: Activity,
         iconBgColor: 'bg-indigo-100 dark:bg-indigo-900/50',
         iconColor: 'text-indigo-600 dark:text-indigo-300'
+    },
+    {
+        href: '/admin/ewaybill-alerts',
+        title: 'E-Way Bill Alerts',
+        description: 'Monitor shipments with expiring E-Way Bills.',
+        icon: AlertTriangle,
+        iconBgColor: 'bg-orange-100 dark:bg-orange-900/50',
+        iconColor: 'text-orange-600 dark:text-orange-300'
     },
      {
         href: '/admin/account',
