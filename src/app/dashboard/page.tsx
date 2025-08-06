@@ -3,9 +3,9 @@
 
 import Link from 'next/link';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
-import { ArrowRight, BookCopy, Cpu, Shield, Loader2, LogOut, CheckSquare, Truck } from 'lucide-react';
+import { ArrowRight, BookCopy, Cpu, Shield, Loader2, LogOut, CheckSquare, Truck, DollarSign } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { useAuth } from '@/hooks/useAuth';
+import { useAuth } from '@/hooks/useAuth.tsx';
 import { useRouter } from 'next/navigation';
 import { useEffect } from 'react';
 import { Logo } from '@/components/Logo';
@@ -37,6 +37,7 @@ export default function DashboardPage() {
   const hasBookingRole = user.roles?.includes('booking') || isAdmin;
   const hasHubRole = user.roles?.includes('hub') || isAdmin;
   const hasDeliveryRole = user.roles?.includes('delivery') || isAdmin;
+  const hasAccountRole = user.roles?.includes('account') || isAdmin;
   
   return (
     <div className="flex flex-col min-h-screen bg-gray-50 dark:bg-black">
@@ -121,6 +122,29 @@ export default function DashboardPage() {
                             <Link href="/delivery" className="w-full">
                                 <Button className="w-full">
                                     Go to Delivery <ArrowRight className="ml-2 h-4 w-4" />
+                                </Button>
+                            </Link>
+                        </CardFooter>
+                    </Card>
+                )}
+                 {hasAccountRole && (
+                    <Card className="hover:shadow-lg transition-shadow">
+                        <CardHeader>
+                            <div className="flex items-center gap-4">
+                                <DollarSign className="h-10 w-10 text-primary" />
+                                <div>
+                                    <CardTitle className="text-2xl">Accounts System</CardTitle>
+                                    <CardDescription>Manage salaries and partner payments.</CardDescription>
+                                </div>
+                            </div>
+                        </CardHeader>
+                        <CardContent>
+                            <p>Oversee employee salaries, and manage payments for both your booking and delivery partners based on their activity.</p>
+                        </CardContent>
+                        <CardFooter>
+                            <Link href="/account" className="w-full">
+                                <Button className="w-full">
+                                    Go to Accounts <ArrowRight className="ml-2 h-4 w-4" />
                                 </Button>
                             </Link>
                         </CardFooter>
