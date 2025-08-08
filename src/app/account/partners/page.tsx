@@ -115,6 +115,7 @@ export default function PartnerPaymentsPage() {
     const toDate = endOfMonth(month);
 
     return allWaybills.filter(w => {
+        if (!w.shippingDate) return false;
         const waybillDate = new Date(w.shippingDate);
         return waybillDate >= fromDate && waybillDate <= toDate;
     });
@@ -132,7 +133,7 @@ export default function PartnerPaymentsPage() {
       const partner = bookingPartners.find(p => p.partnerCode === wb.partnerCode);
       if (!partner) return;
 
-      const rate = rates.find(r => r.partnerCode === wb.partnerCode && r.state.toLowerCase() === wb.receiverState.toLowerCase());
+      const rate = rates.find(r => r.partnerCode === wb.partnerCode && wb.receiverState && r.state.toLowerCase() === wb.receiverState.toLowerCase());
       if (!rate) return;
       
       const freightCharge = rate.baseCharge + (rate.weightCharge * wb.packageWeight);
@@ -170,7 +171,7 @@ export default function PartnerPaymentsPage() {
             if (!partner) return;
 
             // Find rate based on booking partner of the waybill
-            const rate = rates.find(r => r.partnerCode === wb.partnerCode && r.state.toLowerCase() === wb.receiverState.toLowerCase());
+            const rate = rates.find(r => r.partnerCode === wb.partnerCode && wb.receiverState && r.state.toLowerCase() === wb.receiverState.toLowerCase());
             if (!rate) return;
 
             const freightCharge = rate.baseCharge + (rate.weightCharge * wb.packageWeight);
@@ -294,4 +295,3 @@ export default function PartnerPaymentsPage() {
     </div>
   );
 }
-
