@@ -11,10 +11,14 @@ import { Input } from '@/components/ui/input';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { useToast } from '@/hooks/use-toast';
-import { Loader2, PlusCircle, Trash2, Tags, IndianRupee, Globe, Pencil, Weight } from 'lucide-react';
+import { Loader2, PlusCircle, Trash2, Tags, IndianRupee, Globe, Pencil, Weight, Upload, Download } from 'lucide-react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useAuth } from '@/hooks/useAuth';
 import { Badge } from '@/components/ui/badge';
+import { useWaybills } from '@/hooks/useWaybills';
+import * as XLSX from 'xlsx';
+import { saveAs } from 'file-saver';
+import { useRef } from 'react';
 
 const STORAGE_KEY = 'rajcargo-pincode-rates';
 
@@ -34,11 +38,19 @@ export default function RateManagementPage() {
   const [isLoading, setIsLoading] = useState(true);
   const { toast } = useToast();
   const { users } = useAuth();
+  const { allWaybills, isLoaded: waybillsLoaded } = useWaybills();
   const [editingRateId, setEditingRateId] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const bookingPartners = useMemo(() => {
     return [...new Set(users.filter(u => u.roles.includes('booking') && u.partnerCode).map(u => u.partnerCode!))];
   }, [users]);
+  
+  const uniqueStates = useMemo(() => {
+    if (!waybillsLoaded) return [];
+    const states = allWaybills.map(wb => wb.receiverState).filter(Boolean);
+    return [...new Set(states)].sort();
+  }, [allWaybills, waybillsLoaded]);
 
 
   const form = useForm<RateFormData>({
@@ -107,8 +119,55 @@ export default function RateManagementPage() {
     saveRates(newRates);
     toast({ title: 'Rate Deleted', description: `The rate has been removed.` });
   };
+
+  const handleExport = () => {
+    const dataToExport = rates.map(r => ({
+        partnerCode: r.partnerCode,
+        state: r.state,
+        baseCharge: r.baseCharge,
+        weightCharge: r.weightCharge,
+    }));
+    const ws = XLSX.utils.json_to_sheet(dataToExport);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, "Rates");
+    XLSX.writeFile(wb, "rajcargo_rates.xlsx");
+    toast({ title: "Rates Exported" });
+  };
+
+  const handleImport = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = (e) => {
+        try {
+            const data = e.target?.result;
+            const workbook = XLSX.read(data, { type: 'array' });
+            const sheetName = workbook.SheetNames[0];
+            const worksheet = workbook.Sheets[sheetName];
+            const json: any[] = XLSX.utils.sheet_to_json(worksheet);
+
+            const newRates: Rate[] = json.map((row, index) => {
+                const parsed = rateSchema.safeParse(row);
+                if (!parsed.success) {
+                    throw new Error(`Invalid data in row ${index + 2}: ${parsed.error.flatten().fieldErrors}`);
+                }
+                return { ...parsed.data, id: crypto.randomUUID() };
+            });
+            
+            saveRates(newRates);
+            toast({ title: "Import Successful", description: `${newRates.length} rates have been imported and replaced existing data.` });
+
+        } catch (error: any) {
+            toast({ title: "Import Failed", description: error.message, variant: "destructive" });
+        } finally {
+            if (fileInputRef.current) fileInputRef.current.value = "";
+        }
+    };
+    reader.readAsArrayBuffer(file);
+  };
   
-  if (isLoading) {
+  if (isLoading || !waybillsLoaded) {
     return (
       <div className="flex justify-center items-center h-64">
         <Loader2 className="h-16 w-16 animate-spin text-primary" />
@@ -149,16 +208,20 @@ export default function RateManagementPage() {
                   </FormItem>
                 )}
               />
-              <FormField
+               <FormField
                 control={form.control}
                 name="state"
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>State</FormLabel>
-                     <div className="relative">
-                        <FormControl><Input placeholder="e.g., Maharashtra" {...field} className="pl-10" /></FormControl>
-                        <Globe className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
-                    </div>
+                     <Select onValueChange={field.onChange} value={field.value}>
+                       <FormControl>
+                        <SelectTrigger><SelectValue placeholder="Select State" /></SelectTrigger>
+                       </FormControl>
+                       <SelectContent>
+                         {uniqueStates.map(state => <SelectItem key={state} value={state}>{state}</SelectItem>)}
+                       </SelectContent>
+                    </Select>
                     <FormMessage />
                   </FormItem>
                 )}
@@ -210,8 +273,21 @@ export default function RateManagementPage() {
       
       <Card>
         <CardHeader>
-          <CardTitle>Current Rates</CardTitle>
-          <CardDescription>List of all defined shipping rates.</CardDescription>
+          <div className="flex justify-between items-center">
+             <div>
+                <CardTitle>Current Rates</CardTitle>
+                <CardDescription>List of all defined shipping rates.</CardDescription>
+             </div>
+             <div className="flex gap-2">
+                <Button variant="outline" size="sm" onClick={() => fileInputRef.current?.click()}>
+                    <Upload className="mr-2 h-4 w-4" /> Import Rates
+                </Button>
+                <input type="file" ref={fileInputRef} onChange={handleImport} className="hidden" accept=".xlsx, .xls" />
+                <Button variant="outline" size="sm" onClick={handleExport} disabled={rates.length === 0}>
+                    <Download className="mr-2 h-4 w-4" /> Export Rates
+                </Button>
+             </div>
+          </div>
         </CardHeader>
         <CardContent>
           <Table>
