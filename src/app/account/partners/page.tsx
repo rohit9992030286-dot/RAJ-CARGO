@@ -8,12 +8,11 @@ import { useManifests } from '@/hooks/useManifests';
 import { Card, CardHeader, CardTitle, CardContent, CardDescription } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow, TableFooter } from '@/components/ui/table';
 import { Loader2, IndianRupee, Handshake, Users, Calendar as CalendarIcon, FileDown, BookCopy, Truck } from 'lucide-react';
-import { DateRange } from 'react-day-picker';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Button } from '@/components/ui/button';
 import { Calendar } from '@/components/ui/calendar';
 import { cn } from '@/lib/utils';
-import { format } from 'date-fns';
+import { format, startOfMonth, endOfMonth } from 'date-fns';
 import { Badge } from '@/components/ui/badge';
 import { saveAs } from 'file-saver';
 import * as XLSX from 'xlsx';
@@ -96,7 +95,7 @@ export default function PartnerPaymentsPage() {
   const { allManifests, isLoaded: manifestsLoaded } = useManifests();
   const [rates, setRates] = useState<Rate[]>([]);
   const [ratesLoaded, setRatesLoaded] = useState(false);
-  const [dateRange, setDateRange] = useState<DateRange | undefined>();
+  const [month, setMonth] = useState<Date | undefined>(new Date());
 
   const bookingPartners = useMemo(() => users.filter(u => u.roles.includes('booking') && u.partnerCode), [users]);
   const deliveryPartners = useMemo(() => users.filter(u => u.roles.includes('delivery') && u.partnerCode), [users]);
@@ -110,19 +109,16 @@ export default function PartnerPaymentsPage() {
   }, []);
 
   const filteredWaybills = useMemo(() => {
-      let filtered = allWaybills;
-      if (dateRange?.from) {
-        const fromDate = dateRange.from;
-        const toDate = dateRange.to || dateRange.from;
-        filtered = filtered.filter(w => {
-            const waybillDate = new Date(w.shippingDate);
-            const toDateInclusive = new Date(toDate);
-            toDateInclusive.setDate(toDateInclusive.getDate() + 1);
-            return waybillDate >= fromDate && waybillDate < toDateInclusive;
-        });
-      }
-      return filtered;
-  }, [allWaybills, dateRange]);
+    if (!month) return allWaybills;
+
+    const fromDate = startOfMonth(month);
+    const toDate = endOfMonth(month);
+
+    return allWaybills.filter(w => {
+        const waybillDate = new Date(w.shippingDate);
+        return waybillDate >= fromDate && waybillDate <= toDate;
+    });
+  }, [allWaybills, month]);
 
 
   const bookingPaymentData = useMemo(() => {
@@ -209,7 +205,7 @@ export default function PartnerPaymentsPage() {
     const ws = XLSX.utils.json_to_sheet(dataToExport);
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, `${type} Partner Payments`);
-    XLSX.writeFile(wb, `${type}_partner_payments.xlsx`);
+    XLSX.writeFile(wb, `${type}_partner_payments_${format(month || new Date(), 'MMM-yyyy')}.xlsx`);
   }
 
 
@@ -228,8 +224,8 @@ export default function PartnerPaymentsPage() {
         <CardHeader>
            <div className="flex justify-between items-center gap-4 flex-wrap">
                 <div>
-                  <CardTitle>Filter by Date</CardTitle>
-                  <CardDescription>Select a date range to filter payments.</CardDescription>
+                  <CardTitle>Filter by Month</CardTitle>
+                  <CardDescription>Select a month to filter payments.</CardDescription>
                 </div>
                 <div className="flex items-center gap-2">
                    <Popover>
@@ -237,23 +233,25 @@ export default function PartnerPaymentsPage() {
                           <Button
                           variant={"outline"}
                           className={cn(
-                              "w-[300px] justify-start text-left font-normal",
-                              !dateRange && "text-muted-foreground"
+                              "w-[240px] justify-start text-left font-normal",
+                              !month && "text-muted-foreground"
                           )}
                           >
                           <CalendarIcon className="mr-2 h-4 w-4" />
-                          {dateRange?.from ? (
-                            dateRange.to ? ( <> {format(dateRange.from, "LLL dd, y")} - {format(dateRange.to, "LLL dd, y")} </>) 
-                            : (format(dateRange.from, "LLL dd, y"))) 
-                            : (<span>Pick a date range</span>
-                          )}
+                          {month ? format(month, 'MMMM yyyy') : <span>Pick a month</span>}
                           </Button>
                       </PopoverTrigger>
                       <PopoverContent className="w-auto p-0" align="end">
-                          <Calendar mode="range" selected={dateRange} onSelect={setDateRange} initialFocus />
+                          <Calendar
+                            mode="single"
+                            selected={month}
+                            onSelect={setMonth}
+                            initialFocus
+                            defaultMonth={month || new Date()}
+                          />
                       </PopoverContent>
                   </Popover>
-                  {dateRange && <Button variant="ghost" size="sm" onClick={() => setDateRange(undefined)}>Clear</Button>}
+                  {month && <Button variant="ghost" size="sm" onClick={() => setMonth(undefined)}>Show All</Button>}
                 </div>
             </div>
         </CardHeader>
