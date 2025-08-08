@@ -52,7 +52,7 @@ export default function PartnerPaymentsPage() {
     let filteredWaybills = allWaybills;
     if (dateRange?.from) {
       const fromDate = dateRange.from;
-      const toDate = dateRange.to || dateRange.from;
+      const toDate = date.to || dateRange.from;
       filteredWaybills = filteredWaybills.filter(w => {
         const waybillDate = new Date(w.shippingDate);
         const toDateInclusive = new Date(toDate);
@@ -64,6 +64,11 @@ export default function PartnerPaymentsPage() {
     const paymentMap: Record<string, { count: number, totalPayment: number }> = {};
 
     filteredWaybills.forEach(wb => {
+      // Ensure receiverState exists before trying to access it
+      if (!wb.receiverState) {
+          return;
+      }
+
       const partner = partners.find(p => p.partnerCode === wb.partnerCode);
       if (!partner) return;
 
