@@ -8,7 +8,7 @@ import { Card, CardHeader, CardTitle, CardContent, CardDescription, CardFooter }
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Loader2, PlusCircle, Trash2, Users, IndianRupee, Pencil, User, Save } from 'lucide-react';
+import { Loader2, PlusCircle, Trash2, Users, IndianRupee, Pencil, User, Save, Briefcase } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 
@@ -17,6 +17,7 @@ const STORAGE_KEY = 'rajcargo-employees';
 const employeeSchema = z.object({
   id: z.string().optional(),
   name: z.string().min(2, 'Name is required.'),
+  post: z.string().min(2, 'Post is required.'),
   salary: z.coerce.number().min(0, 'Salary must be a positive number.'),
 });
 type Employee = z.infer<typeof employeeSchema>;
@@ -29,7 +30,7 @@ export default function EmployeeManagementPage() {
 
   const form = useForm<Employee>({
     resolver: zodResolver(employeeSchema),
-    defaultValues: { name: '', salary: 0 },
+    defaultValues: { name: '', post: '', salary: 0 },
   });
 
   useState(() => {
@@ -60,7 +61,7 @@ export default function EmployeeManagementPage() {
       toast({ title: 'Employee Added', description: `${data.name} has been added to the list.` });
     }
     saveEmployees(updatedEmployees);
-    form.reset({ name: '', salary: 0 });
+    form.reset({ name: '', post: '', salary: 0 });
     setEditingEmployeeId(null);
   };
 
@@ -83,7 +84,7 @@ export default function EmployeeManagementPage() {
     <div className="space-y-8">
       <div>
         <h1 className="text-3xl font-bold">Employee Management</h1>
-        <p className="text-muted-foreground">Manage employee details and their salaries.</p>
+        <p className="text-muted-foreground">Manage employee details, posts, and their salaries.</p>
       </div>
 
       <div className="grid md:grid-cols-3 gap-8 items-start">
@@ -110,6 +111,20 @@ export default function EmployeeManagementPage() {
                 />
                  <FormField
                   control={form.control}
+                  name="post"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Post / Designation</FormLabel>
+                       <div className="relative">
+                        <FormControl><Input placeholder="e.g., Manager" {...field} className="pl-10" /></FormControl>
+                        <Briefcase className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+                      </div>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                 <FormField
+                  control={form.control}
                   name="salary"
                   render={({ field }) => (
                     <FormItem>
@@ -129,7 +144,7 @@ export default function EmployeeManagementPage() {
                   {editingEmployeeId ? 'Save Changes' : 'Add Employee'}
                 </Button>
                 {editingEmployeeId && (
-                  <Button variant="ghost" onClick={() => { setEditingEmployeeId(null); form.reset({ name: '', salary: 0 }); }} className="w-full">
+                  <Button variant="ghost" onClick={() => { setEditingEmployeeId(null); form.reset({ name: '', post: '', salary: 0 }); }} className="w-full">
                     Cancel
                   </Button>
                 )}
@@ -148,6 +163,7 @@ export default function EmployeeManagementPage() {
               <TableHeader>
                 <TableRow>
                   <TableHead>Employee Name</TableHead>
+                  <TableHead>Post</TableHead>
                   <TableHead>Salary</TableHead>
                   <TableHead className="text-right">Actions</TableHead>
                 </TableRow>
@@ -156,6 +172,7 @@ export default function EmployeeManagementPage() {
                 {employees.length > 0 ? employees.map((emp) => (
                   <TableRow key={emp.id}>
                     <TableCell className="font-medium">{emp.name}</TableCell>
+                    <TableCell>{emp.post}</TableCell>
                     <TableCell>₹{emp.salary.toLocaleString('en-IN')}</TableCell>
                     <TableCell className="text-right">
                        <Button variant="ghost" size="icon" onClick={() => handleEdit(emp)}>
@@ -168,7 +185,7 @@ export default function EmployeeManagementPage() {
                   </TableRow>
                 )) : (
                   <TableRow>
-                    <TableCell colSpan={3} className="h-24 text-center">No employees found.</TableCell>
+                    <TableCell colSpan={4} className="h-24 text-center">No employees found.</TableCell>
                   </TableRow>
                 )}
               </TableBody>
