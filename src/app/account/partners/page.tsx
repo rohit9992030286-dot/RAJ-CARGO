@@ -4,9 +4,10 @@
 import { useState, useMemo, useEffect } from 'react';
 import { useWaybills } from '@/hooks/useWaybills';
 import { useAuth } from '@/hooks/useAuth';
+import { useManifests } from '@/hooks/useManifests';
 import { Card, CardHeader, CardTitle, CardContent, CardDescription } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow, TableFooter } from '@/components/ui/table';
-import { Loader2, IndianRupee, Handshake, Users, Calendar as CalendarIcon, FileDown } from 'lucide-react';
+import { Loader2, IndianRupee, Handshake, Users, Calendar as CalendarIcon, FileDown, BookCopy, Truck } from 'lucide-react';
 import { DateRange } from 'react-day-picker';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Button } from '@/components/ui/button';
@@ -16,6 +17,9 @@ import { format } from 'date-fns';
 import { Badge } from '@/components/ui/badge';
 import { saveAs } from 'file-saver';
 import * as XLSX from 'xlsx';
+import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
+import { Waybill } from '@/types/waybill';
+
 
 const RATE_STORAGE_KEY = 'rajcargo-pincode-rates';
 
@@ -27,16 +31,75 @@ interface Rate {
   weightCharge: number;
 }
 
+interface PaymentData {
+    partnerCode: string;
+    username: string;
+    count: number;
+    totalPayment: number;
+}
+
+const BOOKING_COMMISSION = 0.08; // 8%
+const DELIVERY_COMMISSION = 0.25; // 25%
+
+function PaymentTable({ data, onExport }: { data: PaymentData[], onExport: () => void }) {
+    const totalPayment = data.reduce((acc, p) => acc + p.totalPayment, 0);
+
+    return (
+        <div className="space-y-4">
+             <div className="flex justify-end">
+                <Button variant="outline" size="sm" onClick={onExport} disabled={data.length === 0}>
+                    <FileDown className="mr-2 h-4 w-4" /> Export
+                </Button>
+            </div>
+            <Table>
+                <TableHeader>
+                <TableRow>
+                    <TableHead>Partner Code</TableHead>
+                    <TableHead>Partner Name</TableHead>
+                    <TableHead>Waybill Count</TableHead>
+                    <TableHead className="text-right">Total Payment</TableHead>
+                </TableRow>
+                </TableHeader>
+                <TableBody>
+                {data.length > 0 ? data.map(p => (
+                    <TableRow key={p.partnerCode}>
+                    <TableCell><Badge variant="outline">{p.partnerCode}</Badge></TableCell>
+                    <TableCell className="font-medium">{p.username}</TableCell>
+                    <TableCell>{p.count}</TableCell>
+                    <TableCell className="text-right font-mono font-semibold">₹{p.totalPayment.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</TableCell>
+                    </TableRow>
+                )) : (
+                    <TableRow>
+                    <TableCell colSpan={4} className="h-24 text-center">
+                        No payment data for the selected period.
+                    </TableCell>
+                    </TableRow>
+                )}
+                </TableBody>
+                <TableFooter>
+                    <TableRow className="font-bold">
+                        <TableCell colSpan={3}>Total</TableCell>
+                        <TableCell className="text-right font-mono">
+                            ₹{totalPayment.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                        </TableCell>
+                    </TableRow>
+                </TableFooter>
+            </Table>
+        </div>
+    )
+}
+
+
 export default function PartnerPaymentsPage() {
   const { allWaybills, isLoaded: waybillsLoaded } = useWaybills();
   const { users, isLoading: usersLoading } = useAuth();
+  const { allManifests, isLoaded: manifestsLoaded } = useManifests();
   const [rates, setRates] = useState<Rate[]>([]);
   const [ratesLoaded, setRatesLoaded] = useState(false);
   const [dateRange, setDateRange] = useState<DateRange | undefined>();
 
-  const partners = useMemo(() => {
-    return users.filter(u => u.role === 'staff' && u.partnerCode);
-  }, [users]);
+  const bookingPartners = useMemo(() => users.filter(u => u.roles.includes('booking') && u.partnerCode), [users]);
+  const deliveryPartners = useMemo(() => users.filter(u => u.roles.includes('delivery') && u.partnerCode), [users]);
 
   useEffect(() => {
     try {
@@ -46,54 +109,97 @@ export default function PartnerPaymentsPage() {
     finally { setRatesLoaded(true); }
   }, []);
 
-  const partnerPaymentData = useMemo(() => {
+  const filteredWaybills = useMemo(() => {
+      let filtered = allWaybills;
+      if (dateRange?.from) {
+        const fromDate = dateRange.from;
+        const toDate = dateRange.to || dateRange.from;
+        filtered = filtered.filter(w => {
+            const waybillDate = new Date(w.shippingDate);
+            const toDateInclusive = new Date(toDate);
+            toDateInclusive.setDate(toDateInclusive.getDate() + 1);
+            return waybillDate >= fromDate && waybillDate < toDateInclusive;
+        });
+      }
+      return filtered;
+  }, [allWaybills, dateRange]);
+
+
+  const bookingPaymentData = useMemo(() => {
     if (!waybillsLoaded || !ratesLoaded || usersLoading) return [];
-
-    let filteredWaybills = allWaybills;
-    if (dateRange?.from) {
-      const fromDate = dateRange.from;
-      const toDate = date.to || dateRange.from;
-      filteredWaybills = filteredWaybills.filter(w => {
-        const waybillDate = new Date(w.shippingDate);
-        const toDateInclusive = new Date(toDate);
-        toDateInclusive.setDate(toDateInclusive.getDate() + 1);
-        return waybillDate >= fromDate && waybillDate < toDateInclusive;
-      });
-    }
-
-    const paymentMap: Record<string, { count: number, totalPayment: number }> = {};
+    
+    const paymentMap = new Map<string, { count: number, totalPayment: number }>();
 
     filteredWaybills.forEach(wb => {
-      // Ensure receiverState exists before trying to access it
-      if (!wb.receiverState) {
-          return;
-      }
+      if (!wb.receiverState) return;
 
-      const partner = partners.find(p => p.partnerCode === wb.partnerCode);
+      const partner = bookingPartners.find(p => p.partnerCode === wb.partnerCode);
       if (!partner) return;
 
       const rate = rates.find(r => r.partnerCode === wb.partnerCode && r.state.toLowerCase() === wb.receiverState.toLowerCase());
       if (!rate) return;
       
-      const payment = rate.baseCharge + (rate.weightCharge * wb.packageWeight);
-      
-      if (!paymentMap[partner.partnerCode!]) {
-        paymentMap[partner.partnerCode!] = { count: 0, totalPayment: 0 };
+      const freightCharge = rate.baseCharge + (rate.weightCharge * wb.packageWeight);
+      const payment = freightCharge * BOOKING_COMMISSION;
+
+      if (!paymentMap.has(partner.partnerCode!)) {
+        paymentMap.set(partner.partnerCode!, { count: 0, totalPayment: 0 });
       }
-      paymentMap[partner.partnerCode!].count += 1;
-      paymentMap[partner.partnerCode!].totalPayment += payment;
+      const current = paymentMap.get(partner.partnerCode!)!;
+      current.count += 1;
+      current.totalPayment += payment;
     });
 
-    return Object.entries(paymentMap).map(([partnerCode, data]) => ({
+    return Array.from(paymentMap.entries()).map(([partnerCode, data]) => ({
       partnerCode,
-      username: partners.find(p => p.partnerCode === partnerCode)?.username || 'N/A',
+      username: bookingPartners.find(p => p.partnerCode === partnerCode)?.username || 'N/A',
       ...data
     }));
 
-  }, [allWaybills, partners, rates, dateRange, waybillsLoaded, ratesLoaded, usersLoading]);
+  }, [filteredWaybills, bookingPartners, rates, waybillsLoaded, ratesLoaded, usersLoading]);
 
-  const handleExport = () => {
-    const dataToExport = partnerPaymentData.map(p => ({
+  const deliveryPaymentData = useMemo(() => {
+    if (!manifestsLoaded || !waybillsLoaded || !ratesLoaded || usersLoading) return [];
+
+    const paymentMap = new Map<string, { count: number, totalPayment: number }>();
+
+    const deliveryManifests = allManifests.filter(m => m.origin === 'hub' && m.deliveryPartnerCode);
+
+    deliveryManifests.forEach(manifest => {
+        manifest.waybillIds.forEach(wbId => {
+            const wb = filteredWaybills.find(w => w.id === wbId);
+            if (!wb || !wb.receiverState) return;
+
+            const partner = deliveryPartners.find(p => p.partnerCode === manifest.deliveryPartnerCode);
+            if (!partner) return;
+
+            // Find rate based on booking partner of the waybill
+            const rate = rates.find(r => r.partnerCode === wb.partnerCode && r.state.toLowerCase() === wb.receiverState.toLowerCase());
+            if (!rate) return;
+
+            const freightCharge = rate.baseCharge + (rate.weightCharge * wb.packageWeight);
+            const payment = freightCharge * DELIVERY_COMMISSION;
+            
+            if (!paymentMap.has(partner.partnerCode!)) {
+                paymentMap.set(partner.partnerCode!, { count: 0, totalPayment: 0 });
+            }
+            const current = paymentMap.get(partner.partnerCode!)!;
+            current.count += 1;
+            current.totalPayment += payment;
+        });
+    });
+
+    return Array.from(paymentMap.entries()).map(([partnerCode, data]) => ({
+        partnerCode,
+        username: deliveryPartners.find(p => p.partnerCode === partnerCode)?.username || 'N/A',
+        ...data
+    }));
+  }, [filteredWaybills, deliveryPartners, allManifests, rates, waybillsLoaded, ratesLoaded, usersLoading, manifestsLoaded]);
+
+
+  const handleExport = (type: 'booking' | 'delivery') => {
+    const data = type === 'booking' ? bookingPaymentData : deliveryPaymentData;
+    const dataToExport = data.map(p => ({
       'Partner Code': p.partnerCode,
       'Partner Name': p.username,
       'Waybill Count': p.count,
@@ -102,12 +208,12 @@ export default function PartnerPaymentsPage() {
     
     const ws = XLSX.utils.json_to_sheet(dataToExport);
     const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, "Partner Payments");
-    XLSX.writeFile(wb, "partner_payments.xlsx");
+    XLSX.utils.book_append_sheet(wb, ws, `${type} Partner Payments`);
+    XLSX.writeFile(wb, `${type}_partner_payments.xlsx`);
   }
 
 
-  if (usersLoading || !waybillsLoaded || !ratesLoaded) {
+  if (usersLoading || !waybillsLoaded || !ratesLoaded || !manifestsLoaded) {
     return <div className="flex justify-center items-center h-64"><Loader2 className="h-16 w-16 animate-spin text-primary" /></div>;
   }
 
@@ -115,80 +221,79 @@ export default function PartnerPaymentsPage() {
     <div className="space-y-8">
       <div>
         <h1 className="text-3xl font-bold">Partner Payments</h1>
-        <p className="text-muted-foreground">Calculate and view payments due to booking partners.</p>
+        <p className="text-muted-foreground">Calculate payments due to booking and delivery partners based on commission.</p>
       </div>
 
-      <Card>
+       <Card>
         <CardHeader>
-          <div className="flex justify-between items-center gap-4 flex-wrap">
-            <div>
-              <CardTitle>Payment Summary</CardTitle>
-              <CardDescription>Summary of payments based on waybills booked in the selected period.</CardDescription>
+           <div className="flex justify-between items-center gap-4 flex-wrap">
+                <div>
+                  <CardTitle>Filter by Date</CardTitle>
+                  <CardDescription>Select a date range to filter payments.</CardDescription>
+                </div>
+                <div className="flex items-center gap-2">
+                   <Popover>
+                      <PopoverTrigger asChild>
+                          <Button
+                          variant={"outline"}
+                          className={cn(
+                              "w-[300px] justify-start text-left font-normal",
+                              !dateRange && "text-muted-foreground"
+                          )}
+                          >
+                          <CalendarIcon className="mr-2 h-4 w-4" />
+                          {dateRange?.from ? (
+                            dateRange.to ? ( <> {format(dateRange.from, "LLL dd, y")} - {format(dateRange.to, "LLL dd, y")} </>) 
+                            : (format(dateRange.from, "LLL dd, y"))) 
+                            : (<span>Pick a date range</span>
+                          )}
+                          </Button>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-auto p-0" align="end">
+                          <Calendar mode="range" selected={dateRange} onSelect={setDateRange} initialFocus />
+                      </PopoverContent>
+                  </Popover>
+                  {dateRange && <Button variant="ghost" size="sm" onClick={() => setDateRange(undefined)}>Clear</Button>}
+                </div>
             </div>
-            <div className="flex items-center gap-2">
-               <Popover>
-                  <PopoverTrigger asChild>
-                      <Button
-                      variant={"outline"}
-                      className={cn(
-                          "w-[300px] justify-start text-left font-normal",
-                          !dateRange && "text-muted-foreground"
-                      )}
-                      >
-                      <CalendarIcon className="mr-2 h-4 w-4" />
-                      {dateRange?.from ? (
-                        dateRange.to ? ( <> {format(dateRange.from, "LLL dd, y")} - {format(dateRange.to, "LLL dd, y")} </>) 
-                        : (format(dateRange.from, "LLL dd, y"))) 
-                        : (<span>Pick a date range</span>
-                      )}
-                      </Button>
-                  </PopoverTrigger>
-                  <PopoverContent className="w-auto p-0" align="end">
-                      <Calendar mode="range" selected={dateRange} onSelect={setDateRange} initialFocus />
-                  </PopoverContent>
-              </Popover>
-              {dateRange && <Button variant="ghost" size="sm" onClick={() => setDateRange(undefined)}>Clear</Button>}
-              <Button variant="outline" size="sm" onClick={handleExport} disabled={partnerPaymentData.length === 0}><FileDown className="mr-2 h-4 w-4" /> Export</Button>
-            </div>
-          </div>
         </CardHeader>
-        <CardContent>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Partner Code</TableHead>
-                <TableHead>Partner Name</TableHead>
-                <TableHead>Waybill Count</TableHead>
-                <TableHead className="text-right">Total Payment</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {partnerPaymentData.length > 0 ? partnerPaymentData.map(p => (
-                <TableRow key={p.partnerCode}>
-                  <TableCell><Badge variant="outline">{p.partnerCode}</Badge></TableCell>
-                  <TableCell className="font-medium">{p.username}</TableCell>
-                  <TableCell>{p.count}</TableCell>
-                  <TableCell className="text-right font-mono font-semibold">₹{p.totalPayment.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</TableCell>
-                </TableRow>
-              )) : (
-                <TableRow>
-                  <TableCell colSpan={4} className="h-24 text-center">
-                    No payment data for the selected period.
-                  </TableCell>
-                </TableRow>
-              )}
-            </TableBody>
-             <TableFooter>
-                <TableRow className="font-bold">
-                    <TableCell colSpan={3}>Total</TableCell>
-                    <TableCell className="text-right font-mono">
-                        ₹{partnerPaymentData.reduce((acc, p) => acc + p.totalPayment, 0).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                    </TableCell>
-                </TableRow>
-            </TableFooter>
-          </Table>
-        </CardContent>
-      </Card>
+       </Card>
+
+      <Tabs defaultValue="booking">
+        <TabsList className="grid w-full grid-cols-2">
+            <TabsTrigger value="booking">
+                <BookCopy className="mr-2 h-4 w-4" />
+                Booking Partner Payments ({bookingPaymentData.length})
+            </TabsTrigger>
+            <TabsTrigger value="delivery">
+                <Truck className="mr-2 h-4 w-4" />
+                Delivery Partner Payments ({deliveryPaymentData.length})
+            </TabsTrigger>
+        </TabsList>
+        <TabsContent value="booking">
+            <Card>
+                <CardHeader>
+                    <CardTitle>Booking Partner Commission</CardTitle>
+                    <CardDescription>Payment is calculated as 8% of the total freight charge for each waybill.</CardDescription>
+                </CardHeader>
+                <CardContent>
+                    <PaymentTable data={bookingPaymentData} onExport={() => handleExport('booking')} />
+                </CardContent>
+            </Card>
+        </TabsContent>
+         <TabsContent value="delivery">
+            <Card>
+                <CardHeader>
+                    <CardTitle>Delivery Partner Commission</CardTitle>
+                    <CardDescription>Payment is calculated as 25% of the total freight charge for each delivered waybill.</CardDescription>
+                </CardHeader>
+                <CardContent>
+                    <PaymentTable data={deliveryPaymentData} onExport={() => handleExport('delivery')} />
+                </CardContent>
+            </Card>
+        </TabsContent>
+      </Tabs>
     </div>
   );
 }
+
