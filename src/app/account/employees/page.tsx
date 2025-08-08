@@ -255,7 +255,7 @@ export default function EmployeeManagementPage() {
                     <TableCell className="font-medium">{emp.name}</TableCell>
                     <TableCell>{emp.post}</TableCell>
                     <TableCell>{emp.mobileNo}</TableCell>
-                    <TableCell>{format(new Date(emp.dateOfJoining), 'PP')}</TableCell>
+                    <TableCell>{emp.dateOfJoining ? format(new Date(emp.dateOfJoining), 'PP') : ''}</TableCell>
                     <TableCell>₹{emp.salary.toLocaleString('en-IN')}</TableCell>
                     <TableCell className="text-right">
                        <Button variant="ghost" size="icon" onClick={() => handlePrintId(emp.id!)}>
