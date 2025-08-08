@@ -13,12 +13,13 @@ export function WaybillPrint({ waybill }: WaybillPrintProps) {
   return (
     <div className="p-4 bg-white text-black font-sans max-w-3xl mx-auto print:shadow-none print:p-2">
       {/* Header */}
-      <header className="flex justify-between items-center pb-3 border-b-4 border-primary">
+      <header className="flex justify-between items-start pb-3 border-b-4 border-primary">
         <div className="flex items-center gap-3">
             <Truck className="h-10 w-10 text-primary" />
             <div>
                 <h1 className="text-3xl font-bold text-primary">RAJ CARGO</h1>
-                <p className="text-sm text-muted-foreground">Transport & Courier Service</p>
+                <p className="text-sm text-gray-500">DELHI NAJAFGARH. PINCODE 110048</p>
+                <p className="text-sm text-gray-500">EMAIL: RAJ89CARGO@GMAIL.COM</p>
             </div>
         </div>
         <div className="text-right">
