@@ -73,7 +73,7 @@ export default function SalesReportPage() {
     }
 
     return filteredWaybills.map(wb => {
-        const rate = rates.find(r => r.partnerCode === wb.partnerCode && r.state.toLowerCase() === wb.receiverState.toLowerCase());
+        const rate = rates.find(r => r.partnerCode === wb.partnerCode && wb.receiverState && r.state.toLowerCase() === wb.receiverState.toLowerCase());
         let freightCharge = 0;
         if (rate) {
             freightCharge = rate.baseCharge + (rate.weightCharge * wb.packageWeight);
