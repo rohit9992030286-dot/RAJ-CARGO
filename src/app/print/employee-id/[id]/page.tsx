@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useEffect, useRef, useState, Suspense } from 'react';
@@ -56,7 +55,7 @@ function EmployeeIdCard({ employee }: { employee: Employee }) {
                         <hr className="my-1"/>
                         <p className="flex items-center gap-1.5"><User className="h-3 w-3" /> <span className="font-semibold">ID:</span> {employee.employeeCode}</p>
                         <p className="flex items-center gap-1.5"><Phone className="h-3 w-3" /> <span className="font-semibold">Mob:</span> {employee.mobileNo}</p>
-                        <p className="flex items-center gap-1.5"><Calendar className="h-3 w-3" /> <span className="font-semibold">DOJ:</span> {format(new Date(employee.dateOfJoining), 'dd/MM/yyyy')}</p>
+                        <p className="flex items-center gap-1.5"><Calendar className="h-3 w-3" /> <span className="font-semibold">DOJ:</span> {employee.dateOfJoining ? format(new Date(employee.dateOfJoining), 'dd/MM/yyyy') : ''}</p>
                     </div>
                 </div>
 
