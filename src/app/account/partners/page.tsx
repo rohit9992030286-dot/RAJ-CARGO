@@ -133,7 +133,7 @@ export default function PartnerPaymentsPage() {
       const partner = bookingPartners.find(p => p.partnerCode === wb.partnerCode);
       if (!partner) return;
 
-      const rate = rates.find(r => r.partnerCode === wb.partnerCode && wb.receiverState && r.state.toLowerCase() === wb.receiverState.toLowerCase());
+      const rate = rates.find(r => r.partnerCode === wb.partnerCode && wb.receiverState && r.state.trim().toLowerCase() === wb.receiverState.trim().toLowerCase());
       if (!rate) return;
       
       const freightCharge = rate.baseCharge + (rate.weightCharge * wb.packageWeight);
@@ -171,7 +171,7 @@ export default function PartnerPaymentsPage() {
             if (!partner) return;
 
             // Find rate based on booking partner of the waybill
-            const rate = rates.find(r => r.partnerCode === wb.partnerCode && wb.receiverState && r.state.toLowerCase() === wb.receiverState.toLowerCase());
+            const rate = rates.find(r => r.partnerCode === wb.partnerCode && wb.receiverState && r.state.trim().toLowerCase() === wb.receiverState.trim().toLowerCase());
             if (!rate) return;
 
             const freightCharge = rate.baseCharge + (rate.weightCharge * wb.packageWeight);
@@ -295,3 +295,5 @@ export default function PartnerPaymentsPage() {
     </div>
   );
 }
+
+    

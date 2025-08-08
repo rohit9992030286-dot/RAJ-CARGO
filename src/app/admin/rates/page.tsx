@@ -95,7 +95,7 @@ export default function RateManagementPage() {
       }
     } else {
       // Add new rate
-      const existingRate = newRates.find(r => r.partnerCode === data.partnerCode && r.state.toLowerCase() === data.state.toLowerCase());
+      const existingRate = newRates.find(r => r.partnerCode === data.partnerCode && r.state.trim().toLowerCase() === data.state.trim().toLowerCase());
       if (existingRate) {
         toast({ title: 'Duplicate Rate', description: 'This exact rate combination already exists.', variant: 'destructive'});
         return;
@@ -339,3 +339,5 @@ export default function RateManagementPage() {
     </div>
   );
 }
+
+    

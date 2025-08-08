@@ -73,10 +73,12 @@ export default function SalesReportPage() {
     }
 
     return filteredWaybills.map(wb => {
-        const rate = rates.find(r => r.partnerCode === wb.partnerCode && wb.receiverState && r.state.toLowerCase() === wb.receiverState.toLowerCase());
         let freightCharge = 0;
-        if (rate) {
-            freightCharge = rate.baseCharge + (rate.weightCharge * wb.packageWeight);
+        if (wb.receiverState) {
+            const rate = rates.find(r => r.partnerCode === wb.partnerCode && r.state.trim().toLowerCase() === wb.receiverState.trim().toLowerCase());
+            if (rate) {
+                freightCharge = rate.baseCharge + (rate.weightCharge * wb.packageWeight);
+            }
         }
         return { 
             id: wb.id,
@@ -239,4 +241,5 @@ export default function SalesReportPage() {
   );
 }
 
+    
     
