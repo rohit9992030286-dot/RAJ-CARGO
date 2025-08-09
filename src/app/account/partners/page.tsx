@@ -28,6 +28,7 @@ interface Rate {
   state: string;
   baseCharge: number;
   weightCharge: number;
+  freeWeightAllowance?: number;
 }
 
 interface PaymentData {
@@ -136,7 +137,9 @@ export default function PartnerPaymentsPage() {
       const rate = rates.find(r => r.partnerCode === wb.partnerCode && wb.receiverState && r.state.trim().toLowerCase() === wb.receiverState.trim().toLowerCase());
       if (!rate) return;
       
-      const freightCharge = rate.baseCharge + (rate.weightCharge * wb.packageWeight);
+      const freeWeight = rate.freeWeightAllowance || 0;
+      const chargeableWeight = Math.max(0, wb.packageWeight - freeWeight);
+      const freightCharge = rate.baseCharge + (rate.weightCharge * chargeableWeight);
       const payment = freightCharge * BOOKING_COMMISSION;
 
       if (!paymentMap.has(partner.partnerCode!)) {
@@ -174,7 +177,9 @@ export default function PartnerPaymentsPage() {
             const rate = rates.find(r => r.partnerCode === wb.partnerCode && wb.receiverState && r.state.trim().toLowerCase() === wb.receiverState.trim().toLowerCase());
             if (!rate) return;
 
-            const freightCharge = rate.baseCharge + (rate.weightCharge * wb.packageWeight);
+            const freeWeight = rate.freeWeightAllowance || 0;
+            const chargeableWeight = Math.max(0, wb.packageWeight - freeWeight);
+            const freightCharge = rate.baseCharge + (rate.weightCharge * chargeableWeight);
             const payment = freightCharge * DELIVERY_COMMISSION;
             
             if (!paymentMap.has(partner.partnerCode!)) {
@@ -295,5 +300,3 @@ export default function PartnerPaymentsPage() {
     </div>
   );
 }
-
-    

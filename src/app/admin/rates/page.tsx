@@ -25,6 +25,7 @@ const STORAGE_KEY = 'rajcargo-pincode-rates';
 const rateSchema = z.object({
   baseCharge: z.coerce.number().min(0, 'Base charge must be a positive number.'),
   weightCharge: z.coerce.number().min(0, 'Weight charge must be a positive number.'),
+  freeWeightAllowance: z.coerce.number().min(0, "Free weight must be a positive number.").default(0),
   partnerCode: z.string().min(1, "Please select a partner."),
   state: z.string().min(2, "State is required."),
 });
@@ -48,7 +49,7 @@ export default function RateManagementPage() {
   
   const uniqueStates = useMemo(() => {
     if (!waybillsLoaded) return [];
-    const states = allWaybills.map(wb => wb.receiverState).filter(Boolean);
+    const states = allWaybills.map(wb => wb.receiverState.trim()).filter(Boolean);
     return [...new Set(states)].sort();
   }, [allWaybills, waybillsLoaded]);
 
@@ -58,6 +59,7 @@ export default function RateManagementPage() {
     defaultValues: {
       baseCharge: 0,
       weightCharge: 0,
+      freeWeightAllowance: 0,
       partnerCode: '',
       state: '',
     },
@@ -105,7 +107,7 @@ export default function RateManagementPage() {
     }
 
     saveRates(newRates);
-    form.reset({ baseCharge: 0, weightCharge: 0, partnerCode: '', state: '' });
+    form.reset({ baseCharge: 0, weightCharge: 0, freeWeightAllowance: 0, partnerCode: '', state: '' });
     setEditingRateId(null);
   };
 
@@ -126,6 +128,7 @@ export default function RateManagementPage() {
         state: r.state,
         baseCharge: r.baseCharge,
         weightCharge: r.weightCharge,
+        freeWeightAllowance: r.freeWeightAllowance,
     }));
     const ws = XLSX.utils.json_to_sheet(dataToExport);
     const wb = XLSX.utils.book_new();
@@ -189,7 +192,7 @@ export default function RateManagementPage() {
               <CardTitle>{editingRateId ? 'Update Rate' : 'Add New Rate'}</CardTitle>
               <CardDescription>Enter a partner, state, and its corresponding shipping rate.</CardDescription>
             </CardHeader>
-            <CardContent className="grid sm:grid-cols-2 lg:grid-cols-5 gap-4">
+            <CardContent className="grid sm:grid-cols-2 lg:grid-cols-5 gap-4 items-end">
               <FormField
                 control={form.control}
                 name="partnerCode"
@@ -254,7 +257,21 @@ export default function RateManagementPage() {
                   </FormItem>
                 )}
               />
-              <div className="flex items-end">
+               <FormField
+                control={form.control}
+                name="freeWeightAllowance"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Free Weight (kg)</FormLabel>
+                     <div className="relative">
+                        <FormControl><Input type="number" step="0.01" placeholder="e.g., 15" {...field} className="pl-10" /></FormControl>
+                        <Weight className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+                    </div>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+               <div className="flex items-end col-span-full lg:col-span-2">
                 <Button type="submit" className="w-full">
                   <PlusCircle className="mr-2 h-4 w-4" /> {editingRateId ? 'Update Rate' : 'Save Rate'}
                 </Button>
@@ -262,7 +279,7 @@ export default function RateManagementPage() {
             </CardContent>
             {editingRateId && (
                 <CardFooter>
-                    <Button variant="ghost" onClick={() => { setEditingRateId(null); form.reset({ baseCharge: 0, weightCharge: 0, partnerCode: '', state: '' }); }}>
+                    <Button variant="ghost" onClick={() => { setEditingRateId(null); form.reset({ baseCharge: 0, weightCharge: 0, freeWeightAllowance: 0, partnerCode: '', state: '' }); }}>
                         Cancel Edit
                     </Button>
                 </CardFooter>
@@ -297,6 +314,7 @@ export default function RateManagementPage() {
                 <TableHead>State</TableHead>
                 <TableHead>Basic Charge (₹)</TableHead>
                 <TableHead>Weight Charge (₹/kg)</TableHead>
+                <TableHead>Free Weight (kg)</TableHead>
                 <TableHead className="text-right">Action</TableHead>
               </TableRow>
             </TableHeader>
@@ -308,6 +326,7 @@ export default function RateManagementPage() {
                     <TableCell>{rate.state}</TableCell>
                     <TableCell>{rate.baseCharge.toFixed(2)}</TableCell>
                     <TableCell>{rate.weightCharge.toFixed(2)}</TableCell>
+                    <TableCell>{rate.freeWeightAllowance?.toFixed(2) || '0.00'}</TableCell>
                     <TableCell className="text-right">
                        <Button variant="ghost" size="icon" onClick={() => handleEditRate(rate)}>
                           <Pencil className="h-4 w-4" />
@@ -322,7 +341,7 @@ export default function RateManagementPage() {
                 ))
               ) : (
                 <TableRow>
-                  <TableCell colSpan={5} className="h-24 text-center">
+                  <TableCell colSpan={6} className="h-24 text-center">
                     <div className="text-center py-8">
                         <Tags className="mx-auto h-12 w-12 text-muted-foreground" />
                         <h3 className="mt-4 text-lg font-semibold">No Rates Defined</h3>
@@ -339,5 +358,3 @@ export default function RateManagementPage() {
     </div>
   );
 }
-
-    

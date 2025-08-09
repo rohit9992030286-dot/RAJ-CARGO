@@ -24,6 +24,7 @@ interface Rate {
   state: string;
   baseCharge: number;
   weightCharge: number;
+  freeWeightAllowance?: number;
 }
 
 interface ReportRow {
@@ -77,7 +78,9 @@ export default function SalesReportPage() {
         if (wb.receiverState) {
             const rate = rates.find(r => r.partnerCode === wb.partnerCode && r.state.trim().toLowerCase() === wb.receiverState.trim().toLowerCase());
             if (rate) {
-                freightCharge = rate.baseCharge + (rate.weightCharge * wb.packageWeight);
+                const freeWeight = rate.freeWeightAllowance || 0;
+                const chargeableWeight = Math.max(0, wb.packageWeight - freeWeight);
+                freightCharge = rate.baseCharge + (rate.weightCharge * chargeableWeight);
             }
         }
         return { 
@@ -240,6 +243,3 @@ export default function SalesReportPage() {
     </div>
   );
 }
-
-    
-    
