@@ -15,6 +15,7 @@ import { Textarea } from './ui/textarea';
 import { useState, useEffect } from 'react';
 import { useWaybillInventory } from '@/hooks/useWaybillInventory';
 import { useAuth } from '@/hooks/useAuth';
+import { useCompanies } from '@/hooks/useCompanies';
 
 const getInitialValues = (initialData?: Waybill): WaybillFormData => {
     const defaults = {
@@ -62,6 +63,7 @@ export function WaybillForm({ initialData, onSave, onCancel }: WaybillFormProps)
   const { toast } = useToast();
   const { availablePartnerInventory, isInventoryLoaded } = useWaybillInventory();
   const { user } = useAuth();
+  const { getCompanyByCode, isLoaded: companiesLoaded } = useCompanies();
 
   const form = useForm<WaybillFormData>({
     resolver: zodResolver(waybillFormSchema),
@@ -78,18 +80,36 @@ export function WaybillForm({ initialData, onSave, onCancel }: WaybillFormProps)
     const values = getInitialValues(initialData);
     if (!initialData) {
       try {
-        const storedSender = localStorage.getItem('rajcargo-defaultSender');
-        if (storedSender) {
-          const defaultSender = JSON.parse(storedSender);
-          Object.assign(values, defaultSender);
+        let senderDetails = null;
+        if (user?.companyCode) {
+            const company = getCompanyByCode(user.companyCode);
+            if (company) {
+                senderDetails = {
+                    senderName: company.senderName,
+                    senderAddress: company.senderAddress,
+                    senderCity: company.senderCity,
+                    senderPincode: company.senderPincode,
+                    senderPhone: company.senderPhone,
+                };
+            }
+        } else {
+            const storedSender = localStorage.getItem('rajcargo-defaultSender');
+            if (storedSender) {
+              senderDetails = JSON.parse(storedSender);
+            }
         }
+        
+        if (senderDetails) {
+            Object.assign(values, senderDetails);
+        }
+
       } catch (error) {
         console.error('Could not get default sender from local storage', error);
       }
     }
     form.reset(values);
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [initialData]);
+  }, [initialData, user, companiesLoaded]);
 
   const onSubmit = (data: WaybillFormData) => {
     const waybillToSave: Waybill = {

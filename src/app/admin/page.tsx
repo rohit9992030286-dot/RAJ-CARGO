@@ -2,7 +2,7 @@
 'use client';
 import Link from 'next/link';
 import { Card, CardHeader, CardTitle, CardContent, CardDescription, CardFooter } from '@/components/ui/card';
-import { Users, ArrowRight, Activity, IndianRupee, Tags, List, KeyRound, AlertTriangle } from 'lucide-react';
+import { Users, ArrowRight, Activity, IndianRupee, Tags, List, KeyRound, AlertTriangle, Building } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 
@@ -14,6 +14,14 @@ const adminLinks = [
         icon: Users,
         iconBgColor: 'bg-sky-100 dark:bg-sky-900/50',
         iconColor: 'text-sky-600 dark:text-sky-300'
+    },
+    {
+        href: '/admin/companies',
+        title: 'Company Management',
+        description: 'Manage company profiles and default sender details.',
+        icon: Building,
+        iconBgColor: 'bg-purple-100 dark:bg-purple-900/50',
+        iconColor: 'text-purple-600 dark:text-purple-300'
     },
     {
         href: '/admin/inventory',

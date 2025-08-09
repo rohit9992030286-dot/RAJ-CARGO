@@ -3,7 +3,7 @@
 import { useAuth, User, NewUser } from '@/hooks/useAuth.tsx';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
-import { useForm } from 'react-hook-form';
+import { useForm, useWatch } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
@@ -12,7 +12,7 @@ import { Input } from '@/components/ui/input';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Loader2, UserPlus, Trash2, User as UserIcon, KeyRound, Shield, Briefcase, BookCopy, Cpu, Truck, Pencil, XCircle, DollarSign } from 'lucide-react';
+import { Loader2, UserPlus, Trash2, User as UserIcon, KeyRound, Shield, Briefcase, BookCopy, Cpu, Truck, Pencil, XCircle, DollarSign, Building } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { Badge } from '@/components/ui/badge';
 import {
@@ -26,12 +26,15 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { useCompanies } from '@/hooks/useCompanies';
 
 
 const userFormSchema = z.object({
   username: z.string().min(3, 'Username must be at least 3 characters.'),
   password: z.string().min(6, 'Password must be at least 6 characters.'),
   partnerCode: z.string().min(1, 'Partner code is required.'),
+  companyCode: z.string().optional(),
   roles: z.array(z.string()).refine((value) => value.some((item) => item), {
     message: 'You have to select at least one role.',
   }),
@@ -47,6 +50,7 @@ const roles = [
 
 export default function UserManagementPage() {
   const { user, users, addUser, deleteUser, updateUser, isLoading } = useAuth();
+  const { companies, isLoaded: companiesLoaded } = useCompanies();
   const router = useRouter();
   const { toast } = useToast();
   const [editingUser, setEditingUser] = useState<NewUser | null>(null);
@@ -58,8 +62,11 @@ export default function UserManagementPage() {
       password: '',
       partnerCode: '',
       roles: [],
+      companyCode: '',
     },
   });
+
+  const selectedRoles = useWatch({ control: form.control, name: 'roles' });
   
   useEffect(() => {
     if (editingUser) {
@@ -68,9 +75,10 @@ export default function UserManagementPage() {
             password: editingUser.password,
             partnerCode: editingUser.partnerCode,
             roles: editingUser.roles,
+            companyCode: editingUser.companyCode,
         });
     } else {
-        form.reset({ username: '', password: '', partnerCode: '', roles: [] });
+        form.reset({ username: '', password: '', partnerCode: '', roles: [], companyCode: '' });
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [editingUser]);
@@ -89,14 +97,13 @@ export default function UserManagementPage() {
             ...editingUser,
             ...data,
             roles: data.roles as ('booking' | 'hub' | 'delivery' | 'account')[],
+            companyCode: data.roles.includes('booking') ? data.companyCode : undefined,
         };
         const success = updateUser(userToUpdate);
          if (success) {
             toast({ title: 'User Updated', description: `User "${data.username}" has been updated.` });
             setEditingUser(null);
-            form.reset();
         } else {
-            // This case should ideally not happen if we are editing
             toast({ title: 'Update Failed', description: 'Could not find user to update.', variant: 'destructive' });
         }
     } else {
@@ -104,6 +111,7 @@ export default function UserManagementPage() {
             ...data,
             role: 'staff' as 'staff',
             roles: data.roles as ('booking' | 'hub' | 'delivery' | 'account')[],
+            companyCode: data.roles.includes('booking') ? data.companyCode : undefined,
         };
 
         const success = addUser(newUser);
@@ -130,7 +138,7 @@ export default function UserManagementPage() {
   }
 
 
-  if (isLoading || user?.role !== 'admin') {
+  if (isLoading || !companiesLoaded) {
     return (
       <div className="flex justify-center items-center h-64">
         <Loader2 className="h-16 w-16 animate-spin text-primary" />
@@ -145,7 +153,7 @@ export default function UserManagementPage() {
         <p className="text-muted-foreground">Create and manage user accounts for the application.</p>
       </div>
 
-      <div className="grid md:grid-cols-3 gap-8">
+      <div className="grid md:grid-cols-3 gap-8 items-start">
         <Card className="md:col-span-1">
            <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)}>
@@ -240,6 +248,32 @@ export default function UserManagementPage() {
                             </FormItem>
                         )}
                         />
+                         {selectedRoles?.includes('booking') && (
+                            <FormField
+                                control={form.control}
+                                name="companyCode"
+                                render={({ field }) => (
+                                    <FormItem>
+                                    <FormLabel>Company (for Booking)</FormLabel>
+                                    <Select onValueChange={field.onChange} value={field.value} defaultValue={field.value}>
+                                        <FormControl>
+                                            <div className="relative">
+                                            <SelectTrigger className="pl-10">
+                                                <SelectValue placeholder="Assign a Company" />
+                                            </SelectTrigger>
+                                            <Building className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+                                            </div>
+                                        </FormControl>
+                                        <SelectContent>
+                                            <SelectItem value="">None</SelectItem>
+                                            {companies.map(c => <SelectItem key={c.id} value={c.companyCode!}>{c.companyName} ({c.companyCode})</SelectItem>)}
+                                        </SelectContent>
+                                    </Select>
+                                    <FormMessage />
+                                    </FormItem>
+                                )}
+                            />
+                         )}
                 </CardContent>
                 <CardFooter className="flex flex-col gap-2">
                     <Button type="submit" className="w-full">
@@ -265,8 +299,8 @@ export default function UserManagementPage() {
                     <TableHeader>
                         <TableRow>
                             <TableHead>Username</TableHead>
-                            <TableHead>Password</TableHead>
-                            <TableHead>Partner Code</TableHead>
+                            <TableHead>Partner</TableHead>
+                            <TableHead>Company</TableHead>
                             <TableHead>Roles</TableHead>
                             <TableHead className="text-right">Action</TableHead>
                         </TableRow>
@@ -275,8 +309,14 @@ export default function UserManagementPage() {
                         {users.map((u) => (
                             <TableRow key={u.username}>
                                 <TableCell>{u.username}</TableCell>
-                                <TableCell>{u.password}</TableCell>
                                 <TableCell><Badge variant="outline">{u.partnerCode}</Badge></TableCell>
+                                <TableCell>
+                                    {u.companyCode ? (
+                                        <Badge variant="secondary">{u.companyCode}</Badge>
+                                    ) : (
+                                        <span className="text-muted-foreground">N/A</span>
+                                    )}
+                                </TableCell>
                                 <TableCell>
                                     {u.role === 'admin' 
                                         ? <Badge variant="default">Admin</Badge>

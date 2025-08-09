@@ -8,12 +8,13 @@ import { useToast } from '@/hooks/use-toast';
 import { Loader2 } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth.tsx';
 import { InventoryItem } from '@/types/inventory';
+import { useProvideCompanies, CompanyContextType } from '@/hooks/useCompanies';
 
 const WAYBILL_STORAGE_KEY = 'rajcargo-waybills';
 const MANIFEST_STORAGE_KEY = 'rajcargo-manifests';
 const WAYBILL_INVENTORY_KEY = 'rajcargo-waybill-inventory';
 
-interface DataContextType {
+interface DataContextType extends CompanyContextType {
   waybills: Waybill[];
   manifests: Manifest[];
   waybillInventory: InventoryItem[];
@@ -38,9 +39,10 @@ export function DataProvider({ children }: { children: ReactNode }) {
   const [waybillsData, setWaybillsData] = useState<Waybill[]>([]);
   const [manifestsData, setManifestsData] = useState<Manifest[]>([]));
   const [waybillInventoryData, setWaybillInventoryData] = useState<InventoryItem[]>([]);
-  const [isLoaded, setIsLoaded] = useState(false);
+  const [isDataLoaded, setIsDataLoaded] = useState(false);
   const { toast } = useToast();
   const { user } = useAuth();
+  const companyData = useProvideCompanies();
 
   useEffect(() => {
     try {
@@ -89,12 +91,12 @@ export function DataProvider({ children }: { children: ReactNode }) {
         variant: 'destructive',
       });
     } finally {
-      setIsLoaded(true);
+      setIsDataLoaded(true);
     }
   }, [toast]);
 
   useEffect(() => {
-    if (isLoaded) {
+    if (isDataLoaded) {
       try {
         window.localStorage.setItem(WAYBILL_STORAGE_KEY, JSON.stringify(waybillsData));
       } catch (error) {
@@ -106,10 +108,10 @@ export function DataProvider({ children }: { children: ReactNode }) {
         });
       }
     }
-  }, [waybillsData, isLoaded, toast]);
+  }, [waybillsData, isDataLoaded, toast]);
 
   useEffect(() => {
-    if (isLoaded) {
+    if (isDataLoaded) {
       try {
         window.localStorage.setItem(MANIFEST_STORAGE_KEY, JSON.stringify(manifestsData));
       } catch (error) {
@@ -121,10 +123,10 @@ export function DataProvider({ children }: { children: ReactNode }) {
         });
       }
     }
-  }, [manifestsData, isLoaded, toast]);
+  }, [manifestsData, isDataLoaded, toast]);
 
   useEffect(() => {
-    if (isLoaded) {
+    if (isDataLoaded) {
       try {
         window.localStorage.setItem(WAYBILL_INVENTORY_KEY, JSON.stringify(waybillInventoryData));
       } catch (error) {
@@ -136,7 +138,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
         });
       }
     }
-  }, [waybillInventoryData, isLoaded, toast]);
+  }, [waybillInventoryData, isDataLoaded, toast]);
 
   const sortedWaybills = useMemo(() => {
     return [...waybillsData].sort((a,b) => new Date(b.shippingDate).getTime() - new Date(a.shippingDate).getTime())
@@ -280,7 +282,9 @@ export function DataProvider({ children }: { children: ReactNode }) {
     setWaybillInventoryData(prev => prev.filter(item => item.waybillNumber !== waybillNumber));
   }, []);
 
-  const value = {
+  const isLoaded = isDataLoaded && companyData.isLoaded;
+
+  const value: DataContextType = {
     waybills: sortedWaybills,
     manifests: sortedManifests,
     waybillInventory: sortedInventory,
@@ -297,6 +301,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
     addWaybillToInventory,
     removeWaybillFromInventory,
     markWaybillAsUsed,
+    ...companyData,
   };
 
   if (!isLoaded) {

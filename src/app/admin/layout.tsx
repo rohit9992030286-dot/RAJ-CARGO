@@ -3,7 +3,7 @@
 import { useState, useEffect, ReactNode } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
-import { Menu, Settings, Cpu, LayoutDashboard, Shield, Users, LogOut, Loader2, KeyRound, Activity, Link2, IndianRupee, Tags, List, AlertTriangle } from 'lucide-react';
+import { Menu, Settings, Cpu, LayoutDashboard, Shield, Users, LogOut, Loader2, KeyRound, Activity, Link2, IndianRupee, Tags, List, AlertTriangle, Building } from 'lucide-react';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/hooks/useAuth.tsx';
@@ -72,6 +72,12 @@ function AdminLayout({
           <Link href="/admin/users" onClick={onLinkClick} className="flex items-center gap-3 p-3 rounded-lg hover:bg-primary/10 hover:text-primary transition-colors">
             <Users className="h-5 w-5" />
             <span>User Management</span>
+          </Link>
+        </li>
+        <li>
+          <Link href="/admin/companies" onClick={onLinkClick} className="flex items-center gap-3 p-3 rounded-lg hover:bg-primary/10 hover:text-primary transition-colors">
+            <Building className="h-5 w-5" />
+            <span>Company Management</span>
           </Link>
         </li>
         <li>
