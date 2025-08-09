@@ -38,6 +38,7 @@ export default function HubDispatchPage() {
     const { toast } = useToast();
     const router = useRouter();
     const scanInputRef = useRef<HTMLInputElement>(null);
+    const [scanInputValue, setScanInputValue] = useState('');
 
     const [vehicleNo, setVehicleNo] = useState('');
     const [driverName, setDriverName] = useState('');
@@ -125,6 +126,12 @@ export default function HubDispatchPage() {
 
         setScannedBoxIds(prev => [...prev, scannedId]);
         toast({ title: 'Box Loaded', description: `Box ${scannedId} added to manifest.`});
+    };
+
+    const handleVerifyClick = () => {
+        handleScanBox(scanInputValue);
+        setScanInputValue('');
+        scanInputRef.current?.focus();
     };
 
     const handleCreateDispatch = () => {
@@ -276,19 +283,24 @@ export default function HubDispatchPage() {
                         <CardContent className="space-y-4">
                             <div>
                                 <Label htmlFor="scan-box">Scan Box Barcode</Label>
+                                <div className="flex gap-2">
                                 <Input
                                     ref={scanInputRef}
                                     id="scan-box"
                                     placeholder="Scan barcode to load..."
+                                    value={scanInputValue}
+                                    onChange={(e) => setScanInputValue(e.target.value)}
                                     onKeyDown={(e) => {
                                         if (e.key === 'Enter') {
-                                            handleScanBox(e.currentTarget.value);
-                                            e.currentTarget.value = '';
-                                            e.preventDefault();
+                                            handleVerifyClick();
                                         }
                                     }}
                                     className="font-mono text-lg h-12"
                                 />
+                                <Button onClick={handleVerifyClick} className="h-12">
+                                    <ScanLine className="h-6 w-6" />
+                                </Button>
+                                </div>
                             </div>
                              {error && (
                                 <Alert variant="destructive">
