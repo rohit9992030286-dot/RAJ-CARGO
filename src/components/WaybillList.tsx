@@ -35,7 +35,7 @@ import {
     DropdownMenuSeparator,
     DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import { Pencil, Trash2, Truck, PlusCircle, Printer, MoreHorizontal, Lock, Check, X, AlertTriangle } from 'lucide-react';
+import { Pencil, Trash2, Truck, PlusCircle, Printer, MoreHorizontal, Lock, Check, X, AlertTriangle, Copy } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { format, differenceInHours, isBefore } from 'date-fns';
 
@@ -75,6 +75,10 @@ export function WaybillList({
 
   const handlePrint = (id: string) => {
     window.open(`/print/waybill/${id}`, '_blank');
+  };
+  
+  const handlePrintSticker = (id: string) => {
+    window.open(`/print/stickers?ids=${id}`, '_blank');
   };
 
   const allOnPageSelected = waybills.length > 0 && waybills.every(w => selectedWaybillIds.includes(w.id));
@@ -181,6 +185,9 @@ export function WaybillList({
                                         </DropdownMenuItem>
                                         <DropdownMenuItem onClick={() => handlePrint(waybill.id)}>
                                             <Printer className="mr-2 h-4 w-4" /> Print Waybill
+                                        </DropdownMenuItem>
+                                        <DropdownMenuItem onClick={() => handlePrintSticker(waybill.id)}>
+                                            <Copy className="mr-2 h-4 w-4" /> Print Sticker
                                         </DropdownMenuItem>
                                         <DropdownMenuSeparator />
                                         <AlertDialog>
