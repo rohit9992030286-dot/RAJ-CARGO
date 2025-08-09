@@ -5,6 +5,7 @@ import { Waybill } from '@/types/waybill';
 import { Truck } from 'lucide-react';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow, TableCaption, TableFooter } from '@/components/ui/table';
 import { Manifest } from '@/types/manifest';
+import Barcode from 'react-barcode';
 
 interface ManifestPrintProps {
   waybills: Waybill[];
@@ -27,9 +28,17 @@ export function ManifestPrint({ waybills, manifest }: ManifestPrintProps) {
             </div>
         </div>
         <div className="text-right">
-          <h2 className="text-xl font-bold uppercase tracking-wider text-gray-700">Daily Manifest</h2>
-          <p className="text-lg font-semibold text-gray-600">{formattedDate}</p>
-          <p className="text-base font-semibold text-gray-500 mt-1">Vehicle No: {manifest.vehicleNo}</p>
+          <h2 className="text-xl font-bold uppercase tracking-wider text-gray-700">MANIFEST: {manifest.manifestNo}</h2>
+          <div className="flex justify-end">
+             <Barcode 
+                value={manifest.manifestNo}
+                height={35}
+                width={1.2}
+                fontSize={12}
+                displayValue={false}
+             />
+           </div>
+          <p className="text-sm font-semibold text-gray-600 mt-1">Date: {formattedDate} | Vehicle No: {manifest.vehicleNo}</p>
         </div>
       </header>
       
