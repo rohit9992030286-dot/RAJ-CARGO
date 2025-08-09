@@ -41,14 +41,29 @@ function PrintWaybillsContent() {
     );
   }
 
+  const printStyles = `
+    @media print {
+      @page {
+        size: A4;
+        margin: 0.5in;
+      }
+      body {
+        -webkit-print-color-adjust: exact;
+      }
+    }
+  `;
+
   return (
-    <div className="bg-white">
-      {waybillsToPrint.map((waybill, index) => (
-        <div key={waybill.id} className="print:page-break-after-always">
-          <WaybillPrint waybill={waybill} />
-        </div>
-      ))}
-    </div>
+    <>
+      <style>{printStyles}</style>
+      <div className="bg-white">
+        {waybillsToPrint.map((waybill, index) => (
+          <div key={waybill.id} className="print:page-break-after-always">
+            <WaybillPrint waybill={waybill} />
+          </div>
+        ))}
+      </div>
+    </>
   );
 }
 

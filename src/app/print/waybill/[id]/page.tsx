@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
@@ -43,10 +44,25 @@ export default function PrintWaybillPage() {
   if (waybillToPrint === null) {
       return <div>Waybill not found.</div>
   }
+  
+  const printStyles = `
+    @media print {
+      @page {
+        size: A4;
+        margin: 0.5in;
+      }
+      body {
+        -webkit-print-color-adjust: exact;
+      }
+    }
+  `;
 
   return (
-    <div className="bg-white">
-        <WaybillPrint waybill={waybillToPrint} />
-    </div>
+    <>
+      <style>{printStyles}</style>
+      <div className="bg-white">
+          <WaybillPrint waybill={waybillToPrint} />
+      </div>
+    </>
   );
 }
