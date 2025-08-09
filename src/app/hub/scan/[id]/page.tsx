@@ -96,42 +96,39 @@ function ScanManifestPage() {
     if (expectedBoxes.length > 0 && Object.keys(palletAssignments).length === 0 && !isAssignmentLoading && manifest?.status === 'Dispatched') {
         setIsAssignmentLoading(true);
 
-        const citiesOnFloor = new Set<string>();
+        const citiesOnFloor = new Map<string, number>(); // Map city -> pallet number
         const occupiedPallets = new Set<number>();
-
-        const hubReceivedManifests = allManifests.filter(m => ['Received', 'Short Received'].includes(m.status));
-        hubReceivedManifests.forEach(m => {
-            if (m.palletAssignments) {
-                Object.entries(m.palletAssignments).forEach(([city, pallet]) => {
-                    citiesOnFloor.add(city);
-                    occupiedPallets.add(pallet);
-                })
-            }
-        });
-
+        
         const dispatchedFromHubWbIds = new Set(allManifests.filter(m => m.origin === 'hub').flatMap(m => m.waybillIds));
-        citiesOnFloor.forEach(city => {
-            const waybillsInCity = allWaybills.filter(wb => wb.receiverCity.toUpperCase() === city && !dispatchedFromHubWbIds.has(wb.id));
-            if (waybillsInCity.length === 0) {
-                citiesOnFloor.delete(city);
+        const hubReceivedAndNotDispatchedWbIds = new Set(
+            allManifests.filter(m => ['Received', 'Short Received'].includes(m.status))
+            .flatMap(m => m.verifiedBoxIds?.map(boxId => allWaybills.find(wb => wb.waybillNumber === boxId.substring(0, boxId.lastIndexOf('-')))?.id) || [])
+            .filter((id): id is string => !!id && !dispatchedFromHubWbIds.has(id))
+        );
+
+        allManifests.forEach(m => {
+            if ((m.status === 'Received' || m.status === 'Short Received') && m.palletAssignments) {
+                 Object.entries(m.palletAssignments).forEach(([city, pallet]) => {
+                     const cityUpper = city.toUpperCase();
+                     const cityHasActiveWaybills = allWaybills.some(wb => 
+                        wb.receiverCity.toUpperCase() === cityUpper && hubReceivedAndNotDispatchedWbIds.has(wb.id)
+                     );
+
+                     if(cityHasActiveWaybills){
+                        citiesOnFloor.set(cityUpper, pallet);
+                        occupiedPallets.add(pallet);
+                     }
+                 })
             }
-        });
+        })
         
         let nextPallet = 1;
-        const floorPalletAssignments: Record<string, number> = {};
-        citiesOnFloor.forEach(city => {
-            const palletForCity = hubReceivedManifests.find(m => m.palletAssignments?.[city])?.palletAssignments?.[city];
-            if(palletForCity){
-                floorPalletAssignments[city] = palletForCity;
-            }
-        });
-
         const newAssignments: Record<string, number> = {};
         const uniqueCitiesForCurrentManifest = [...new Set(expectedBoxes.map(b => b.destination))];
         
         uniqueCitiesForCurrentManifest.forEach(city => {
-            if (floorPalletAssignments[city]) {
-                newAssignments[city] = floorPalletAssignments[city];
+            if (citiesOnFloor.has(city)) {
+                newAssignments[city] = citiesOnFloor.get(city)!;
             } else {
                 while(occupiedPallets.has(nextPallet)){
                     nextPallet++;
@@ -139,8 +136,9 @@ function ScanManifestPage() {
                 if(nextPallet <= 100) {
                     newAssignments[city] = nextPallet;
                     occupiedPallets.add(nextPallet);
+                    citiesOnFloor.set(city, nextPallet);
                 } else {
-                    newAssignments[city] = 1; // Fallback to 1 if all 100 are somehow taken
+                    newAssignments[city] = 1;
                 }
             }
         });
@@ -205,7 +203,7 @@ function ScanManifestPage() {
     const expiryDate = new Date(expiryDateString);
     const now = new Date();
     if (isBefore(expiryDate, now)) {
-        return { message: "E-Way Bill Expired!", isCritical: true };
+        return { message: "E-WAY BILL EXPIRED!", isCritical: true };
     }
     const hoursLeft = differenceInHours(expiryDate, now);
     if (hoursLeft <= 48) {
@@ -236,7 +234,7 @@ function ScanManifestPage() {
             Dispatched on {format(new Date(manifest.date), 'PPP')} with vehicle {manifest.vehicleNo || 'N/A'}.
           </p>
         </div>
-        <Button onClick={handleSaveAndConfirm} size="lg" disabled={verifiedCount === 0}>
+        <Button onClick={handleSaveAndConfirm} size="lg" disabled={verifiedCount === 0 && manifest.status === 'Dispatched'}>
             <Save className="mr-2 h-5 w-5" />
             Save & Confirm ({verifiedCount}/{totalBoxes})
         </Button>
@@ -355,16 +353,21 @@ function ScanManifestPage() {
                                 )}
                             </TableCell>
                             <TableCell className="font-medium font-mono">{box.boxId}</TableCell>
-                            <TableCell className="flex items-center gap-2">
-                              {box.waybillNumber}
-                              {expiryInfo && (
-                                <AlertTriangle className={cn("h-4 w-4", expiryInfo.isCritical ? "text-destructive" : "text-amber-500")} title={expiryInfo.message} />
-                              )}
+                            <TableCell>
+                              <div className='flex items-center gap-2'>
+                                {box.waybillNumber}
+                                {expiryInfo && (
+                                  <AlertTriangle 
+                                      className={cn("h-4 w-4", expiryInfo.isCritical ? "text-destructive" : "text-amber-500")}
+                                      title={expiryInfo.message} 
+                                  />
+                                )}
+                              </div>
                             </TableCell>
                             <TableCell>{box.destination}</TableCell>
                             <TableCell>
                                 {isAssignmentLoading && !pallet && <Loader2 className="h-4 w-4 animate-spin" />}
-                                {pallet && <span className="font-semibold">{pallet}</span>}
+                                {pallet ? <span className="font-semibold">{pallet}</span> : 'N/A'}
                             </TableCell>
                         </TableRow>
                     );

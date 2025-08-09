@@ -1,90 +1,137 @@
 
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useMemo, useState, useRef, useEffect } from 'react';
 import { useManifests } from '@/hooks/useManifests';
 import { useWaybills } from '@/hooks/useWaybills';
 import { Waybill } from '@/types/waybill';
 import { Card, CardHeader, CardTitle, CardContent, CardDescription, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Loader2, Package, Send, Truck, User, Phone, Briefcase, Building, Layers } from 'lucide-react';
+import { Loader2, Package, Send, Truck, User, Phone, Briefcase, Building, Layers, ScanLine, AlertCircle, CheckCircle, Circle, XCircle } from 'lucide-react';
 import { format } from 'date-fns';
 import { useToast } from '@/hooks/use-toast';
 import { useRouter } from 'next/navigation';
 import { useAuth, User as AuthUser } from '@/hooks/useAuth';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@/components/ui/select';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+
+interface ExpectedBox {
+    waybillId: string;
+    waybillNumber: string;
+    boxNumber: number;
+    totalBoxes: number;
+    boxId: string;
+    destination: string;
+    receiverName: string;
+    pallet?: number;
+}
 
 export default function HubDispatchPage() {
     const { allManifests, isLoaded: manifestsLoaded, addManifest } = useManifests();
     const { allWaybills, isLoaded: waybillsLoaded, updateWaybill } = useWaybills();
     const { users } = useAuth();
-    const [selectedWaybillIds, setSelectedWaybillIds] = useState<string[]>([]);
+    const [scannedBoxIds, setScannedBoxIds] = useState<string[]>([]);
     const { toast } = useToast();
     const router = useRouter();
+    const scanInputRef = useRef<HTMLInputElement>(null);
 
     const [vehicleNo, setVehicleNo] = useState('');
     const [driverName, setDriverName] = useState('');
     const [driverContact, setDriverContact] = useState('');
     const [deliveryPartnerCode, setDeliveryPartnerCode] = useState<string | null>(null);
+    const [error, setError] = useState<string | null>(null);
 
     const deliveryPartners = useMemo(() => {
         return users.filter(u => u.roles.includes('delivery'));
     }, [users]);
+    
+     useEffect(() => {
+        scanInputRef.current?.focus();
+    }, []);
 
-    const verifiedWaybillsForDispatch = useMemo(() => {
+    const expectedBoxesForDispatch = useMemo((): ExpectedBox[] => {
         if (!manifestsLoaded || !waybillsLoaded) return [];
 
         const hubReceivedManifests = allManifests.filter(m => ['Received', 'Short Received'].includes(m.status));
         const dispatchedFromHubWbIds = new Set(allManifests.filter(m => m.origin === 'hub').flatMap(m => m.waybillIds));
         
-        const verifiedWaybillIds = new Set<string>();
+        const palletAssignments = new Map<string, number>();
+        hubReceivedManifests.forEach(m => {
+            if(m.palletAssignments){
+                Object.entries(m.palletAssignments).forEach(([city, pallet]) => {
+                    palletAssignments.set(city.toUpperCase(), pallet);
+                })
+            }
+        });
+        
+        const expectedBoxes: ExpectedBox[] = [];
 
         hubReceivedManifests.forEach(manifest => {
             manifest.verifiedBoxIds?.forEach(boxId => {
                 const waybillNumber = boxId.substring(0, boxId.lastIndexOf('-'));
                 const waybill = allWaybills.find(wb => wb.waybillNumber === waybillNumber);
                 if (waybill && !dispatchedFromHubWbIds.has(waybill.id)) {
-                    verifiedWaybillIds.add(waybill.id);
+                    const boxNumber = parseInt(boxId.substring(boxId.lastIndexOf('-') + 1), 10);
+                    const city = waybill.receiverCity.toUpperCase();
+                    if (!expectedBoxes.some(b => b.boxId === boxId)) {
+                         expectedBoxes.push({
+                            waybillId: waybill.id,
+                            waybillNumber: waybill.waybillNumber,
+                            boxId: boxId,
+                            boxNumber: boxNumber,
+                            totalBoxes: waybill.numberOfBoxes,
+                            destination: city,
+                            receiverName: waybill.receiverName,
+                            pallet: palletAssignments.get(city)
+                        });
+                    }
                 }
             });
         });
         
-        return Array.from(verifiedWaybillIds).map(id => allWaybills.find(wb => wb.id === id)).filter((wb): wb is Waybill => !!wb);
+        return expectedBoxes;
 
     }, [allManifests, allWaybills, manifestsLoaded, waybillsLoaded]);
 
-    const waybillsByCity = useMemo(() => {
-        const hubReceivedManifests = allManifests.filter(m => ['Received', 'Short Received'].includes(m.status));
-
-        return verifiedWaybillsForDispatch.reduce((acc, wb) => {
-            const city = wb.receiverCity.toUpperCase();
+    const boxesByCity = useMemo(() => {
+        return expectedBoxesForDispatch.reduce((acc, box) => {
+            const city = box.destination;
             if (!acc[city]) {
-                acc[city] = { waybills: [], pallet: undefined };
+                acc[city] = { boxes: [], pallet: box.pallet };
             }
-            acc[city].waybills.push(wb);
-
-            if (!acc[city].pallet) {
-                for (const manifest of hubReceivedManifests) {
-                    if (manifest.palletAssignments && manifest.palletAssignments[city]) {
-                        acc[city].pallet = manifest.palletAssignments[city];
-                        break;
-                    }
-                }
-            }
-
+            acc[city].boxes.push(box);
             return acc;
-        }, {} as Record<string, { waybills: Waybill[], pallet?: number }>);
-    }, [verifiedWaybillsForDispatch, allManifests]);
+        }, {} as Record<string, { boxes: ExpectedBox[], pallet?: number }>);
+    }, [expectedBoxesForDispatch]);
 
+    const handleScanBox = (scannedId: string) => {
+        setError(null);
+        if (!scannedId) return;
+
+        const box = expectedBoxesForDispatch.find(b => b.boxId === scannedId);
+        if (!box) {
+            setError(`Box ${scannedId} is not expected for dispatch.`);
+            return;
+        }
+
+        if (scannedBoxIds.includes(scannedId)) {
+            setError(`Box ${scannedId} has already been scanned.`);
+            return;
+        }
+
+        setScannedBoxIds(prev => [...prev, scannedId]);
+        toast({ title: 'Box Loaded', description: `Box ${scannedId} added to manifest.`});
+    };
 
     const handleCreateDispatch = () => {
-        if (selectedWaybillIds.length === 0) {
-            toast({ title: 'No Waybills Selected', description: 'Please select at least one waybill to dispatch.', variant: 'destructive'});
+        const loadedWaybillIds = [...new Set(scannedBoxIds.map(boxId => expectedBoxesForDispatch.find(b => b.boxId === boxId)!.waybillId))];
+
+        if (loadedWaybillIds.length === 0) {
+            toast({ title: 'No Waybills Loaded', description: 'Please scan at least one box to dispatch.', variant: 'destructive'});
             return;
         }
         if (!vehicleNo.trim() || !driverName.trim() || !driverContact.trim() || !deliveryPartnerCode) {
@@ -97,7 +144,7 @@ export default function HubDispatchPage() {
         const newManifestId = addManifest({
             id: crypto.randomUUID(),
             date: new Date().toISOString(),
-            waybillIds: selectedWaybillIds,
+            waybillIds: loadedWaybillIds,
             status: 'Dispatched',
             vehicleNo: vehicleNo,
             driverName: driverName,
@@ -107,8 +154,7 @@ export default function HubDispatchPage() {
             origin: 'hub',
         });
 
-        // Update status of dispatched waybills
-        selectedWaybillIds.forEach(id => {
+        loadedWaybillIds.forEach(id => {
             const waybill = allWaybills.find(wb => wb.id === id);
             if (waybill) {
                 updateWaybill({ ...waybill, status: 'Out for Delivery' });
@@ -117,23 +163,14 @@ export default function HubDispatchPage() {
 
         toast({
             title: 'Manifest Dispatched',
-            description: `Outbound manifest created with ${selectedWaybillIds.length} waybills.`,
+            description: `Outbound manifest created with ${loadedWaybillIds.length} waybills.`,
         });
 
-        setSelectedWaybillIds([]);
+        setScannedBoxIds([]);
         setVehicleNo('');
         setDriverName('');
         setDriverContact('');
         setDeliveryPartnerCode(null);
-    };
-
-    const handleSelectCity = (city: string, checked: boolean) => {
-        const cityWaybillIds = waybillsByCity[city].waybills.map(wb => wb.id);
-        if (checked) {
-            setSelectedWaybillIds(prev => [...new Set([...prev, ...cityWaybillIds])]);
-        } else {
-            setSelectedWaybillIds(prev => prev.filter(id => !cityWaybillIds.includes(id)));
-        }
     };
     
 
@@ -149,34 +186,27 @@ export default function HubDispatchPage() {
         <div className="space-y-8">
             <div>
                 <h1 className="text-3xl font-bold">Outbound Dispatch</h1>
-                <p className="text-muted-foreground">Create and manage manifests for final delivery.</p>
+                <p className="text-muted-foreground">Scan boxes to create manifests for final delivery.</p>
             </div>
             
             <div className="grid lg:grid-cols-3 gap-8 items-start">
                 <div className="lg:col-span-2 space-y-6">
-                     {Object.keys(waybillsByCity).length > 0 ? (
-                        Object.entries(waybillsByCity).map(([city, data]) => {
-                             const cityWaybillIds = data.waybills.map(wb => wb.id);
-                             const isAllSelectedInCity = cityWaybillIds.every(id => selectedWaybillIds.includes(id));
+                     {Object.keys(boxesByCity).length > 0 ? (
+                        Object.entries(boxesByCity).map(([city, data]) => {
+                             const loadedInCity = data.boxes.filter(b => scannedBoxIds.includes(b.boxId)).length;
+                             const totalInCity = data.boxes.length;
+                             const allInCityLoaded = loadedInCity === totalInCity;
 
                             return (
-                                <Card key={city}>
+                                <Card key={city} className={allInCityLoaded ? 'border-green-500' : ''}>
                                     <CardHeader>
                                         <div className="flex items-center justify-between gap-4">
                                             <div className="flex items-center gap-4">
-                                                <div className="flex items-center space-x-2">
-                                                    <Checkbox
-                                                        id={`select-all-${city}`}
-                                                        checked={isAllSelectedInCity}
-                                                        onCheckedChange={(checked) => handleSelectCity(city, !!checked)}
-                                                        aria-label={`Select all for ${city}`}
-                                                    />
-                                                    <label htmlFor={`select-all-${city}`} className="text-lg font-semibold flex items-center gap-2">
-                                                        <Building className="h-5 w-5 text-muted-foreground" />
-                                                        Destination: {city}
-                                                    </label>
-                                                </div>
-                                                <Badge variant="secondary">{data.waybills.length} Waybill(s)</Badge>
+                                                <h3 className="text-lg font-semibold flex items-center gap-2">
+                                                    <Building className="h-5 w-5 text-muted-foreground" />
+                                                    Destination: {city}
+                                                </h3>
+                                                <Badge variant="secondary">{loadedInCity} / {totalInCity} Loaded</Badge>
                                             </div>
                                             {data.pallet && (
                                                 <Badge variant="outline" className="text-base font-bold py-1 px-3">
@@ -190,32 +220,32 @@ export default function HubDispatchPage() {
                                          <Table>
                                             <TableHeader>
                                                 <TableRow>
-                                                    <TableHead className="w-[50px]"></TableHead>
+                                                    <TableHead className="w-[120px]">Status</TableHead>
+                                                    <TableHead>Box ID</TableHead>
                                                     <TableHead>Waybill #</TableHead>
                                                     <TableHead>Receiver</TableHead>
-                                                    <TableHead className="text-center">Pallet #</TableHead>
                                                 </TableRow>
                                             </TableHeader>
                                             <TableBody>
-                                                {data.waybills.map(wb => (
+                                                {data.boxes.map(box => (
                                                     <TableRow 
-                                                        key={wb.id} 
-                                                        data-state={selectedWaybillIds.includes(wb.id) && "selected"}
+                                                        key={box.boxId} 
+                                                        data-state={scannedBoxIds.includes(box.boxId) && "selected"}
                                                     >
-                                                        <TableCell>
-                                                            <Checkbox
-                                                                checked={selectedWaybillIds.includes(wb.id)}
-                                                                onCheckedChange={(checked) => {
-                                                                    setSelectedWaybillIds(prev => 
-                                                                        checked ? [...prev, wb.id] : prev.filter(id => id !== wb.id)
-                                                                    )
-                                                                }}
-                                                                aria-label={`Select waybill ${wb.waybillNumber}`}
-                                                            />
+                                                         <TableCell>
+                                                            {scannedBoxIds.includes(box.boxId) ? (
+                                                                <div className="flex items-center gap-2 text-green-600 font-medium">
+                                                                    <CheckCircle className="h-5 w-5" /> Loaded
+                                                                </div>
+                                                            ) : (
+                                                                <div className="flex items-center gap-2 text-muted-foreground">
+                                                                    <Circle className="h-5 w-5" /> Pending
+                                                                </div>
+                                                            )}
                                                         </TableCell>
-                                                        <TableCell className="font-medium">{wb.waybillNumber}</TableCell>
-                                                        <TableCell>{wb.receiverName}</TableCell>
-                                                        <TableCell className="text-center font-bold">{data.pallet || 'N/A'}</TableCell>
+                                                        <TableCell className="font-mono">{box.boxId}</TableCell>
+                                                        <TableCell className="font-medium">{box.waybillNumber}</TableCell>
+                                                        <TableCell>{box.receiverName}</TableCell>
                                                     </TableRow>
                                                 ))}
                                             </TableBody>
@@ -240,49 +270,74 @@ export default function HubDispatchPage() {
                 <div className="lg:col-span-1">
                     <Card className="sticky top-8">
                         <CardHeader>
-                            <CardTitle>Create Outbound Manifest</CardTitle>
-                            <CardDescription>{selectedWaybillIds.length} waybill(s) selected.</CardDescription>
+                            <CardTitle>Scan to Load & Create Manifest</CardTitle>
+                            <CardDescription>{scannedBoxIds.length} box(es) loaded.</CardDescription>
                         </CardHeader>
                         <CardContent className="space-y-4">
-                             <div>
-                                <Label htmlFor="vehicle-no">Vehicle No.</Label>
-                                <div className="relative">
-                                    <Truck className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
-                                    <Input id="vehicle-no" placeholder="e.g., MH-12-AB-1234" value={vehicleNo} onChange={e => setVehicleNo(e.target.value)} className="pl-10" />
-                                </div>
-                            </div>
                             <div>
-                                <Label htmlFor="driver-name">Driver Name</Label>
-                                 <div className="relative">
-                                    <User className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
-                                    <Input id="driver-name" placeholder="Driver's full name" value={driverName} onChange={e => setDriverName(e.target.value)} className="pl-10"/>
-                                </div>
+                                <Label htmlFor="scan-box">Scan Box Barcode</Label>
+                                <Input
+                                    ref={scanInputRef}
+                                    id="scan-box"
+                                    placeholder="Scan barcode to load..."
+                                    onKeyDown={(e) => {
+                                        if (e.key === 'Enter') {
+                                            handleScanBox(e.currentTarget.value);
+                                            e.currentTarget.value = '';
+                                            e.preventDefault();
+                                        }
+                                    }}
+                                    className="font-mono text-lg h-12"
+                                />
                             </div>
-                             <div>
-                                <Label htmlFor="driver-contact">Driver Contact</Label>
-                                 <div className="relative">
-                                    <Phone className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
-                                    <Input id="driver-contact" placeholder="Driver's phone number" value={driverContact} onChange={e => setDriverContact(e.target.value)} className="pl-10"/>
+                             {error && (
+                                <Alert variant="destructive">
+                                    <AlertCircle className="h-4 w-4" />
+                                    <AlertTitle>Scan Error</AlertTitle>
+                                    <AlertDescription>{error}</AlertDescription>
+                                </Alert>
+                            )}
+                            <div className="space-y-4 pt-4 border-t">
+                                <div>
+                                    <Label htmlFor="vehicle-no">Vehicle No.</Label>
+                                    <div className="relative">
+                                        <Truck className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+                                        <Input id="vehicle-no" placeholder="e.g., MH-12-AB-1234" value={vehicleNo} onChange={e => setVehicleNo(e.target.value)} className="pl-10" />
+                                    </div>
                                 </div>
-                            </div>
-                            <div>
-                                <Label htmlFor="delivery-partner">Assign to Delivery Partner</Label>
-                                <Select value={deliveryPartnerCode || ''} onValueChange={setDeliveryPartnerCode}>
-                                    <SelectTrigger id="delivery-partner" className="mt-1">
-                                        <SelectValue placeholder="Select a delivery partner" />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        {deliveryPartners.map(partner => (
-                                            <SelectItem key={partner.username} value={partner.partnerCode!}>
-                                                {partner.username} ({partner.partnerCode})
-                                            </SelectItem>
-                                        ))}
-                                    </SelectContent>
-                                </Select>
+                                <div>
+                                    <Label htmlFor="driver-name">Driver Name</Label>
+                                    <div className="relative">
+                                        <User className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+                                        <Input id="driver-name" placeholder="Driver's full name" value={driverName} onChange={e => setDriverName(e.target.value)} className="pl-10"/>
+                                    </div>
+                                </div>
+                                <div>
+                                    <Label htmlFor="driver-contact">Driver Contact</Label>
+                                    <div className="relative">
+                                        <Phone className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+                                        <Input id="driver-contact" placeholder="Driver's phone number" value={driverContact} onChange={e => setDriverContact(e.target.value)} className="pl-10"/>
+                                    </div>
+                                </div>
+                                <div>
+                                    <Label htmlFor="delivery-partner">Assign to Delivery Partner</Label>
+                                    <Select value={deliveryPartnerCode || ''} onValueChange={setDeliveryPartnerCode}>
+                                        <SelectTrigger id="delivery-partner" className="mt-1">
+                                            <SelectValue placeholder="Select a delivery partner" />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            {deliveryPartners.map(partner => (
+                                                <SelectItem key={partner.username} value={partner.partnerCode!}>
+                                                    {partner.username} ({partner.partnerCode})
+                                                </SelectItem>
+                                            ))}
+                                        </SelectContent>
+                                    </Select>
+                                </div>
                             </div>
                         </CardContent>
                         <CardFooter>
-                            <Button className="w-full" onClick={handleCreateDispatch} disabled={selectedWaybillIds.length === 0}>
+                            <Button className="w-full" onClick={handleCreateDispatch} disabled={scannedBoxIds.length === 0}>
                                 <Send className="mr-2 h-4 w-4" /> Create & Dispatch Manifest
                             </Button>
                         </CardFooter>
