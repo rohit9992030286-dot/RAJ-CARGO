@@ -130,6 +130,12 @@ export default function EditManifestPage() {
 
   const handleDispatchManifest = () => {
     if (!manifest) return;
+
+    if (manifest.status === 'Dispatched') {
+      toast({ title: "Already Dispatched", description: "This manifest has already been dispatched.", variant: "destructive" });
+      return;
+    }
+    
     if (manifest.waybillIds.length === 0) {
       toast({ title: "Manifest is empty", description: "Add waybills to the manifest before dispatching.", variant: "destructive" });
       return;
