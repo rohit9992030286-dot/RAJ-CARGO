@@ -38,7 +38,7 @@ interface PaymentData {
 }
 
 const BOOKING_COMMISSION = 0.08; // 8%
-const DELIVERY_COMMISSION = 0.25; // 25%
+const DELIVERY_COMMISSION = 0.24; // 24%
 
 function PaymentTable({ data, onExport }: { data: PaymentData[], onExport: () => void }) {
     const totalPayment = data.reduce((acc, p) => acc + p.totalPayment, 0);
@@ -284,7 +284,7 @@ export default function PartnerPaymentsPage() {
             <Card>
                 <CardHeader>
                     <CardTitle>Delivery Partner Commission</CardTitle>
-                    <CardDescription>Payment is calculated as 25% of the total freight charge for each delivered waybill.</CardDescription>
+                    <CardDescription>Payment is calculated as 24% of the total freight charge for each delivered waybill.</CardDescription>
                 </CardHeader>
                 <CardContent>
                     <PaymentTable data={deliveryPaymentData} onExport={() => handleExport('delivery')} />
