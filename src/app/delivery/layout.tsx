@@ -75,7 +75,7 @@ function DeliveryLayoutContent({ children }: { children: React.ReactNode }) {
         if (!isLoading) {
             if (!user) {
                 router.replace('/login');
-            } else if (user.role !== 'admin' && !user.roles?.includes('delivery')) {
+            } else if (user.role !== 'admin' && !user.roles?.includes('delivery') && !user.roles?.includes('booking')) {
                 toast({ title: "Access Denied", description: "You don't have permission to access the delivery module.", variant: "destructive" });
                 router.replace('/dashboard');
             }
@@ -87,7 +87,7 @@ function DeliveryLayoutContent({ children }: { children: React.ReactNode }) {
         router.push('/login');
     };
 
-    if (isLoading || !user || (user.role !== 'admin' && !user.roles?.includes('delivery'))) {
+    if (isLoading || !user || (user.role !== 'admin' && !user.roles?.includes('delivery') && !user.roles?.includes('booking'))) {
         return (
             <div className="flex justify-center items-center h-screen">
                 <Loader2 className="h-16 w-16 animate-spin text-primary" />

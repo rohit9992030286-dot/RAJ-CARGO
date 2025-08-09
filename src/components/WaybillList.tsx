@@ -163,16 +163,9 @@ export function WaybillList({
                             <TableCell>{waybill.receiverName}</TableCell>
                             <TableCell>{waybill.receiverCity}</TableCell>
                             <TableCell>
-                                <DropdownMenu>
-                                    <DropdownMenuTrigger asChild>
-                                        <Button variant="outline" size="sm" className="w-[120px] justify-between" disabled>
-                                            <Badge variant={statusVariantMap[waybill.status] || 'default'} className="p-1">
-                                                {waybill.status}
-                                            </Badge>
-                                             <MoreHorizontal className="w-4 h-4 ml-2" />
-                                        </Button>
-                                    </DropdownMenuTrigger>
-                                </DropdownMenu>
+                                <Badge variant={statusVariantMap[waybill.status] || 'default'} className="p-1">
+                                    {waybill.status}
+                                </Badge>
                             </TableCell>
                             <TableCell className="text-right">
                                <DropdownMenu>
