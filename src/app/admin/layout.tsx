@@ -11,7 +11,7 @@ import { useRouter } from 'next/navigation';
 import { DataProvider } from '@/components/DataContext';
 import { Logo } from '@/components/Logo';
 
-function AdminLayout({
+function AdminLayoutContent({
   children,
 }: {
   children: React.ReactNode;
@@ -131,13 +131,12 @@ function AdminLayout({
   );
 
   return (
-    <DataProvider>
       <div className="flex min-h-screen bg-background">
           <aside className="w-64 bg-card border-r hidden lg:flex lg:flex-col">
           <div className="flex items-center justify-center p-6 border-b">
               <Logo />
           </div>
-          <NavLinks />
+          <NavLinks onLogout={handleLogout} />
           </aside>
           <div className="flex-1 flex flex-col">
           <header className="flex h-16 items-center gap-4 border-b bg-card px-6 lg:hidden">
@@ -155,7 +154,7 @@ function AdminLayout({
                       <div className="flex items-center justify-center p-4 border-b">
                            <Logo />
                       </div>
-                      <NavLinks onLinkClick={handleLinkClick} />
+                      <NavLinks onLinkClick={handleLinkClick} onLogout={handleLogout} />
                   </SheetContent>
               </Sheet>
               <div className="flex-1">
@@ -170,8 +169,14 @@ function AdminLayout({
           </footer>
           </div>
       </div>
-    </DataProvider>
   );
 }
 
-export default AdminLayout;
+
+export default function AdminLayout({ children }: { children: React.ReactNode; }) {
+    return (
+        <DataProvider>
+            <AdminLayoutContent>{children}</AdminLayoutContent>
+        </DataProvider>
+    );
+}
