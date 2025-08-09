@@ -185,6 +185,7 @@ function WaybillsPageContent() {
                       receiverAddress: String(row.receiverAddress || ''),
                       receiverCity: String(row.receiverCity || ''),
                       receiverPincode: String(row.receiverPincode || ''),
+                      receiverState: String(row.receiverState || ''),
                       receiverPhone: String(row.receiverPhone || ''),
                       packageDescription: String(row.packageDescription || ''),
                       status: row.status || 'Pending',
