@@ -8,7 +8,7 @@ import { WaybillList } from '@/components/WaybillList';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardFooter, CardHeader } from '@/components/ui/card';
-import { PlusCircle, FileDown, Printer, ChevronLeft, ChevronRight, Search, FileUp, FileSpreadsheet, Copy, Calendar as CalendarIcon, Loader2 } from 'lucide-react';
+import { PlusCircle, FileDown, Printer, ChevronLeft, ChevronRight, Search, FileUp, FileSpreadsheet, Copy, Calendar as CalendarIcon, Loader2, Truck } from 'lucide-react';
 import * as XLSX from 'xlsx';
 import { saveAs } from 'file-saver';
 import { Waybill, waybillSchema } from '@/types/waybill';
@@ -81,6 +81,16 @@ function WaybillsPageContent() {
     
     return filtered;
   }, [waybills, debouncedSearchTerm, dateRange]);
+  
+  const tripResult = useMemo(() => {
+    if (filteredWaybills.length > 0 && debouncedSearchTerm) {
+        const firstTripNo = filteredWaybills[0].tripNo;
+        if (firstTripNo && filteredWaybills.every(w => w.tripNo === firstTripNo)) {
+            return firstTripNo;
+        }
+    }
+    return null;
+  }, [filteredWaybills, debouncedSearchTerm]);
 
   useEffect(() => {
     setCurrentPage(1);
@@ -249,6 +259,12 @@ function WaybillsPageContent() {
       window.open(`/print/stickers?ids=${ids}`, '_blank');
     }
   };
+  
+  const handlePrintTrip = () => {
+    if (tripResult) {
+       window.open(`/print/trip/${tripResult}`, '_blank');
+    }
+  };
 
   const handleSelectionChange = (id: string, isSelected: boolean) => {
     setSelectedWaybillIds(prev => {
@@ -361,17 +377,24 @@ function WaybillsPageContent() {
                     </Popover>
                     {dateRange && <Button variant="ghost" onClick={() => setDateRange(undefined)}>Clear</Button>}
                  </div>
-                 {selectedWaybillIds.length > 0 && (
-                  <div className="flex items-center gap-2">
-                     <span className="text-sm text-muted-foreground">{selectedWaybillIds.length} selected</span>
-                    <Button onClick={handlePrintSelected} variant="outline" size="sm">
-                        <Printer /> Print Waybills
-                    </Button>
-                    <Button onClick={handlePrintSelectedStickers} variant="outline" size="sm">
-                        <Copy /> Print Stickers
-                    </Button>
-                  </div>
-                )}
+                 <div className="flex items-center gap-2">
+                    {tripResult && (
+                        <Button onClick={handlePrintTrip} variant="outline" size="sm">
+                            <Truck className="mr-2 h-4 w-4" /> Print Trip Sheet
+                        </Button>
+                    )}
+                    {selectedWaybillIds.length > 0 && (
+                        <>
+                            <span className="text-sm text-muted-foreground">{selectedWaybillIds.length} selected</span>
+                            <Button onClick={handlePrintSelected} variant="outline" size="sm">
+                                <Printer /> Print Waybills
+                            </Button>
+                            <Button onClick={handlePrintSelectedStickers} variant="outline" size="sm">
+                                <Copy /> Print Stickers
+                            </Button>
+                        </>
+                    )}
+                 </div>
                </div>
             </CardHeader>
             <CardContent>
