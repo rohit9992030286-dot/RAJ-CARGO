@@ -5,6 +5,7 @@ import { z } from 'zod';
 const baseWaybillSchema = z.object({
   waybillNumber: z.string().min(1, 'Waybill number is required.'),
   invoiceNumber: z.string().min(1, 'Invoice number is required.'),
+  tripNo: z.string().optional(),
   eWayBillNo: z.string().optional(),
   eWayBillExpiryDate: z.string().optional(),
   

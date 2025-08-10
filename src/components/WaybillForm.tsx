@@ -10,7 +10,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
 import { Waybill, waybillFormSchema, WaybillFormData } from '@/types/waybill';
-import { User, Phone, Package, Weight, Calendar, ListChecks, Save, XCircle, MapPin, Hash, Box, IndianRupee, Clock, Building, Globe, Loader2, FileText } from 'lucide-react';
+import { User, Phone, Package, Weight, Calendar, ListChecks, Save, XCircle, MapPin, Hash, Box, IndianRupee, Clock, Building, Globe, Loader2, FileText, Truck } from 'lucide-react';
 import { Textarea } from './ui/textarea';
 import { useState, useEffect } from 'react';
 import { useWaybillInventory } from '@/hooks/useWaybillInventory';
@@ -21,6 +21,7 @@ const getInitialValues = (initialData?: Waybill): WaybillFormData => {
     const defaults = {
         waybillNumber: '',
         invoiceNumber: '',
+        tripNo: '',
         eWayBillNo: '',
         eWayBillExpiryDate: '',
         senderName: '',
@@ -380,11 +381,27 @@ export function WaybillForm({ initialData, onSave, onCancel }: WaybillFormProps)
                     </FormItem>
                     )}
                 />
+                 <FormField
+                    control={form.control}
+                    name="tripNo"
+                    render={({ field }) => (
+                    <FormItem>
+                        <FormLabel>Trip No.</FormLabel>
+                        <div className="relative">
+                        <FormControl>
+                            <Input placeholder="e.g., T-101" {...field} className="pl-10" />
+                        </FormControl>
+                        <IconWrapper><Truck /></IconWrapper>
+                        </div>
+                        <FormMessage />
+                    </FormItem>
+                    )}
+                />
               <FormField
                 control={form.control}
                 name="packageDescription"
                 render={({ field }) => (
-                  <FormItem className="lg:col-span-2">
+                  <FormItem>
                     <FormLabel>Package Description</FormLabel>
                     <FormControl>
                       <Textarea

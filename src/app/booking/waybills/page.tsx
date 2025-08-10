@@ -61,6 +61,7 @@ function WaybillsPageContent() {
       filtered = filtered.filter(w => 
           w.waybillNumber.toLowerCase().includes(lowercasedTerm) ||
           w.invoiceNumber.toLowerCase().includes(lowercasedTerm) ||
+          (w.tripNo && w.tripNo.toLowerCase().includes(lowercasedTerm)) ||
           w.senderName.toLowerCase().includes(lowercasedTerm) ||
           w.receiverName.toLowerCase().includes(lowercasedTerm) ||
           w.receiverCity.toLowerCase().includes(lowercasedTerm)
@@ -319,7 +320,7 @@ function WaybillsPageContent() {
                         <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
                         <Input 
                             type="search"
-                            placeholder="Search by waybill #, name, city..."
+                            placeholder="Search by waybill #, trip #, name, city..."
                             value={searchTerm}
                             onChange={(e) => setSearchTerm(e.target.value)}
                             className="pl-10"
