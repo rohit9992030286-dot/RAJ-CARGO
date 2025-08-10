@@ -19,7 +19,7 @@ export function ManifestPrint({ waybills, manifest }: ManifestPrintProps) {
 
   return (
     <div className="p-8 bg-white text-black font-sans max-w-4xl mx-auto print:shadow-none print:p-2">
-      <header className="flex justify-between items-start pb-4 border-b-2 border-black">
+      <header className="flex justify-between items-start p-4 border-2 border-black rounded-t-lg">
         <div className="flex items-center gap-3">
             <Truck className="h-10 w-10 text-primary" />
             <div>
@@ -42,7 +42,7 @@ export function ManifestPrint({ waybills, manifest }: ManifestPrintProps) {
         </div>
       </header>
       
-      <main className="my-8">
+      <main className="my-4 p-4 border-2 border-black rounded-lg">
         <Table>
           <TableHeader>
             <TableRow>
@@ -77,7 +77,7 @@ export function ManifestPrint({ waybills, manifest }: ManifestPrintProps) {
         </Table>
       </main>
 
-       <footer className="mt-12 pt-6 border-t-2 border-dashed border-gray-300 grid grid-cols-2 gap-8 text-sm">
+       <footer className="mt-4 p-4 border-2 border-black rounded-b-lg grid grid-cols-2 gap-8 text-sm">
         <div>
             <p className="font-bold mb-2">Driver's Name: <span className="font-normal">{manifest.driverName || '____________________'}</span></p>
             <p className="font-bold mb-2 mt-4">Driver's Contact: <span className="font-normal">{manifest.driverContact || '____________________'}</span></p>
