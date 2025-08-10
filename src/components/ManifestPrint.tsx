@@ -21,14 +21,14 @@ export function ManifestPrint({ waybills, manifest }: ManifestPrintProps) {
     <div className="p-8 bg-white text-black font-sans max-w-4xl mx-auto print:shadow-none print:p-2">
       <header className="flex justify-between items-start p-4 border-2 border-black rounded-t-lg">
         <div className="flex items-center gap-3">
-            <Truck className="h-10 w-10 text-primary" />
+            <Truck className="h-10 w-10 text-black" />
             <div>
-                <h1 className="text-3xl font-bold text-primary">RAJ CARGO</h1>
-                <p className="text-muted-foreground">Transport & Courier Service</p>
+                <h1 className="text-3xl font-bold text-black">RAJ CARGO</h1>
+                <p className="text-black">Transport & Courier Service</p>
             </div>
         </div>
         <div className="text-right">
-          <h2 className="text-xl font-bold uppercase tracking-wider text-gray-700">MANIFEST: {manifest.manifestNo}</h2>
+          <h2 className="text-xl font-bold uppercase tracking-wider text-black">MANIFEST: {manifest.manifestNo}</h2>
           <div className="flex justify-end">
              <Barcode 
                 value={manifest.manifestNo}
@@ -38,7 +38,7 @@ export function ManifestPrint({ waybills, manifest }: ManifestPrintProps) {
                 displayValue={false}
              />
            </div>
-          <p className="text-sm font-semibold text-gray-600 mt-1">Date: {formattedDate} | Vehicle No: {manifest.vehicleNo}</p>
+          <p className="text-sm font-semibold text-black mt-1">Date: {formattedDate} | Vehicle No: {manifest.vehicleNo}</p>
         </div>
       </header>
       
