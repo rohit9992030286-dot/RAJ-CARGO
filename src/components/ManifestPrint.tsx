@@ -16,15 +16,18 @@ export function ManifestPrint({ waybills, manifest }: ManifestPrintProps) {
   const totalBoxes = waybills.reduce((acc, w) => acc + w.numberOfBoxes, 0);
   const totalWeight = waybills.reduce((acc, w) => acc + w.packageWeight, 0);
   const formattedDate = manifest.date ? new Date(manifest.date).toLocaleDateString() : 'N/A';
+  
+  const borderedCell = "border-r border-black last:border-r-0";
 
   return (
-    <div className="p-8 bg-white text-black font-sans max-w-4xl mx-auto print:shadow-none print:p-2">
-      <header className="flex justify-between items-start p-4 border-2 border-black rounded-t-lg">
+    <div className="p-4 bg-white text-black font-sans max-w-4xl mx-auto print:shadow-none print:p-2">
+      <header className="flex justify-between items-start p-4 border-2 border-black">
         <div className="flex items-center gap-3">
             <Truck className="h-10 w-10 text-black" />
             <div>
                 <h1 className="text-3xl font-bold text-black">RAJ CARGO</h1>
-                <p className="text-black">Transport & Courier Service</p>
+                <p className="text-black text-sm">DELHI NAJAFGARH. PINCODE 110048</p>
+                <p className="text-black text-sm">EMAIL: RAJ89CARGO@GMAIL.COM</p>
             </div>
         </div>
         <div className="text-right">
@@ -42,42 +45,44 @@ export function ManifestPrint({ waybills, manifest }: ManifestPrintProps) {
         </div>
       </header>
       
-      <main className="my-4 p-4 border-2 border-black rounded-lg">
+      <main className="my-4 border-2 border-black border-b-0">
         <Table>
           <TableHeader>
-            <TableRow>
-              <TableHead className="w-[120px]">Waybill #</TableHead>
-              <TableHead>Sender</TableHead>
-              <TableHead>Receiver</TableHead>
-              <TableHead>Destination</TableHead>
-              <TableHead className="text-right">Boxes</TableHead>
+            <TableRow className="border-b-2 border-black">
+              <TableHead className={`w-[50px] ${borderedCell}`}>S.No.</TableHead>
+              <TableHead className={`w-[140px] ${borderedCell}`}>Waybill #</TableHead>
+              <TableHead className={borderedCell}>Sender</TableHead>
+              <TableHead className={borderedCell}>Receiver</TableHead>
+              <TableHead className={borderedCell}>Destination</TableHead>
+              <TableHead className={`text-right ${borderedCell}`}>Boxes</TableHead>
               <TableHead className="text-right">Weight (kg)</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
-            {waybills.map((waybill) => (
+            {waybills.map((waybill, index) => (
               <TableRow key={waybill.id}>
-                <TableCell className="font-medium">{waybill.waybillNumber}</TableCell>
-                <TableCell>{waybill.senderName}</TableCell>
-                <TableCell>{waybill.receiverName}</TableCell>
-                <TableCell>{waybill.receiverCity}, {waybill.receiverPincode}</TableCell>
-                <TableCell className="text-right">{waybill.numberOfBoxes}</TableCell>
+                <TableCell className={`font-medium ${borderedCell}`}>{index + 1}</TableCell>
+                <TableCell className={`font-medium ${borderedCell}`}>{waybill.waybillNumber}</TableCell>
+                <TableCell className={borderedCell}>{waybill.senderName}</TableCell>
+                <TableCell className={borderedCell}>{waybill.receiverName}</TableCell>
+                <TableCell className={borderedCell}>{waybill.receiverCity}, {waybill.receiverPincode}</TableCell>
+                <TableCell className={`text-right ${borderedCell}`}>{waybill.numberOfBoxes}</TableCell>
                 <TableCell className="text-right">{waybill.packageWeight.toFixed(2)}</TableCell>
               </TableRow>
             ))}
           </TableBody>
           <TableFooter>
-            <TableRow className="font-bold text-base bg-gray-100">
-              <TableCell colSpan={4}>Totals</TableCell>
-              <TableCell className="text-right">{totalBoxes}</TableCell>
+            <TableRow className="font-bold text-base bg-gray-100 border-t-2 border-black">
+              <TableCell colSpan={5} className={borderedCell}>Totals</TableCell>
+              <TableCell className={`text-right ${borderedCell}`}>{totalBoxes}</TableCell>
               <TableCell className="text-right">{totalWeight.toFixed(2)}</TableCell>
             </TableRow>
           </TableFooter>
-          <TableCaption>Manifest generated on {new Date().toLocaleString()}. Total of {waybills.length} waybills.</TableCaption>
+          <TableCaption className="border-t border-black">Manifest generated on {new Date().toLocaleString()}. Total of {waybills.length} waybills.</TableCaption>
         </Table>
       </main>
 
-       <footer className="mt-4 p-4 border-2 border-black rounded-b-lg grid grid-cols-2 gap-8 text-sm">
+       <footer className="mt-4 p-4 border-2 border-black grid grid-cols-2 gap-8 text-sm">
         <div>
             <p className="font-bold mb-2">Driver's Name: <span className="font-normal">{manifest.driverName || '____________________'}</span></p>
             <p className="font-bold mb-2 mt-4">Driver's Contact: <span className="font-normal">{manifest.driverContact || '____________________'}</span></p>
