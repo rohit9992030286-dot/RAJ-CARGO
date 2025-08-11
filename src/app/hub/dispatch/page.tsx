@@ -18,6 +18,7 @@ import { useAuth, User as AuthUser } from '@/hooks/useAuth';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@/components/ui/select';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { useVehicles } from '@/hooks/useVehicles';
 
 interface ExpectedBox {
     waybillId: string;
@@ -34,13 +35,14 @@ export default function HubDispatchPage() {
     const { allManifests, isLoaded: manifestsLoaded, addManifest } = useManifests();
     const { allWaybills, isLoaded: waybillsLoaded, updateWaybill } = useWaybills();
     const { users } = useAuth();
+    const { vehicles, isLoaded: vehiclesLoaded } = useVehicles();
     const [scannedBoxIds, setScannedBoxIds] = useState<string[]>([]);
     const { toast } = useToast();
     const router = useRouter();
     const scanInputRef = useRef<HTMLInputElement>(null);
     const [scanInputValue, setScanInputValue] = useState('');
 
-    const [vehicleNo, setVehicleNo] = useState('');
+    const [selectedVehicleId, setSelectedVehicleId] = useState<string | null>(null);
     const [driverName, setDriverName] = useState('');
     const [driverContact, setDriverContact] = useState('');
     const [deliveryPartnerCode, setDeliveryPartnerCode] = useState<string | null>(null);
@@ -53,6 +55,21 @@ export default function HubDispatchPage() {
      useEffect(() => {
         scanInputRef.current?.focus();
     }, []);
+
+    useEffect(() => {
+        if (selectedVehicleId) {
+            const vehicle = vehicles.find(v => v.id === selectedVehicleId);
+            if(vehicle) {
+                setDriverName(vehicle.driverName);
+                // For simplicity, let's assume vehicle object has driverContact.
+                // If not, you'd fetch it or it'd be part of the vehicle object.
+                // setDriverContact(vehicle.driverContact || ''); 
+            }
+        } else {
+            setDriverName('');
+            setDriverContact('');
+        }
+    }, [selectedVehicleId, vehicles]);
 
     const expectedBoxesForDispatch = useMemo((): ExpectedBox[] => {
         if (!manifestsLoaded || !waybillsLoaded) return [];
@@ -136,13 +153,14 @@ export default function HubDispatchPage() {
 
     const handleCreateDispatch = () => {
         const loadedWaybillIds = [...new Set(scannedBoxIds.map(boxId => expectedBoxesForDispatch.find(b => b.boxId === boxId)!.waybillId))];
+        const selectedVehicle = vehicles.find(v => v.id === selectedVehicleId);
 
         if (loadedWaybillIds.length === 0) {
             toast({ title: 'No Waybills Loaded', description: 'Please scan at least one box to dispatch.', variant: 'destructive'});
             return;
         }
-        if (!vehicleNo.trim() || !driverName.trim() || !driverContact.trim() || !deliveryPartnerCode) {
-            toast({ title: 'All Fields Required', description: 'Please fill in all vehicle, driver, and delivery partner details.', variant: 'destructive'});
+        if (!selectedVehicle || !deliveryPartnerCode) {
+            toast({ title: 'All Fields Required', description: 'Please select a vehicle and a delivery partner.', variant: 'destructive'});
             return;
         }
 
@@ -153,9 +171,9 @@ export default function HubDispatchPage() {
             date: new Date().toISOString(),
             waybillIds: loadedWaybillIds,
             status: 'Dispatched',
-            vehicleNo: vehicleNo,
-            driverName: driverName,
-            driverContact: driverContact,
+            vehicleNo: selectedVehicle.vehicleNumber,
+            driverName: selectedVehicle.driverName,
+            driverContact: '', // Assuming vehicle object doesn't have driver contact
             deliveryPartnerCode: deliveryPartnerCode,
             deliveryPartnerName: partner?.username,
             origin: 'hub',
@@ -174,14 +192,12 @@ export default function HubDispatchPage() {
         });
 
         setScannedBoxIds([]);
-        setVehicleNo('');
-        setDriverName('');
-        setDriverContact('');
+        setSelectedVehicleId(null);
         setDeliveryPartnerCode(null);
     };
     
 
-    if (!manifestsLoaded || !waybillsLoaded) {
+    if (!manifestsLoaded || !waybillsLoaded || !vehiclesLoaded) {
         return (
             <div className="flex justify-center items-center h-64">
                 <Loader2 className="h-16 w-16 animate-spin text-primary" />
@@ -312,23 +328,31 @@ export default function HubDispatchPage() {
                             <div className="space-y-4 pt-4 border-t">
                                 <div>
                                     <Label htmlFor="vehicle-no">Vehicle No.</Label>
-                                    <div className="relative">
-                                        <Truck className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
-                                        <Input id="vehicle-no" placeholder="e.g., MH-12-AB-1234" value={vehicleNo} onChange={e => setVehicleNo(e.target.value)} className="pl-10" />
-                                    </div>
+                                    <Select value={selectedVehicleId || ''} onValueChange={setSelectedVehicleId}>
+                                        <SelectTrigger id="vehicle-no" className="mt-1">
+                                            <SelectValue placeholder="Select a vehicle" />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            {vehicles.map(v => (
+                                                <SelectItem key={v.id} value={v.id}>
+                                                    {v.vehicleNumber} ({v.driverName})
+                                                </SelectItem>
+                                            ))}
+                                        </SelectContent>
+                                    </Select>
                                 </div>
                                 <div>
                                     <Label htmlFor="driver-name">Driver Name</Label>
                                     <div className="relative">
                                         <User className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
-                                        <Input id="driver-name" placeholder="Driver's full name" value={driverName} onChange={e => setDriverName(e.target.value)} className="pl-10"/>
+                                        <Input id="driver-name" placeholder="Driver's name" value={driverName} disabled className="pl-10"/>
                                     </div>
                                 </div>
                                 <div>
                                     <Label htmlFor="driver-contact">Driver Contact</Label>
                                     <div className="relative">
                                         <Phone className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
-                                        <Input id="driver-contact" placeholder="Driver's phone number" value={driverContact} onChange={e => setDriverContact(e.target.value)} className="pl-10"/>
+                                        <Input id="driver-contact" placeholder="Driver's phone" value={driverContact} disabled className="pl-10"/>
                                     </div>
                                 </div>
                                 <div>

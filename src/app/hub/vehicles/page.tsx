@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Card, CardHeader, CardTitle, CardContent, CardDescription, CardFooter } from '@/components/ui/card';
@@ -14,11 +14,15 @@ import { Loader2, PlusCircle, Trash2, Pencil, Car, User, Map, IndianRupee, Save,
 import { Vehicle, vehicleSchema } from '@/types/vehicle';
 import { useVehicles } from '@/hooks/useVehicles';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { useManifests } from '@/hooks/useManifests';
+import { format } from 'date-fns';
+import { Badge } from '@/components/ui/badge';
 
 type VehicleFormData = Omit<Vehicle, 'id'>;
 
 export default function VehicleManagementPage() {
   const { vehicles, addVehicle, updateVehicle, deleteVehicle, isLoaded } = useVehicles();
+  const { allManifests, isLoaded: manifestsLoaded } = useManifests();
   const [editingVehicle, setEditingVehicle] = useState<Vehicle | null>(null);
   const { toast } = useToast();
 
@@ -59,8 +63,23 @@ export default function VehicleManagementPage() {
     setEditingVehicle(null);
     form.reset({ vehicleNumber: '', driverName: '', route: '', routePrice: 0, vehicleType: 'Market' });
   };
+  
+  const vehicleLastDispatch = useMemo(() => {
+    if (!manifestsLoaded) return new Map();
+    const dispatchMap = new Map<string, { manifestNo: string, date: string }>();
 
-  if (!isLoaded) {
+    allManifests
+        .filter(m => m.origin === 'hub' && m.vehicleNo)
+        .sort((a,b) => new Date(b.date).getTime() - new Date(a.date).getTime())
+        .forEach(m => {
+            if (!dispatchMap.has(m.vehicleNo!)) {
+                dispatchMap.set(m.vehicleNo!, { manifestNo: m.manifestNo, date: m.date });
+            }
+        });
+    return dispatchMap;
+  }, [allManifests, manifestsLoaded]);
+
+  if (!isLoaded || !manifestsLoaded) {
     return <div className="flex justify-center items-center h-64"><Loader2 className="h-16 w-16 animate-spin text-primary" /></div>;
   }
 
@@ -137,7 +156,7 @@ export default function VehicleManagementPage() {
         <Card className="md:col-span-2">
           <CardHeader>
             <CardTitle>Vehicle List</CardTitle>
-            <CardDescription>A list of all registered vehicles.</CardDescription>
+            <CardDescription>A list of all registered vehicles and their last dispatch.</CardDescription>
           </CardHeader>
           <CardContent>
             <Table>
@@ -145,32 +164,33 @@ export default function VehicleManagementPage() {
                 <TableRow>
                   <TableHead>Vehicle #</TableHead>
                   <TableHead>Driver</TableHead>
-                  <TableHead>Route</TableHead>
-                  <TableHead>Price</TableHead>
-                  <TableHead>Type</TableHead>
+                  <TableHead>Last Dispatch</TableHead>
+                  <TableHead>Last Manifest</TableHead>
                   <TableHead className="text-right">Actions</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {vehicles.length > 0 ? vehicles.map((v) => (
-                  <TableRow key={v.id}>
-                    <TableCell className="font-mono">{v.vehicleNumber}</TableCell>
-                    <TableCell className="font-medium">{v.driverName}</TableCell>
-                    <TableCell>{v.route}</TableCell>
-                    <TableCell>₹{v.routePrice.toLocaleString('en-IN')}</TableCell>
-                    <TableCell>{v.vehicleType}</TableCell>
-                    <TableCell className="text-right">
-                       <Button variant="ghost" size="icon" onClick={() => handleEdit(v)}>
-                          <Pencil className="h-4 w-4" />
-                       </Button>
-                       <Button variant="ghost" size="icon" onClick={() => deleteVehicle(v.id)}>
-                          <Trash2 className="h-4 w-4 text-destructive" />
-                       </Button>
-                    </TableCell>
-                  </TableRow>
-                )) : (
+                {vehicles.length > 0 ? vehicles.map((v) => {
+                  const lastDispatch = vehicleLastDispatch.get(v.vehicleNumber);
+                  return (
+                    <TableRow key={v.id}>
+                        <TableCell className="font-mono">{v.vehicleNumber}</TableCell>
+                        <TableCell className="font-medium">{v.driverName}</TableCell>
+                        <TableCell>{lastDispatch ? format(new Date(lastDispatch.date), 'PP') : 'N/A'}</TableCell>
+                        <TableCell>{lastDispatch ? <Badge variant="secondary">{lastDispatch.manifestNo}</Badge> : 'N/A'}</TableCell>
+                        <TableCell className="text-right">
+                        <Button variant="ghost" size="icon" onClick={() => handleEdit(v)}>
+                            <Pencil className="h-4 w-4" />
+                        </Button>
+                        <Button variant="ghost" size="icon" onClick={() => deleteVehicle(v.id)}>
+                            <Trash2 className="h-4 w-4 text-destructive" />
+                        </Button>
+                        </TableCell>
+                    </TableRow>
+                  );
+                }) : (
                   <TableRow>
-                    <TableCell colSpan={6} className="h-24 text-center">
+                    <TableCell colSpan={5} className="h-24 text-center">
                          <div className="text-center py-8">
                             <Car className="mx-auto h-12 w-12 text-muted-foreground" />
                             <h3 className="mt-4 text-lg font-semibold">No Vehicles Found</h3>
