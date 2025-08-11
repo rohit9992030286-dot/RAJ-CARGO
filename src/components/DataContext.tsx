@@ -16,12 +16,18 @@ const WAYBILL_INVENTORY_KEY = 'rajcargo-waybill-inventory';
 const COMPANY_STORAGE_KEY = 'rajcargo-companies';
 const PARTNER_ASSOCIATIONS_KEY = 'rajcargo-hub-partner-associations';
 
+interface Associations {
+    bookingToHub: Record<string, string>;
+    hubToHub: Record<string, string>;
+    hubToDelivery: Record<string, string>;
+}
+
 interface DataContextType {
   waybills: Waybill[];
   manifests: Manifest[];
   waybillInventory: InventoryItem[];
   companies: Company[];
-  associations: Record<string, string>;
+  associations: Associations;
   isLoaded: boolean;
   addWaybill: (waybill: Waybill, silent?: boolean) => boolean;
   updateWaybill: (updatedWaybill: Waybill) => void;
@@ -40,7 +46,7 @@ interface DataContextType {
   deleteCompany: (id: string) => void;
   getCompanyById: (id: string) => Company | undefined;
   getCompanyByCode: (code: string) => Company | undefined;
-  setAssociation: (fromPartner: string, toHub: string) => void;
+  setAssociation: (type: keyof Associations, fromPartner: string, toPartner: string) => void;
 }
 
 export const DataContext = createContext<DataContextType | undefined>(undefined);
@@ -50,7 +56,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
   const [manifestsData, setManifestsData] = useState<Manifest[]>([]);
   const [waybillInventoryData, setWaybillInventoryData] = useState<InventoryItem[]>([]);
   const [companies, setCompanies] = useState<Company[]>([]);
-  const [associations, setAssociations] = useState<Record<string, string>>({});
+  const [associations, setAssociations] = useState<Associations>({ bookingToHub: {}, hubToHub: {}, hubToDelivery: {} });
   const [isDataLoaded, setIsDataLoaded] = useState(false);
   const { toast } = useToast();
   const { user } = useAuth();
@@ -88,7 +94,19 @@ export function DataProvider({ children }: { children: ReactNode }) {
       if (companyItems) setCompanies(JSON.parse(companyItems));
 
       const associationItems = window.localStorage.getItem(PARTNER_ASSOCIATIONS_KEY);
-      if(associationItems) setAssociations(JSON.parse(associationItems));
+      if(associationItems) {
+          const parsedAssociations = JSON.parse(associationItems);
+          // For backward compatibility: if old format (Record<string,string>), convert it.
+          if (!parsedAssociations.bookingToHub && !parsedAssociations.hubToHub && !parsedAssociations.hubToDelivery) {
+              setAssociations({ bookingToHub: parsedAssociations, hubToHub: {}, hubToDelivery: {} });
+          } else {
+              setAssociations({
+                  bookingToHub: parsedAssociations.bookingToHub || {},
+                  hubToHub: parsedAssociations.hubToHub || {},
+                  hubToDelivery: parsedAssociations.hubToDelivery || {},
+              });
+          }
+      }
 
     } catch (error) {
       console.error('Failed to load data from local storage', error);
@@ -221,10 +239,13 @@ export function DataProvider({ children }: { children: ReactNode }) {
   const getCompanyById = useCallback((id: string) => companies.find(c => c.id === id), [companies]);
   const getCompanyByCode = useCallback((code: string) => companies.find(c => c.companyCode === code), [companies]);
 
-  const setAssociation = useCallback((fromPartner: string, toHub: string) => {
+  const setAssociation = useCallback((type: keyof Associations, fromPartner: string, toPartner: string) => {
     setAssociations(prev => ({
         ...prev,
-        [fromPartner]: toHub,
+        [type]: {
+            ...prev[type],
+            [fromPartner]: toPartner
+        }
     }));
   }, []);
 
