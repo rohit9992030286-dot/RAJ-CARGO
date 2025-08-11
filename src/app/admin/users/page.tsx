@@ -32,6 +32,7 @@ import { useCompanies } from '@/hooks/useCompanies';
 
 const userFormSchema = z.object({
   username: z.string().min(3, 'Username must be at least 3 characters.'),
+  partnerName: z.string().min(2, 'Partner name is required.'),
   password: z.string().min(6, 'Password must be at least 6 characters.'),
   partnerCode: z.string().min(1, 'Partner code is required.'),
   companyCode: z.string().optional(),
@@ -59,6 +60,7 @@ export default function UserManagementPage() {
     resolver: zodResolver(userFormSchema),
     defaultValues: {
       username: '',
+      partnerName: '',
       password: '',
       partnerCode: '',
       roles: [],
@@ -72,13 +74,14 @@ export default function UserManagementPage() {
     if (editingUser) {
         form.reset({
             username: editingUser.username,
+            partnerName: editingUser.partnerName,
             password: editingUser.password,
             partnerCode: editingUser.partnerCode,
             roles: editingUser.roles,
             companyCode: editingUser.companyCode,
         });
     } else {
-        form.reset({ username: '', password: '', partnerCode: '', roles: [], companyCode: '' });
+        form.reset({ username: '', partnerName: '', password: '', partnerCode: '', roles: [], companyCode: '' });
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [editingUser]);
@@ -170,6 +173,20 @@ export default function UserManagementPage() {
                                 <FormLabel>Username</FormLabel>
                                 <div className="relative">
                                     <FormControl><Input {...field} placeholder="e.g., john.doe" className="pl-10" disabled={!!editingUser} /></FormControl>
+                                    <UserIcon className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+                                </div>
+                                <FormMessage />
+                            </FormItem>
+                        )}
+                    />
+                     <FormField
+                        control={form.control}
+                        name="partnerName"
+                        render={({ field }) => (
+                            <FormItem>
+                                <FormLabel>Partner Name</FormLabel>
+                                <div className="relative">
+                                    <FormControl><Input {...field} placeholder="e.g., John Doe Logistics" className="pl-10" /></FormControl>
                                     <UserIcon className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
                                 </div>
                                 <FormMessage />
@@ -299,7 +316,8 @@ export default function UserManagementPage() {
                     <TableHeader>
                         <TableRow>
                             <TableHead>Username</TableHead>
-                            <TableHead>Partner</TableHead>
+                            <TableHead>Partner Name</TableHead>
+                            <TableHead>Partner Code</TableHead>
                             <TableHead>Company</TableHead>
                             <TableHead>Roles</TableHead>
                             <TableHead className="text-right">Action</TableHead>
@@ -309,6 +327,7 @@ export default function UserManagementPage() {
                         {users.map((u) => (
                             <TableRow key={u.username}>
                                 <TableCell>{u.username}</TableCell>
+                                <TableCell className="font-medium">{u.partnerName}</TableCell>
                                 <TableCell><Badge variant="outline">{u.partnerCode}</Badge></TableCell>
                                 <TableCell>
                                     {u.companyCode ? (

@@ -8,6 +8,7 @@ export const USERS_STORAGE_KEY = 'rajcargo-users';
 
 export interface User {
   username: string;
+  partnerName?: string;
   role: 'admin' | 'staff';
   roles: ('booking' | 'hub' | 'delivery' | 'account')[];
   partnerCode?: string;
@@ -34,6 +35,7 @@ export const AuthContext = createContext<AuthContextType | undefined>(undefined)
 
 export const DEFAULT_ADMIN_USER: NewUser = {
   username: 'admin',
+  partnerName: 'Main Administrator',
   password: 'admin',
   role: 'admin' as 'admin',
   roles: ['booking', 'hub', 'delivery', 'account'],
@@ -56,6 +58,7 @@ export function useProvideAuth() {
         // Ensure all users have a roles array for backward compatibility
         const migratedUsers = parsedUsers.map((u: NewUser) => ({
           ...u,
+          partnerName: u.partnerName || u.username,
           roles: u.roles?.filter(r => ['booking', 'hub', 'delivery', 'account'].includes(r)) || (u.role === 'admin' ? ['booking', 'hub', 'delivery', 'account'] : [])
         }));
         setUsers(migratedUsers);
@@ -88,6 +91,7 @@ export function useProvideAuth() {
     if (userToLogin && userToLogin.password === password) {
       const loggedInUser: User = { 
         username: userToLogin.username, 
+        partnerName: userToLogin.partnerName || userToLogin.username,
         role: userToLogin.role,
         roles: userToLogin.roles?.filter((r:string) => ['booking', 'hub', 'delivery', 'account'].includes(r)) || [],
         partnerCode: userToLogin.partnerCode,
