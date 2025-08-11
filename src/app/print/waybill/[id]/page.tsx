@@ -1,13 +1,15 @@
 
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, Suspense } from 'react';
 import { useParams } from 'next/navigation';
 import { useWaybills } from '@/hooks/useWaybills';
 import { WaybillPrint } from '@/components/WaybillPrint';
 import { Waybill } from '@/types/waybill';
+import { DataProvider } from '@/components/DataContext';
+import { Loader2 } from 'lucide-react';
 
-export default function PrintWaybillPage() {
+function PrintWaybillContent() {
   const params = useParams();
   const { getWaybillById, isLoaded } = useWaybills();
   const [waybillToPrint, setWaybillToPrint] = useState<Waybill | null | undefined>(undefined);
@@ -24,7 +26,6 @@ export default function PrintWaybillPage() {
 
   useEffect(() => {
     if (waybillToPrint && !printTriggered.current) {
-      printTriggered.current = true;
       // Use a short timeout to ensure the content is rendered before printing
       const timer = setTimeout(() => {
         window.print();
@@ -36,7 +37,7 @@ export default function PrintWaybillPage() {
   if (!isLoaded || waybillToPrint === undefined) {
     return (
       <div className="flex justify-center items-center h-screen bg-white">
-        <div className="animate-spin rounded-full h-16 w-16 border-t-2 border-b-2 border-primary"></div>
+        <Loader2 className="h-16 w-16 animate-spin text-primary" />
       </div>
     );
   }
@@ -65,4 +66,20 @@ export default function PrintWaybillPage() {
       </div>
     </>
   );
+}
+
+function PrintWaybillPageWrapper() {
+    return (
+        <Suspense fallback={<div className="flex justify-center items-center h-screen bg-white"><Loader2 className="h-16 w-16 animate-spin text-primary" /></div>}>
+            <PrintWaybillContent />
+        </Suspense>
+    )
+}
+
+export default function PrintWaybillPage() {
+    return (
+        <DataProvider>
+            <PrintWaybillPageWrapper />
+        </DataProvider>
+    )
 }
