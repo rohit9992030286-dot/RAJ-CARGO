@@ -33,8 +33,8 @@ export function WaybillPrint({ waybill }: WaybillPrintProps) {
             <Truck className="h-10 w-10 text-black" />
             <div>
                 <h1 className="text-3xl font-bold text-black">RAJ CARGO</h1>
-                <p className="text-sm text-black">DELHI NAJAFGARH. PINCODE 110048</p>
-                <p className="text-sm text-black">EMAIL: RAJ89CARGO@GMAIL.COM</p>
+                <p className="text-black text-sm">DELHI NAJAFGARH. PINCODE 110048</p>
+                <p className="text-black text-sm">EMAIL: RAJ89CARGO@GMAIL.COM</p>
             </div>
         </div>
         <div className="text-right">
@@ -119,6 +119,18 @@ export function WaybillPrint({ waybill }: WaybillPrintProps) {
             <p>{waybill.packageDescription}</p>
          </div>
       </section>
+
+      {/* Terms & Conditions */}
+      <section className="my-6">
+        <h3 className="text-md font-bold uppercase tracking-wider text-black mb-3">Terms & Conditions</h3>
+        <div className="p-4 border-2 border-black rounded-lg text-xs space-y-1">
+          <p>1. All shipments are carried at the sender's risk. RAJ CARGO is not liable for any loss or damage unless insurance is purchased.</p>
+          <p>2. Do not release the package or waybill copy without confirming the identity of the authorized receiver.</p>
+          <p>3. The liability of RAJ CARGO is limited to the declared value of the goods or ₹1,000, whichever is lower, unless otherwise specified.</p>
+          <p>4. Prohibited items will not be accepted. The sender is responsible for any legal consequences arising from shipping restricted goods.</p>
+        </div>
+      </section>
+
 
       {/* Footer */}
       <footer className="mt-8 pt-4 border-t-2 border-dashed border-gray-400 text-center">
