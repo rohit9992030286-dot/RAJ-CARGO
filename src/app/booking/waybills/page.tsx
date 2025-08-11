@@ -186,6 +186,7 @@ function WaybillsPageContent() {
                       id: crypto.randomUUID(),
                       waybillNumber: String(row.waybillNumber || ''),
                       invoiceNumber: String(row.invoiceNumber || ''),
+                      tripNo: String(row.tripNo || ''),
                       eWayBillNo: String(row.eWayBillNo || ''),
                       senderName: String(row.senderName || ''),
                       senderAddress: String(row.senderAddress || ''),
