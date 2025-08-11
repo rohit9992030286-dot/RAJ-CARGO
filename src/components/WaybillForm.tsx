@@ -12,7 +12,7 @@ import { useToast } from '@/hooks/use-toast';
 import { Waybill, waybillFormSchema, WaybillFormData } from '@/types/waybill';
 import { User, Phone, Package, Weight, Calendar, ListChecks, Save, XCircle, MapPin, Hash, Box, IndianRupee, Clock, Building, Globe, Loader2, FileText, Truck } from 'lucide-react';
 import { Textarea } from './ui/textarea';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useWaybillInventory } from '@/hooks/useWaybillInventory';
 import { useAuth } from '@/hooks/useAuth';
 import { useCompanies } from '@/hooks/useCompanies';
@@ -43,6 +43,7 @@ const getInitialValues = (initialData?: Waybill): WaybillFormData => {
         shippingTime: new Date().toTimeString().split(' ')[0].substring(0, 5),
         status: 'Pending' as 'Pending',
         partnerCode: '',
+        companyCode: '',
     };
     
     if (initialData) {
@@ -62,9 +63,9 @@ interface WaybillFormProps {
 
 export function WaybillForm({ initialData, onSave, onCancel }: WaybillFormProps) {
   const { toast } = useToast();
-  const { availablePartnerInventory, isInventoryLoaded } = useWaybillInventory();
+  const { getAvailableInventoryForCompany, isInventoryLoaded } = useWaybillInventory();
   const { user } = useAuth();
-  const { getCompanyByCode, isLoaded: companiesLoaded } = useCompanies();
+  const { companies, getCompanyByCode, isLoaded: companiesLoaded } = useCompanies();
 
   const form = useForm<WaybillFormData>({
     resolver: zodResolver(waybillFormSchema),
@@ -76,6 +77,16 @@ export function WaybillForm({ initialData, onSave, onCancel }: WaybillFormProps)
       control: form.control,
       name: 'shipmentValue'
   });
+  
+  const selectedCompanyCode = useWatch({
+      control: form.control,
+      name: 'companyCode'
+  });
+
+  const availableInventory = useMemo(() => {
+    return getAvailableInventoryForCompany(selectedCompanyCode);
+  }, [getAvailableInventoryForCompany, selectedCompanyCode]);
+
 
   useEffect(() => {
     const values = getInitialValues(initialData);
@@ -111,6 +122,16 @@ export function WaybillForm({ initialData, onSave, onCancel }: WaybillFormProps)
     form.reset(values);
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [initialData, user, companiesLoaded]);
+  
+  useEffect(() => {
+    // When the company changes, if the currently selected waybill number is no longer
+    // in the available list, reset it.
+    const currentWb = form.getValues('waybillNumber');
+    if (currentWb && !availableInventory.some(inv => inv.waybillNumber === currentWb)) {
+        form.setValue('waybillNumber', '');
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedCompanyCode, availableInventory]);
 
   const onSubmit = (data: WaybillFormData) => {
     const waybillToSave: Waybill = {
@@ -145,6 +166,30 @@ export function WaybillForm({ initialData, onSave, onCancel }: WaybillFormProps)
               <CardTitle>Sender Information</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
+               <FormField
+                control={form.control}
+                name="companyCode"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Company</FormLabel>
+                    <Select onValueChange={field.onChange} value={field.value} defaultValue={field.value}>
+                        <FormControl>
+                            <div className="relative">
+                            <SelectTrigger className="pl-10">
+                                <SelectValue placeholder="Select a Company (for Market booking)" />
+                            </SelectTrigger>
+                            <IconWrapper><Building /></IconWrapper>
+                            </div>
+                        </FormControl>
+                        <SelectContent>
+                            <SelectItem value="">Market Booking</SelectItem>
+                            {companies.map(c => <SelectItem key={c.id} value={c.companyCode!}>{c.companyName} ({c.companyCode})</SelectItem>)}
+                        </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
               <FormField
                 control={form.control}
                 name="senderName"
@@ -343,7 +388,7 @@ export function WaybillForm({ initialData, onSave, onCancel }: WaybillFormProps)
                     render={({ field }) => (
                     <FormItem>
                         <FormLabel>Waybill Number</FormLabel>
-                        <Select onValueChange={field.onChange} defaultValue={field.value} disabled={!!initialData}>
+                        <Select onValueChange={field.onChange} value={field.value} defaultValue={field.value} disabled={!!initialData}>
                             <FormControl>
                                 <div className="relative">
                                 <SelectTrigger className="pl-10">
@@ -354,7 +399,7 @@ export function WaybillForm({ initialData, onSave, onCancel }: WaybillFormProps)
                             </FormControl>
                             <SelectContent>
                                 {initialData && <SelectItem value={initialData.waybillNumber}>{initialData.waybillNumber}</SelectItem>}
-                                {availablePartnerInventory.map(item => (
+                                {availableInventory.map(item => (
                                     <SelectItem key={item.waybillNumber} value={item.waybillNumber}>
                                         {item.waybillNumber}
                                     </SelectItem>

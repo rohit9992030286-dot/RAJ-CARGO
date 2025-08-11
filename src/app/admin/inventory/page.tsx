@@ -9,18 +9,21 @@ import { Card, CardHeader, CardTitle, CardContent, CardDescription } from '@/com
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Loader2, PlusCircle, Trash2, List, Hash, Briefcase, CheckCircle, Circle, AlertCircle } from 'lucide-react';
+import { Loader2, PlusCircle, Trash2, List, Hash, Briefcase, CheckCircle, Circle, AlertCircle, Building } from 'lucide-react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { InventoryItem } from '@/types/inventory';
 import { Badge } from '@/components/ui/badge';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { useCompanies } from '@/hooks/useCompanies';
 
 export default function InventoryManagementPage() {
   const { users, isLoading: usersLoading } = useAuth();
   const { waybillInventory, addWaybillToInventory, removeWaybillFromInventory, isInventoryLoaded } = useWaybillInventory();
+  const { companies, isLoaded: companiesLoaded } = useCompanies();
   const { toast } = useToast();
 
   const [partnerCode, setPartnerCode] = useState<string | null>(null);
+  const [companyCode, setCompanyCode] = useState<string>('market'); // Default to market
   const [waybillRange, setWaybillRange] = useState('');
   const [error, setError] = useState<string | null>(null);
 
@@ -30,13 +33,19 @@ export default function InventoryManagementPage() {
 
   const inventoryByPartner = useMemo(() => {
     return waybillInventory.reduce((acc, item) => {
-      if (!acc[item.partnerCode]) {
-        acc[item.partnerCode] = [];
+      const key = `${item.partnerCode}-${item.companyCode || 'market'}`;
+      if (!acc[key]) {
+        acc[key] = {
+            partnerCode: item.partnerCode,
+            companyCode: item.companyCode,
+            companyName: item.companyCode ? companies.find(c => c.companyCode === item.companyCode)?.companyName : 'Market (All Users)',
+            items: []
+        };
       }
-      acc[item.partnerCode].push(item);
+      acc[key].items.push(item);
       return acc;
-    }, {} as Record<string, InventoryItem[]>);
-  }, [waybillInventory]);
+    }, {} as Record<string, { partnerCode: string, companyCode?: string, companyName?: string, items: InventoryItem[] }>);
+  }, [waybillInventory, companies]);
 
   const handleAddInventory = () => {
     setError(null);
@@ -56,7 +65,12 @@ export default function InventoryManagementPage() {
     let skippedCount = 0;
 
     const addSingle = (num: string) => {
-      const newItem: InventoryItem = { waybillNumber: num, partnerCode, isUsed: false };
+      const newItem: InventoryItem = { 
+          waybillNumber: num, 
+          partnerCode, 
+          isUsed: false,
+          companyCode: companyCode === 'market' ? undefined : companyCode
+      };
       if (addWaybillToInventory(newItem)) {
         addedCount++;
       } else {
@@ -104,7 +118,7 @@ export default function InventoryManagementPage() {
     toast({ title: 'Inventory Removed', description: `Waybill number ${waybillNumber} has been deleted.` });
   };
 
-  if (usersLoading || !isInventoryLoaded) {
+  if (usersLoading || !isInventoryLoaded || !companiesLoaded) {
     return (
       <div className="flex justify-center items-center h-64">
         <Loader2 className="h-16 w-16 animate-spin text-primary" />
@@ -116,21 +130,30 @@ export default function InventoryManagementPage() {
     <div className="space-y-8 max-w-6xl mx-auto">
       <div>
         <h1 className="text-3xl font-bold">Waybill Inventory Management</h1>
-        <p className="text-muted-foreground">Assign waybill numbers to specific booking partners.</p>
+        <p className="text-muted-foreground">Assign waybill numbers to specific booking partners and companies.</p>
       </div>
 
       <Card>
         <CardHeader>
           <CardTitle>Assign New Inventory</CardTitle>
-          <CardDescription>Enter a single number (e.g., SW-101), or a range (e.g., SW-101-200) and assign to a partner.</CardDescription>
+          <CardDescription>Enter a waybill number or range and assign it to a partner and optionally a company.</CardDescription>
         </CardHeader>
-        <CardContent className="grid sm:grid-cols-3 gap-4">
+        <CardContent className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
           <Select value={partnerCode || ''} onValueChange={setPartnerCode}>
             <SelectTrigger>
               <SelectValue placeholder="Select Partner Code" />
             </SelectTrigger>
             <SelectContent>
               {bookingPartners.map(code => <SelectItem key={code} value={code}>{code}</SelectItem>)}
+            </SelectContent>
+          </Select>
+           <Select value={companyCode} onValueChange={setCompanyCode}>
+            <SelectTrigger>
+              <SelectValue placeholder="Select Company (Optional)" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="market">Market (All Users)</SelectItem>
+              {companies.map(c => <SelectItem key={c.id} value={c.companyCode}>{c.companyName}</SelectItem>)}
             </SelectContent>
           </Select>
           <Input 
@@ -161,12 +184,18 @@ export default function InventoryManagementPage() {
         </CardHeader>
         <CardContent className="space-y-6">
           {Object.keys(inventoryByPartner).length > 0 ? (
-            Object.entries(inventoryByPartner).map(([partner, items]) => (
-              <div key={partner} className="border p-4 rounded-lg">
-                <h3 className="font-semibold text-lg flex items-center gap-2 mb-2">
-                  <Briefcase className="h-5 w-5 text-primary"/>
-                  Partner: <Badge>{partner}</Badge>
-                </h3>
+            Object.values(inventoryByPartner).map((group) => (
+              <div key={`${group.partnerCode}-${group.companyCode}`} className="border p-4 rounded-lg">
+                <div className="flex items-center gap-4 mb-2">
+                    <h3 className="font-semibold text-lg flex items-center gap-2">
+                        <Briefcase className="h-5 w-5 text-primary"/>
+                        Partner: <Badge>{group.partnerCode}</Badge>
+                    </h3>
+                    <h3 className="font-semibold text-lg flex items-center gap-2">
+                        <Building className="h-5 w-5 text-muted-foreground"/>
+                        Company: <Badge variant="secondary">{group.companyName}</Badge>
+                    </h3>
+                </div>
                 <div className="border rounded-md max-h-72 overflow-y-auto">
                   <Table>
                     <TableHeader className="sticky top-0 bg-muted/50">
@@ -177,7 +206,7 @@ export default function InventoryManagementPage() {
                       </TableRow>
                     </TableHeader>
                     <TableBody>
-                      {items.map(item => (
+                      {group.items.map(item => (
                         <TableRow key={item.waybillNumber}>
                           <TableCell className="font-mono"><Hash className="inline h-4 w-4 mr-2" />{item.waybillNumber}</TableCell>
                           <TableCell>
