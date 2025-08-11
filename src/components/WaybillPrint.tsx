@@ -82,6 +82,11 @@ export function WaybillPrint({ waybill }: WaybillPrintProps) {
                 <p className="text-sm">{new Date(waybill.shippingDate).toLocaleDateString()}</p>
             </div>
             <div className="p-3 rounded-lg border-2 border-black">
+                <Hash className="h-6 w-6 text-black mx-auto mb-1" />
+                <p className="font-semibold text-black text-xs">Invoice #</p>
+                <p className="text-sm truncate">{waybill.invoiceNumber}</p>
+            </div>
+            <div className="p-3 rounded-lg border-2 border-black">
                 <Box className="h-6 w-6 text-black mx-auto mb-1" />
                 <p className="font-semibold text-black text-xs">Total Boxes</p>
                 <p className="text-xl font-bold">{waybill.numberOfBoxes}</p>
@@ -91,7 +96,7 @@ export function WaybillPrint({ waybill }: WaybillPrintProps) {
                 <p className="font-semibold text-black text-xs">Total Weight</p>
                 <p className="text-xl font-bold">{waybill.packageWeight} kg</p>
             </div>
-             <div className="p-3 rounded-lg border-2 border-black">
+             <div className="p-3 rounded-lg border-2 border-black col-span-2">
                 <Cpu className="h-6 w-6 text-black mx-auto mb-1" />
                 <p className="font-semibold text-black text-xs">Hub Name</p>
                 <p className="text-sm font-bold truncate">{getHubName()}</p>
@@ -102,7 +107,7 @@ export function WaybillPrint({ waybill }: WaybillPrintProps) {
                 <p className="text-xl font-bold">₹{waybill.shipmentValue.toFixed(2)}</p>
             </div>
              {waybill.shipmentValue >= 50000 && waybill.eWayBillNo && (
-                 <div className="p-3 rounded-lg border-2 border-black col-span-2">
+                 <div className="p-3 rounded-lg border-2 border-black col-span-4">
                     <FileText className="h-6 w-6 text-black mx-auto mb-1" />
                     <p className="font-semibold text-black text-xs">E-Way Bill Number</p>
                     <p className="text-lg font-bold font-mono">{waybill.eWayBillNo}</p>
