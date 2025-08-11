@@ -49,7 +49,7 @@ export default function RateManagementPage() {
   
   const uniqueStates = useMemo(() => {
     if (!waybillsLoaded) return [];
-    const states = allWaybills.map(wb => wb.receiverState.trim()).filter(Boolean);
+    const states = allWaybills.map(wb => wb.receiverState?.trim()).filter(Boolean);
     return [...new Set(states)].sort();
   }, [allWaybills, waybillsLoaded]);
 
@@ -222,7 +222,7 @@ export default function RateManagementPage() {
                         <SelectTrigger><SelectValue placeholder="Select State" /></SelectTrigger>
                        </FormControl>
                        <SelectContent>
-                         {uniqueStates.map(state => <SelectItem key={state} value={state}>{state}</SelectItem>)}
+                         {uniqueStates.map(state => <SelectItem key={state} value={state as string}>{state}</SelectItem>)}
                        </SelectContent>
                     </Select>
                     <FormMessage />
