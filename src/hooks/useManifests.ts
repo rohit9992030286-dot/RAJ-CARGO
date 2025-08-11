@@ -14,7 +14,7 @@ export function useManifests() {
     throw new Error('useManifests must be used within a DataProvider');
   }
 
-  const { manifests, isLoaded } = context;
+  const { manifests, isLoaded, associations } = context;
 
   const filteredManifests = useMemo(() => {
     if (!user || !isLoaded) return [];
@@ -31,9 +31,19 @@ export function useManifests() {
         return manifests.filter(manifest => manifest.origin === 'booking' && manifest.creatorPartnerCode === userPartnerCode);
     }
 
-    // Hub users see manifests dispatched by booking offices to verify
+    // Hub users see manifests dispatched by booking offices or other hubs to them
     if (userRoles.includes('hub')) {
-        return manifests.filter(manifest => manifest.status === 'Dispatched' && manifest.origin === 'booking');
+        return manifests.filter(manifest => {
+            if (manifest.status !== 'Dispatched') return false;
+            if (manifest.origin === 'booking') {
+                const destinationHub = associations.bookingToHub[manifest.creatorPartnerCode];
+                return destinationHub === userPartnerCode;
+            }
+            if (manifest.origin === 'hub') {
+                 return manifest.destinationHubCode === userPartnerCode;
+            }
+            return false;
+        });
     }
 
     // Delivery users see manifests assigned to them
@@ -43,7 +53,7 @@ export function useManifests() {
     
     return [];
 
-  }, [manifests, user, isLoaded]);
+  }, [manifests, user, isLoaded, associations]);
 
 
   return {

@@ -10,15 +10,16 @@ import { Button } from '@/components/ui/button';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Loader2, Package, Send, Truck, User, Phone, Briefcase, Building, Layers, ScanLine, AlertCircle, CheckCircle, Circle, XCircle } from 'lucide-react';
+import { Loader2, Package, Send, Truck, User, Phone, Briefcase, Building, Layers, ScanLine, AlertCircle, CheckCircle, Circle, XCircle, Cpu } from 'lucide-react';
 import { format } from 'date-fns';
 import { useToast } from '@/hooks/use-toast';
 import { useRouter } from 'next/navigation';
-import { useAuth, User as AuthUser } from '@/hooks/useAuth';
+import { useAuth, User as AuthUser } from '@/hooks/useAuth.tsx';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@/components/ui/select';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { useVehicles } from '@/hooks/useVehicles';
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 interface ExpectedBox {
     waybillId: string;
@@ -31,26 +32,31 @@ interface ExpectedBox {
     pallet?: number;
 }
 
+type DispatchType = 'delivery' | 'hub';
+
 export default function HubDispatchPage() {
     const { allManifests, isLoaded: manifestsLoaded, addManifest } = useManifests();
     const { allWaybills, isLoaded: waybillsLoaded, updateWaybill } = useWaybills();
-    const { users } = useAuth();
+    const { user, users } = useAuth();
     const { vehicles, isLoaded: vehiclesLoaded } = useVehicles();
     const [scannedBoxIds, setScannedBoxIds] = useState<string[]>([]);
     const { toast } = useToast();
     const router = useRouter();
     const scanInputRef = useRef<HTMLInputElement>(null);
     const [scanInputValue, setScanInputValue] = useState('');
+    const [dispatchType, setDispatchType] = useState<DispatchType>('delivery');
 
     const [selectedVehicleId, setSelectedVehicleId] = useState<string | null>(null);
     const [driverName, setDriverName] = useState('');
     const [driverContact, setDriverContact] = useState('');
-    const [deliveryPartnerCode, setDeliveryPartnerCode] = useState<string | null>(null);
+    const [destinationPartnerCode, setDestinationPartnerCode] = useState<string | null>(null);
     const [error, setError] = useState<string | null>(null);
 
-    const deliveryPartners = useMemo(() => {
-        return users.filter(u => u.roles.includes('delivery'));
-    }, [users]);
+    const { deliveryPartners, hubPartners } = useMemo(() => {
+        const deliveryPartners = users.filter(u => u.roles.includes('delivery'));
+        const hubPartners = users.filter(u => u.roles.includes('hub') && u.username !== user?.username);
+        return { deliveryPartners, hubPartners };
+    }, [users, user]);
     
      useEffect(() => {
         scanInputRef.current?.focus();
@@ -61,15 +67,16 @@ export default function HubDispatchPage() {
             const vehicle = vehicles.find(v => v.id === selectedVehicleId);
             if(vehicle) {
                 setDriverName(vehicle.driverName);
-                // For simplicity, let's assume vehicle object has driverContact.
-                // If not, you'd fetch it or it'd be part of the vehicle object.
-                // setDriverContact(vehicle.driverContact || ''); 
             }
         } else {
             setDriverName('');
             setDriverContact('');
         }
     }, [selectedVehicleId, vehicles]);
+
+    useEffect(() => {
+      setDestinationPartnerCode(null);
+    }, [dispatchType])
 
     const expectedBoxesForDispatch = useMemo((): ExpectedBox[] => {
         if (!manifestsLoaded || !waybillsLoaded) return [];
@@ -159,30 +166,43 @@ export default function HubDispatchPage() {
             toast({ title: 'No Waybills Loaded', description: 'Please scan at least one box to dispatch.', variant: 'destructive'});
             return;
         }
-        if (!selectedVehicle || !deliveryPartnerCode) {
-            toast({ title: 'All Fields Required', description: 'Please select a vehicle and a delivery partner.', variant: 'destructive'});
+        if (!selectedVehicle || !destinationPartnerCode) {
+            toast({ title: 'All Fields Required', description: 'Please select a vehicle and a destination partner/hub.', variant: 'destructive'});
             return;
         }
 
-        const partner = deliveryPartners.find(p => p.partnerCode === deliveryPartnerCode);
+        let deliveryDetails = {};
+        if(dispatchType === 'delivery') {
+            const partner = deliveryPartners.find(p => p.partnerCode === destinationPartnerCode);
+            deliveryDetails = {
+                deliveryPartnerCode: destinationPartnerCode,
+                deliveryPartnerName: partner?.username,
+            }
+        } else { // hub
+             const partner = hubPartners.find(p => p.partnerCode === destinationPartnerCode);
+            deliveryDetails = {
+                destinationHubCode: destinationPartnerCode,
+                destinationHubName: partner?.username,
+            }
+        }
 
-        const newManifestId = addManifest({
+        addManifest({
             id: crypto.randomUUID(),
             date: new Date().toISOString(),
             waybillIds: loadedWaybillIds,
             status: 'Dispatched',
             vehicleNo: selectedVehicle.vehicleNumber,
             driverName: selectedVehicle.driverName,
-            driverContact: '', // Assuming vehicle object doesn't have driver contact
-            deliveryPartnerCode: deliveryPartnerCode,
-            deliveryPartnerName: partner?.username,
+            driverContact: '',
             origin: 'hub',
+            ...deliveryDetails
         });
 
         loadedWaybillIds.forEach(id => {
             const waybill = allWaybills.find(wb => wb.id === id);
             if (waybill) {
-                updateWaybill({ ...waybill, status: 'Out for Delivery' });
+                const newStatus = dispatchType === 'delivery' ? 'Out for Delivery' : 'In Transit';
+                updateWaybill({ ...waybill, status: newStatus });
             }
         });
 
@@ -193,7 +213,7 @@ export default function HubDispatchPage() {
 
         setScannedBoxIds([]);
         setSelectedVehicleId(null);
-        setDeliveryPartnerCode(null);
+        setDestinationPartnerCode(null);
     };
     
 
@@ -205,11 +225,14 @@ export default function HubDispatchPage() {
         );
     }
 
+    const partnerList = dispatchType === 'delivery' ? deliveryPartners : hubPartners;
+    const partnerTypeLabel = dispatchType === 'delivery' ? 'Delivery Partner' : 'Hub';
+
     return (
         <div className="space-y-8">
             <div>
                 <h1 className="text-3xl font-bold">Outbound Dispatch</h1>
-                <p className="text-muted-foreground">Scan boxes to create manifests for final delivery.</p>
+                <p className="text-muted-foreground">Scan boxes to create manifests for final delivery or hub transfer.</p>
             </div>
             
             <div className="grid lg:grid-cols-3 gap-8 items-start">
@@ -327,6 +350,15 @@ export default function HubDispatchPage() {
                             )}
                             <div className="space-y-4 pt-4 border-t">
                                 <div>
+                                    <Label>Dispatch Type</Label>
+                                    <Tabs value={dispatchType} onValueChange={(v) => setDispatchType(v as DispatchType)} className="w-full mt-1">
+                                      <TabsList className="grid w-full grid-cols-2">
+                                        <TabsTrigger value="delivery"><Truck className="mr-2 h-4 w-4"/>To Delivery</TabsTrigger>
+                                        <TabsTrigger value="hub"><Cpu className="mr-2 h-4 w-4"/>To Hub</TabsTrigger>
+                                      </TabsList>
+                                    </Tabs>
+                                </div>
+                                <div>
                                     <Label htmlFor="vehicle-no">Vehicle No.</Label>
                                     <Select value={selectedVehicleId || ''} onValueChange={setSelectedVehicleId}>
                                         <SelectTrigger id="vehicle-no" className="mt-1">
@@ -349,20 +381,13 @@ export default function HubDispatchPage() {
                                     </div>
                                 </div>
                                 <div>
-                                    <Label htmlFor="driver-contact">Driver Contact</Label>
-                                    <div className="relative">
-                                        <Phone className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
-                                        <Input id="driver-contact" placeholder="Driver's phone" value={driverContact} disabled className="pl-10"/>
-                                    </div>
-                                </div>
-                                <div>
-                                    <Label htmlFor="delivery-partner">Assign to Delivery Partner</Label>
-                                    <Select value={deliveryPartnerCode || ''} onValueChange={setDeliveryPartnerCode}>
+                                    <Label htmlFor="delivery-partner">Assign to {partnerTypeLabel}</Label>
+                                    <Select value={destinationPartnerCode || ''} onValueChange={setDestinationPartnerCode}>
                                         <SelectTrigger id="delivery-partner" className="mt-1">
-                                            <SelectValue placeholder="Select a delivery partner" />
+                                            <SelectValue placeholder={`Select a ${partnerTypeLabel.toLowerCase()}`} />
                                         </SelectTrigger>
                                         <SelectContent>
-                                            {deliveryPartners.map(partner => (
+                                            {partnerList.map(partner => (
                                                 <SelectItem key={partner.username} value={partner.partnerCode!}>
                                                     {partner.username} ({partner.partnerCode})
                                                 </SelectItem>

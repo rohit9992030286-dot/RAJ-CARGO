@@ -185,9 +185,10 @@ export function DataProvider({ children }: { children: ReactNode }) {
   const getWaybillById = useCallback((id: string) => waybillsData.find(w => w.id === id), [waybillsData]);
 
   const addManifest = useCallback((manifest: Omit<Manifest, 'creatorPartnerCode' | 'manifestNo'>) => {
-    const bookingManifestsCount = manifestsData.filter(m => m.origin === 'booking').length;
-    const hubManifestsCount = manifestsData.filter(m => m.origin === 'hub').length;
-    const newManifestNumber = manifest.origin === 'hub' ? `M-D-RC-${1000001 + hubManifestsCount}` : `M-RC-${1001 + bookingManifestsCount}`;
+    const hubManifests = manifestsData.filter(m => m.origin === 'hub');
+    const hubManifestCount = hubManifests.length;
+    const bookingManifestCount = manifestsData.length - hubManifestCount;
+    const newManifestNumber = manifest.origin === 'hub' ? `M-D-RC-${1000001 + hubManifestCount}` : `M-RC-${1001 + bookingManifestCount}`;
 
     const manifestToSave: Manifest = { ...manifest, manifestNo: newManifestNumber, creatorPartnerCode: user?.partnerCode || '' };
     setManifestsData(prev => [manifestToSave, ...prev]);

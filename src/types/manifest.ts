@@ -16,6 +16,8 @@ export const manifestSchema = z.object({
   palletAssignments: z.record(z.number()).optional(),
   deliveryPartnerCode: z.string().optional(),
   deliveryPartnerName: z.string().optional(),
+  destinationHubCode: z.string().optional(),
+  destinationHubName: z.string().optional(),
 });
 
 export type Manifest = z.infer<typeof manifestSchema>;
