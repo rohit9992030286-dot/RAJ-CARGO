@@ -9,12 +9,14 @@ import { Loader2 } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth.tsx';
 import { InventoryItem } from '@/types/inventory';
 import { Company, CompanyFormData } from '@/types/company';
+import { Vehicle, VehicleFormData } from '@/types/vehicle';
 
 const WAYBILL_STORAGE_KEY = 'rajcargo-waybills';
 const MANIFEST_STORAGE_KEY = 'rajcargo-manifests';
 const WAYBILL_INVENTORY_KEY = 'rajcargo-waybill-inventory';
 const COMPANY_STORAGE_KEY = 'rajcargo-companies';
 const PARTNER_ASSOCIATIONS_KEY = 'rajcargo-hub-partner-associations';
+const VEHICLE_STORAGE_KEY = 'rajcargo-vehicles';
 
 interface Associations {
     bookingToHub: Record<string, string>;
@@ -28,6 +30,7 @@ interface DataContextType {
   waybillInventory: InventoryItem[];
   companies: Company[];
   associations: Associations;
+  vehicles: Vehicle[];
   isLoaded: boolean;
   addWaybill: (waybill: Waybill, silent?: boolean) => boolean;
   updateWaybill: (updatedWaybill: Waybill) => void;
@@ -47,6 +50,9 @@ interface DataContextType {
   getCompanyById: (id: string) => Company | undefined;
   getCompanyByCode: (code: string) => Company | undefined;
   setAssociation: (type: keyof Associations, fromPartner: string, toPartner: string) => void;
+  addVehicle: (vehicleData: VehicleFormData) => boolean;
+  updateVehicle: (updatedVehicle: Vehicle) => boolean;
+  deleteVehicle: (id: string) => void;
 }
 
 export const DataContext = createContext<DataContextType | undefined>(undefined);
@@ -57,6 +63,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
   const [waybillInventoryData, setWaybillInventoryData] = useState<InventoryItem[]>([]);
   const [companies, setCompanies] = useState<Company[]>([]);
   const [associations, setAssociations] = useState<Associations>({ bookingToHub: {}, hubToHub: {}, hubToDelivery: {} });
+  const [vehicles, setVehicles] = useState<Vehicle[]>([]);
   const [isDataLoaded, setIsDataLoaded] = useState(false);
   const { toast } = useToast();
   const { user } = useAuth();
@@ -108,6 +115,9 @@ export function DataProvider({ children }: { children: ReactNode }) {
           }
       }
 
+      const vehicleItems = window.localStorage.getItem(VEHICLE_STORAGE_KEY);
+      if (vehicleItems) setVehicles(JSON.parse(vehicleItems));
+
     } catch (error) {
       console.error('Failed to load data from local storage', error);
       toast({ title: 'Error', description: 'Could not load data from local storage.', variant: 'destructive' });
@@ -121,12 +131,14 @@ export function DataProvider({ children }: { children: ReactNode }) {
   useEffect(() => { if (isDataLoaded) window.localStorage.setItem(WAYBILL_INVENTORY_KEY, JSON.stringify(waybillInventoryData)); }, [waybillInventoryData, isDataLoaded]);
   useEffect(() => { if (isDataLoaded) window.localStorage.setItem(COMPANY_STORAGE_KEY, JSON.stringify(companies)); }, [companies, isDataLoaded]);
   useEffect(() => { if (isDataLoaded) window.localStorage.setItem(PARTNER_ASSOCIATIONS_KEY, JSON.stringify(associations)); }, [associations, isDataLoaded]);
+  useEffect(() => { if (isDataLoaded) window.localStorage.setItem(VEHICLE_STORAGE_KEY, JSON.stringify(vehicles)); }, [vehicles, isDataLoaded]);
 
 
   const sortedWaybills = useMemo(() => [...waybillsData].sort((a,b) => new Date(b.shippingDate).getTime() - new Date(a.shippingDate).getTime()), [waybillsData]);
   const sortedManifests = useMemo(() => [...manifestsData].sort((a,b) => new Date(b.date).getTime() - new Date(a.date).getTime()), [manifestsData]);
   const sortedInventory = useMemo(() => [...waybillInventoryData].sort((a, b) => a.waybillNumber.localeCompare(b.waybillNumber, undefined, { numeric: true })), [waybillInventoryData]);
   const sortedCompanies = useMemo(() => [...companies].sort((a, b) => a.companyName.localeCompare(b.companyName)), [companies]);
+  const sortedVehicles = useMemo(() => [...vehicles].sort((a,b) => a.vehicleNumber.localeCompare(b.vehicleNumber)), [vehicles]);
   
   const markWaybillAsUsed = useCallback((waybillNumber: string, isUsed: boolean) => {
     setWaybillInventoryData(prev => prev.map(item => item.waybillNumber === waybillNumber ? { ...item, isUsed } : item));
@@ -249,12 +261,39 @@ export function DataProvider({ children }: { children: ReactNode }) {
     }));
   }, []);
 
+  const addVehicle = useCallback((vehicleData: VehicleFormData): boolean => {
+    if (vehicles.some(v => v.vehicleNumber.toLowerCase() === vehicleData.vehicleNumber.toLowerCase())) {
+        toast({ title: 'Duplicate Vehicle', description: 'A vehicle with this number already exists.', variant: 'destructive' });
+        return false;
+    }
+    const newVehicle: Vehicle = { ...vehicleData, id: crypto.randomUUID() };
+    setVehicles(prev => [...prev, newVehicle]);
+    toast({ title: 'Vehicle Added', description: `Vehicle ${vehicleData.vehicleNumber} has been added.` });
+    return true;
+  }, [vehicles, toast]);
+
+  const updateVehicle = useCallback((updatedVehicle: Vehicle): boolean => {
+     if (vehicles.some(v => v.vehicleNumber.toLowerCase() === updatedVehicle.vehicleNumber.toLowerCase() && v.id !== updatedVehicle.id)) {
+        toast({ title: 'Duplicate Vehicle', description: 'Another vehicle with this number already exists.', variant: 'destructive' });
+        return false;
+    }
+    setVehicles(prev => prev.map(v => v.id === updatedVehicle.id ? updatedVehicle : v));
+    toast({ title: 'Vehicle Updated', description: `Vehicle ${updatedVehicle.vehicleNumber} has been updated.` });
+    return true;
+  }, [vehicles, toast]);
+
+  const deleteVehicle = useCallback((id: string) => {
+    setVehicles(prev => prev.filter(v => v.id !== id));
+    toast({ title: 'Vehicle Deleted' });
+  }, [toast]);
+
   const value: DataContextType = {
     waybills: sortedWaybills,
     manifests: sortedManifests,
     waybillInventory: sortedInventory,
     companies: sortedCompanies,
     associations,
+    vehicles: sortedVehicles,
     isLoaded: isDataLoaded,
     addWaybill,
     updateWaybill,
@@ -274,6 +313,9 @@ export function DataProvider({ children }: { children: ReactNode }) {
     getCompanyById,
     getCompanyByCode,
     setAssociation,
+    addVehicle,
+    updateVehicle,
+    deleteVehicle,
   };
 
   if (!isDataLoaded) {
