@@ -127,10 +127,10 @@ export default function InventoryManagementPage() {
   }
 
   return (
-    <div className="space-y-8 max-w-6xl mx-auto">
-      <div>
-        <h1 className="text-3xl font-bold">Waybill Inventory Management</h1>
-        <p className="text-muted-foreground">Assign waybill numbers to specific booking partners and companies.</p>
+    <div className="space-y-8">
+      <div className="p-6 rounded-xl bg-gradient-to-r from-amber-50 to-yellow-50 dark:from-amber-900/50 dark:to-yellow-900/80 border border-amber-200 dark:border-amber-800 shadow-md">
+        <h1 className="text-3xl font-bold text-amber-800 dark:text-amber-100">Waybill Inventory Management</h1>
+        <p className="text-amber-600 dark:text-amber-300 mt-1">Assign waybill numbers to specific booking partners and companies.</p>
       </div>
 
       <Card>

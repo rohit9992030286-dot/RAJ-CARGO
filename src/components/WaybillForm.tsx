@@ -172,7 +172,7 @@ export function WaybillForm({ initialData, onSave, onCancel }: WaybillFormProps)
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Company</FormLabel>
-                    <Select onValueChange={field.onChange} value={field.value} defaultValue={field.value}>
+                    <Select onValueChange={field.onChange} value={field.value || ''} defaultValue={field.value}>
                         <FormControl>
                             <div className="relative">
                             <SelectTrigger className="pl-10">
@@ -182,7 +182,7 @@ export function WaybillForm({ initialData, onSave, onCancel }: WaybillFormProps)
                             </div>
                         </FormControl>
                         <SelectContent>
-                            <SelectItem value="">Market Booking</SelectItem>
+                            <SelectItem value="market">Market Booking</SelectItem>
                             {companies.map(c => <SelectItem key={c.id} value={c.companyCode!}>{c.companyName} ({c.companyCode})</SelectItem>)}
                         </SelectContent>
                     </Select>
