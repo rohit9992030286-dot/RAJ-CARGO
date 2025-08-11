@@ -28,7 +28,7 @@ export function WaybillPrint({ waybill }: WaybillPrintProps) {
   return (
     <div className="p-4 bg-white text-black font-sans max-w-3xl mx-auto print:shadow-none print:p-2">
       {/* Header */}
-      <header className="flex justify-between items-start pb-3 border-b-4 border-black">
+      <header className="flex justify-between items-start p-4 border-2 border-black">
         <div className="flex items-center gap-3">
             <Truck className="h-10 w-10 text-black" />
             <div>
