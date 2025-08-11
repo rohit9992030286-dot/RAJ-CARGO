@@ -10,13 +10,15 @@ import { Input } from '@/components/ui/input';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { useToast } from '@/hooks/use-toast';
-import { Loader2, PlusCircle, Trash2, Pencil, Car, User, Map as MapIcon, IndianRupee, Save, XCircle } from 'lucide-react';
+import { Loader2, PlusCircle, Trash2, Pencil, Car, User, Map as MapIcon, IndianRupee, Save, XCircle, Download } from 'lucide-react';
 import { Vehicle, vehicleSchema } from '@/types/vehicle';
 import { useVehicles } from '@/hooks/useVehicles';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useManifests } from '@/hooks/useManifests';
 import { format } from 'date-fns';
 import { Badge } from '@/components/ui/badge';
+import * as XLSX from 'xlsx';
+import { saveAs } from 'file-saver';
 
 type VehicleFormData = Omit<Vehicle, 'id'>;
 
@@ -78,6 +80,24 @@ export default function VehicleManagementPage() {
         });
     return dispatchMap;
   }, [allManifests, manifestsLoaded]);
+
+  const handleExport = () => {
+    const dataToExport = vehicles.map(v => ({
+      'Vehicle Number': v.vehicleNumber,
+      'Driver Name': v.driverName,
+      'Route': v.route,
+      'Route Price': v.routePrice,
+      'Vehicle Type': v.vehicleType,
+      'Last Dispatch Date': vehicleLastDispatch.get(v.vehicleNumber) ? format(new Date(vehicleLastDispatch.get(v.vehicleNumber)!.date), 'PP') : 'N/A',
+      'Last Manifest No': vehicleLastDispatch.get(v.vehicleNumber)?.manifestNo || 'N/A',
+    }));
+    
+    const ws = XLSX.utils.json_to_sheet(dataToExport);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, "Vehicles");
+    XLSX.writeFile(wb, "rajcargo_vehicles.xlsx");
+    toast({ title: "Vehicles Exported" });
+  };
 
   if (!isLoaded || !manifestsLoaded) {
     return <div className="flex justify-center items-center h-64"><Loader2 className="h-16 w-16 animate-spin text-primary" /></div>;
@@ -155,8 +175,15 @@ export default function VehicleManagementPage() {
 
         <Card className="md:col-span-2">
           <CardHeader>
-            <CardTitle>Vehicle List</CardTitle>
-            <CardDescription>A list of all registered vehicles and their last dispatch.</CardDescription>
+            <div className="flex justify-between items-center">
+                <div>
+                    <CardTitle>Vehicle List</CardTitle>
+                    <CardDescription>A list of all registered vehicles and their last dispatch.</CardDescription>
+                </div>
+                <Button variant="outline" size="sm" onClick={handleExport} disabled={vehicles.length === 0}>
+                    <Download className="mr-2 h-4 w-4" /> Export
+                </Button>
+            </div>
           </CardHeader>
           <CardContent>
             <Table>
