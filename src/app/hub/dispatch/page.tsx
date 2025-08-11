@@ -47,6 +47,7 @@ export default function HubDispatchPage() {
     const [dispatchType, setDispatchType] = useState<DispatchType>('delivery');
 
     const [selectedVehicleId, setSelectedVehicleId] = useState<string | null>(null);
+    const [manualVehicleNo, setManualVehicleNo] = useState('');
     const [driverName, setDriverName] = useState('');
     const [driverContact, setDriverContact] = useState('');
     const [destinationPartnerCode, setDestinationPartnerCode] = useState<string | null>(null);
@@ -63,20 +64,27 @@ export default function HubDispatchPage() {
     }, []);
 
     useEffect(() => {
-        if (selectedVehicleId) {
+        if (dispatchType === 'hub' && selectedVehicleId) {
             const vehicle = vehicles.find(v => v.id === selectedVehicleId);
             if(vehicle) {
                 setDriverName(vehicle.driverName);
             }
         } else {
-            setDriverName('');
-            setDriverContact('');
+             if (dispatchType === 'delivery') {
+                setDriverName('');
+                setDriverContact('');
+             }
         }
-    }, [selectedVehicleId, vehicles]);
+    }, [selectedVehicleId, vehicles, dispatchType]);
 
     useEffect(() => {
       setDestinationPartnerCode(null);
-    }, [dispatchType])
+      setSelectedVehicleId(null);
+      setManualVehicleNo('');
+      setDriverName('');
+      setDriverContact('');
+    }, [dispatchType]);
+
 
     const expectedBoxesForDispatch = useMemo((): ExpectedBox[] => {
         if (!manifestsLoaded || !waybillsLoaded) return [];
@@ -160,16 +168,34 @@ export default function HubDispatchPage() {
 
     const handleCreateDispatch = () => {
         const loadedWaybillIds = [...new Set(scannedBoxIds.map(boxId => expectedBoxesForDispatch.find(b => b.boxId === boxId)!.waybillId))];
-        const selectedVehicle = vehicles.find(v => v.id === selectedVehicleId);
 
         if (loadedWaybillIds.length === 0) {
             toast({ title: 'No Waybills Loaded', description: 'Please scan at least one box to dispatch.', variant: 'destructive'});
             return;
         }
-        if (!selectedVehicle || !destinationPartnerCode) {
-            toast({ title: 'All Fields Required', description: 'Please select a vehicle and a destination partner/hub.', variant: 'destructive'});
+        if (!destinationPartnerCode) {
+             toast({ title: 'Destination Required', description: `Please select a destination ${partnerTypeLabel.toLowerCase()}.`, variant: 'destructive'});
             return;
         }
+        
+        let vehicleNumber = '';
+        let finalDriverName = driverName;
+
+        if (dispatchType === 'hub') {
+            const selectedVehicle = vehicles.find(v => v.id === selectedVehicleId);
+            if (!selectedVehicle) {
+                toast({ title: 'Vehicle Required', description: 'Please select a vehicle for hub-to-hub transfer.', variant: 'destructive' });
+                return;
+            }
+            vehicleNumber = selectedVehicle.vehicleNumber;
+        } else { // delivery
+            if (!manualVehicleNo.trim()) {
+                 toast({ title: 'Vehicle Number Required', description: 'Please enter a vehicle number for delivery.', variant: 'destructive' });
+                 return;
+            }
+            vehicleNumber = manualVehicleNo;
+        }
+
 
         let deliveryDetails = {};
         if(dispatchType === 'delivery') {
@@ -191,9 +217,9 @@ export default function HubDispatchPage() {
             date: new Date().toISOString(),
             waybillIds: loadedWaybillIds,
             status: 'Dispatched',
-            vehicleNo: selectedVehicle.vehicleNumber,
-            driverName: selectedVehicle.driverName,
-            driverContact: '',
+            vehicleNo: vehicleNumber,
+            driverName: finalDriverName,
+            driverContact: driverContact,
             origin: 'hub',
             ...deliveryDetails
         });
@@ -214,6 +240,9 @@ export default function HubDispatchPage() {
         setScannedBoxIds([]);
         setSelectedVehicleId(null);
         setDestinationPartnerCode(null);
+        setManualVehicleNo('');
+        setDriverName('');
+        setDriverContact('');
     };
     
 
@@ -358,28 +387,49 @@ export default function HubDispatchPage() {
                                       </TabsList>
                                     </Tabs>
                                 </div>
-                                <div>
-                                    <Label htmlFor="vehicle-no">Vehicle No.</Label>
-                                    <Select value={selectedVehicleId || ''} onValueChange={setSelectedVehicleId}>
-                                        <SelectTrigger id="vehicle-no" className="mt-1">
-                                            <SelectValue placeholder="Select a vehicle" />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                            {vehicles.map(v => (
-                                                <SelectItem key={v.id} value={v.id}>
-                                                    {v.vehicleNumber} ({v.driverName})
-                                                </SelectItem>
-                                            ))}
-                                        </SelectContent>
-                                    </Select>
-                                </div>
-                                <div>
-                                    <Label htmlFor="driver-name">Driver Name</Label>
-                                    <div className="relative">
-                                        <User className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
-                                        <Input id="driver-name" placeholder="Driver's name" value={driverName} disabled className="pl-10"/>
+
+                                {dispatchType === 'hub' ? (
+                                    <div className="space-y-4">
+                                        <div>
+                                            <Label htmlFor="vehicle-no">Vehicle No.</Label>
+                                            <Select value={selectedVehicleId || ''} onValueChange={setSelectedVehicleId}>
+                                                <SelectTrigger id="vehicle-no" className="mt-1">
+                                                    <SelectValue placeholder="Select a vehicle" />
+                                                </SelectTrigger>
+                                                <SelectContent>
+                                                    {vehicles.map(v => (
+                                                        <SelectItem key={v.id} value={v.id}>
+                                                            {v.vehicleNumber} ({v.driverName})
+                                                        </SelectItem>
+                                                    ))}
+                                                </SelectContent>
+                                            </Select>
+                                        </div>
+                                         <div>
+                                            <Label htmlFor="driver-name-hub">Driver Name</Label>
+                                            <div className="relative">
+                                                <User className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+                                                <Input id="driver-name-hub" placeholder="Driver's name" value={driverName} disabled className="pl-10"/>
+                                            </div>
+                                        </div>
                                     </div>
-                                </div>
+                                ) : (
+                                     <div className="space-y-4">
+                                        <div>
+                                            <Label htmlFor="vehicle-no-delivery">Vehicle No.</Label>
+                                            <Input id="vehicle-no-delivery" placeholder="e.g., MH-12-AB-1234" value={manualVehicleNo} onChange={e => setManualVehicleNo(e.target.value)} />
+                                        </div>
+                                         <div>
+                                            <Label htmlFor="driver-name-delivery">Driver Name</Label>
+                                            <Input id="driver-name-delivery" placeholder="e.g., Suresh Kumar" value={driverName} onChange={e => setDriverName(e.target.value)} />
+                                        </div>
+                                         <div>
+                                            <Label htmlFor="driver-contact-delivery">Driver Contact</Label>
+                                            <Input id="driver-contact-delivery" placeholder="e.g., 9876543210" value={driverContact} onChange={e => setDriverContact(e.target.value)} />
+                                        </div>
+                                    </div>
+                                )}
+                                
                                 <div>
                                     <Label htmlFor="delivery-partner">Assign to {partnerTypeLabel}</Label>
                                     <Select value={destinationPartnerCode || ''} onValueChange={setDestinationPartnerCode}>
@@ -409,3 +459,5 @@ export default function HubDispatchPage() {
         </div>
     );
 }
+
+    
