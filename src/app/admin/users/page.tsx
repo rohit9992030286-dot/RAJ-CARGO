@@ -282,7 +282,6 @@ export default function UserManagementPage() {
                                             </div>
                                         </FormControl>
                                         <SelectContent>
-                                            <SelectItem value="">None</SelectItem>
                                             {companies.map(c => <SelectItem key={c.id} value={c.companyCode!}>{c.companyName} ({c.companyCode})</SelectItem>)}
                                         </SelectContent>
                                     </Select>
