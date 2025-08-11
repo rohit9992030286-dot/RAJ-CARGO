@@ -70,14 +70,9 @@ export default function ManifestListPage() {
 
   return (
     <div className="space-y-8">
-      <div className="flex justify-between items-center gap-4 flex-wrap">
-        <div>
-          <h1 className="text-3xl font-bold">Dispatch Manifests</h1>
-          <p className="text-muted-foreground">Manage, create, and dispatch your manifests.</p>
-        </div>
-        <Button onClick={handleCreateManifest}>
-          <PlusCircle className="mr-2 h-4 w-4" /> Create Manifest
-        </Button>
+      <div className="p-6 rounded-xl bg-gradient-to-r from-amber-50 to-yellow-50 dark:from-amber-900/50 dark:to-yellow-900/80 border border-amber-200 dark:border-amber-800 shadow-md">
+        <h1 className="text-3xl font-bold text-amber-800 dark:text-amber-100">Dispatch Manifests</h1>
+        <p className="text-amber-600 dark:text-amber-300 mt-1">Manage, create, and dispatch your manifests.</p>
       </div>
       
       <Card>
@@ -89,15 +84,20 @@ export default function ManifestListPage() {
                 You have {bookingManifests.length} manifest(s).
               </CardDescription>
             </div>
-            <div className="relative max-w-sm w-full">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
-                <Input 
-                    type="search"
-                    placeholder="Search by Manifest No..."
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                    className="pl-10 font-mono"
-                />
+             <div className="flex items-center gap-4">
+                <div className="relative max-w-sm w-full">
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+                    <Input 
+                        type="search"
+                        placeholder="Search by Manifest No..."
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
+                        className="pl-10 font-mono"
+                    />
+                </div>
+                <Button onClick={handleCreateManifest}>
+                    <PlusCircle className="mr-2 h-4 w-4" /> Create Manifest
+                </Button>
             </div>
           </div>
         </CardHeader>

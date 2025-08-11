@@ -103,9 +103,9 @@ export default function EmployeeManagementPage() {
 
   return (
     <div className="space-y-8">
-      <div>
-        <h1 className="text-3xl font-bold">Employee Management</h1>
-        <p className="text-muted-foreground">Manage employee details, posts, and their salaries.</p>
+      <div className="p-6 rounded-xl bg-gradient-to-r from-sky-50 to-sky-100 dark:from-sky-900/50 dark:to-sky-900/80 border border-sky-200 dark:border-sky-800 shadow-md">
+        <h1 className="text-3xl font-bold text-sky-800 dark:text-sky-100">Employee Management</h1>
+        <p className="text-sky-600 dark:text-sky-300 mt-1">Manage employee details, posts, and their salaries.</p>
       </div>
 
       <div className="grid md:grid-cols-3 gap-8 items-start">
