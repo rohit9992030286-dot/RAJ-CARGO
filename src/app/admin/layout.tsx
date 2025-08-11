@@ -86,6 +86,12 @@ function AdminLayoutContent({
                 <span>Waybill Inventory</span>
             </Link>
         </li>
+         <li>
+            <Link href="/admin/partner-associations" onClick={onLinkClick} className="flex items-center gap-3 p-3 rounded-lg hover:bg-primary/10 hover:text-primary transition-colors">
+                <Link2 className="h-5 w-5" />
+                <span>Partner Associations</span>
+            </Link>
+        </li>
         <li>
             <Link href="/admin/rates" onClick={onLinkClick} className="flex items-center gap-3 p-3 rounded-lg hover:bg-primary/10 hover:text-primary transition-colors">
                 <Tags className="h-5 w-5" />
@@ -136,7 +142,7 @@ function AdminLayoutContent({
           <div className="flex items-center justify-center p-6 border-b">
               <Logo />
           </div>
-          <NavLinks onLogout={handleLogout} />
+          <NavLinks />
           </aside>
           <div className="flex-1 flex flex-col">
           <header className="flex h-16 items-center gap-4 border-b bg-card px-6 lg:hidden">
@@ -154,7 +160,7 @@ function AdminLayoutContent({
                       <div className="flex items-center justify-center p-4 border-b">
                            <Logo />
                       </div>
-                      <NavLinks onLinkClick={handleLinkClick} onLogout={handleLogout} />
+                      <NavLinks onLinkClick={handleLinkClick} />
                   </SheetContent>
               </Sheet>
               <div className="flex-1">

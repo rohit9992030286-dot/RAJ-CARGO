@@ -14,12 +14,14 @@ const WAYBILL_STORAGE_KEY = 'rajcargo-waybills';
 const MANIFEST_STORAGE_KEY = 'rajcargo-manifests';
 const WAYBILL_INVENTORY_KEY = 'rajcargo-waybill-inventory';
 const COMPANY_STORAGE_KEY = 'rajcargo-companies';
+const PARTNER_ASSOCIATIONS_KEY = 'rajcargo-hub-partner-associations';
 
 interface DataContextType {
   waybills: Waybill[];
   manifests: Manifest[];
   waybillInventory: InventoryItem[];
   companies: Company[];
+  associations: Record<string, string>;
   isLoaded: boolean;
   addWaybill: (waybill: Waybill, silent?: boolean) => boolean;
   updateWaybill: (updatedWaybill: Waybill) => void;
@@ -38,6 +40,7 @@ interface DataContextType {
   deleteCompany: (id: string) => void;
   getCompanyById: (id: string) => Company | undefined;
   getCompanyByCode: (code: string) => Company | undefined;
+  setAssociation: (fromPartner: string, toHub: string) => void;
 }
 
 export const DataContext = createContext<DataContextType | undefined>(undefined);
@@ -47,6 +50,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
   const [manifestsData, setManifestsData] = useState<Manifest[]>([]);
   const [waybillInventoryData, setWaybillInventoryData] = useState<InventoryItem[]>([]);
   const [companies, setCompanies] = useState<Company[]>([]);
+  const [associations, setAssociations] = useState<Record<string, string>>({});
   const [isDataLoaded, setIsDataLoaded] = useState(false);
   const { toast } = useToast();
   const { user } = useAuth();
@@ -83,6 +87,9 @@ export function DataProvider({ children }: { children: ReactNode }) {
       const companyItems = window.localStorage.getItem(COMPANY_STORAGE_KEY);
       if (companyItems) setCompanies(JSON.parse(companyItems));
 
+      const associationItems = window.localStorage.getItem(PARTNER_ASSOCIATIONS_KEY);
+      if(associationItems) setAssociations(JSON.parse(associationItems));
+
     } catch (error) {
       console.error('Failed to load data from local storage', error);
       toast({ title: 'Error', description: 'Could not load data from local storage.', variant: 'destructive' });
@@ -95,6 +102,8 @@ export function DataProvider({ children }: { children: ReactNode }) {
   useEffect(() => { if (isDataLoaded) window.localStorage.setItem(MANIFEST_STORAGE_KEY, JSON.stringify(manifestsData)); }, [manifestsData, isDataLoaded]);
   useEffect(() => { if (isDataLoaded) window.localStorage.setItem(WAYBILL_INVENTORY_KEY, JSON.stringify(waybillInventoryData)); }, [waybillInventoryData, isDataLoaded]);
   useEffect(() => { if (isDataLoaded) window.localStorage.setItem(COMPANY_STORAGE_KEY, JSON.stringify(companies)); }, [companies, isDataLoaded]);
+  useEffect(() => { if (isDataLoaded) window.localStorage.setItem(PARTNER_ASSOCIATIONS_KEY, JSON.stringify(associations)); }, [associations, isDataLoaded]);
+
 
   const sortedWaybills = useMemo(() => [...waybillsData].sort((a,b) => new Date(b.shippingDate).getTime() - new Date(a.shippingDate).getTime()), [waybillsData]);
   const sortedManifests = useMemo(() => [...manifestsData].sort((a,b) => new Date(b.date).getTime() - new Date(a.date).getTime()), [manifestsData]);
@@ -212,11 +221,19 @@ export function DataProvider({ children }: { children: ReactNode }) {
   const getCompanyById = useCallback((id: string) => companies.find(c => c.id === id), [companies]);
   const getCompanyByCode = useCallback((code: string) => companies.find(c => c.companyCode === code), [companies]);
 
+  const setAssociation = useCallback((fromPartner: string, toHub: string) => {
+    setAssociations(prev => ({
+        ...prev,
+        [fromPartner]: toHub,
+    }));
+  }, []);
+
   const value: DataContextType = {
     waybills: sortedWaybills,
     manifests: sortedManifests,
     waybillInventory: sortedInventory,
     companies: sortedCompanies,
+    associations,
     isLoaded: isDataLoaded,
     addWaybill,
     updateWaybill,
@@ -235,6 +252,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
     deleteCompany,
     getCompanyById,
     getCompanyByCode,
+    setAssociation,
   };
 
   if (!isDataLoaded) {

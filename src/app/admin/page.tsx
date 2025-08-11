@@ -2,7 +2,7 @@
 'use client';
 import Link from 'next/link';
 import { Card, CardHeader, CardTitle, CardContent, CardDescription, CardFooter } from '@/components/ui/card';
-import { Users, ArrowRight, Activity, IndianRupee, Tags, List, KeyRound, AlertTriangle, Building } from 'lucide-react';
+import { Users, ArrowRight, Activity, IndianRupee, Tags, List, KeyRound, AlertTriangle, Building, Link2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 
@@ -30,6 +30,14 @@ const adminLinks = [
         icon: List,
         iconBgColor: 'bg-amber-100 dark:bg-amber-900/50',
         iconColor: 'text-amber-600 dark:text-amber-300'
+    },
+    {
+        href: '/admin/partner-associations',
+        title: 'Partner Associations',
+        description: 'Define routing between partners and hubs.',
+        icon: Link2,
+        iconBgColor: 'bg-teal-100 dark:bg-teal-900/50',
+        iconColor: 'text-teal-600 dark:text-teal-300'
     },
     {
         href: '/admin/rates',
