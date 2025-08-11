@@ -10,7 +10,7 @@ import { Input } from '@/components/ui/input';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { useToast } from '@/hooks/use-toast';
-import { Loader2, PlusCircle, Trash2, Pencil, Car, User, Map, IndianRupee, Save, XCircle } from 'lucide-react';
+import { Loader2, PlusCircle, Trash2, Pencil, Car, User, Map as MapIcon, IndianRupee, Save, XCircle } from 'lucide-react';
 import { Vehicle, vehicleSchema } from '@/types/vehicle';
 import { useVehicles } from '@/hooks/useVehicles';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
