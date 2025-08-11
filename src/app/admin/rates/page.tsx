@@ -15,7 +15,6 @@ import { Loader2, PlusCircle, Trash2, Tags, IndianRupee, Globe, Pencil, Weight, 
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useAuth } from '@/hooks/useAuth';
 import { Badge } from '@/components/ui/badge';
-import { useWaybills } from '@/hooks/useWaybills';
 import * as XLSX from 'xlsx';
 import { saveAs } from 'file-saver';
 import { useRef } from 'react';
@@ -39,7 +38,6 @@ export default function RateManagementPage() {
   const [isLoading, setIsLoading] = useState(true);
   const { toast } = useToast();
   const { users } = useAuth();
-  const { allWaybills, isLoaded: waybillsLoaded } = useWaybills();
   const [editingRateId, setEditingRateId] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -47,13 +45,6 @@ export default function RateManagementPage() {
     return [...new Set(users.filter(u => u.roles.includes('booking') && u.partnerCode).map(u => u.partnerCode!))];
   }, [users]);
   
-  const uniqueStates = useMemo(() => {
-    if (!waybillsLoaded) return [];
-    const states = allWaybills.map(wb => wb.receiverState?.trim()).filter(Boolean);
-    return [...new Set(states)].sort();
-  }, [allWaybills, waybillsLoaded]);
-
-
   const form = useForm<RateFormData>({
     resolver: zodResolver(rateSchema),
     defaultValues: {
@@ -170,7 +161,7 @@ export default function RateManagementPage() {
     reader.readAsArrayBuffer(file);
   };
   
-  if (isLoading || !waybillsLoaded) {
+  if (isLoading) {
     return (
       <div className="flex justify-center items-center h-64">
         <Loader2 className="h-16 w-16 animate-spin text-primary" />
@@ -217,14 +208,10 @@ export default function RateManagementPage() {
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>State</FormLabel>
-                     <Select onValueChange={field.onChange} value={field.value}>
-                       <FormControl>
-                        <SelectTrigger><SelectValue placeholder="Select State" /></SelectTrigger>
-                       </FormControl>
-                       <SelectContent>
-                         {uniqueStates.map(state => <SelectItem key={state} value={state as string}>{state}</SelectItem>)}
-                       </SelectContent>
-                    </Select>
+                     <div className="relative">
+                        <FormControl><Input placeholder="e.g., California" {...field} className="pl-10" /></FormControl>
+                        <Globe className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+                    </div>
                     <FormMessage />
                   </FormItem>
                 )}
