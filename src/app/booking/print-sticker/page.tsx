@@ -10,7 +10,7 @@ import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Waybill } from '@/types/waybill';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { Terminal, Search, Printer, AlertCircle, Loader2, FileUp, FileSpreadsheet } from 'lucide-react';
+import { Terminal, Search, Printer, AlertCircle, Loader2, FileUp, FileSpreadsheet, Truck } from 'lucide-react';
 import * as XLSX from 'xlsx';
 import { useToast } from '@/hooks/use-toast';
 import { saveAs } from 'file-saver';
@@ -18,6 +18,7 @@ import { saveAs } from 'file-saver';
 export default function PrintStickerPage() {
   const { waybills, isLoaded } = useWaybills();
   const [waybillNumber, setWaybillNumber] = useState('');
+  const [tripNo, setTripNo] = useState('');
   const [foundWaybill, setFoundWaybill] = useState<Waybill | null>(null);
   const [error, setError] = useState<string | null>(null);
   const router = useRouter();
@@ -45,6 +46,21 @@ export default function PrintStickerPage() {
     const ids = foundWaybill.id;
     window.open(`/print/stickers?ids=${ids}`, '_blank');
   };
+
+  const handlePrintTripStickers = () => {
+    if (!tripNo.trim()) {
+        toast({ title: 'Trip No. required', description: 'Please enter a Trip Number.', variant: 'destructive'});
+        return;
+    }
+    const waybillsForTrip = waybills.filter(w => w.tripNo === tripNo.trim());
+    if (waybillsForTrip.length === 0) {
+        toast({ title: 'No Waybills Found', description: `No waybills found for Trip No. ${tripNo}.`, variant: 'destructive'});
+        return;
+    }
+    const ids = waybillsForTrip.map(w => w.id).join(',');
+    window.open(`/print/stickers?ids=${ids}`, '_blank');
+    toast({ title: 'Printing Trip Stickers', description: `${waybillsForTrip.length} waybill stickers are being prepared for printing.`});
+  }
 
   const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -134,7 +150,7 @@ export default function PrintStickerPage() {
     <div className="max-w-xl mx-auto space-y-8">
       <div>
         <h1 className="text-3xl font-bold">Print Waybill Sticker</h1>
-        <p className="text-muted-foreground">Print a single sticker for an existing waybill or bulk print from an Excel file.</p>
+        <p className="text-muted-foreground">Print a single sticker, bulk print from an Excel file, or print all stickers for a trip.</p>
       </div>
       
       <Card>
@@ -184,6 +200,26 @@ export default function PrintStickerPage() {
             </CardFooter>
           </>
         )}
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Bulk Print by Trip No.</CardTitle>
+          <CardDescription>Enter a Trip Number to print all its associated stickers.</CardDescription>
+        </CardHeader>
+        <CardContent>
+           <div className="flex gap-2">
+                <Input
+                    placeholder="Enter Trip No."
+                    value={tripNo}
+                    onChange={(e) => setTripNo(e.target.value)}
+                    onKeyDown={(e) => e.key === 'Enter' && handlePrintTripStickers()}
+                />
+                <Button onClick={handlePrintTripStickers}>
+                    <Truck className="mr-2 h-4 w-4" /> Print Trip Stickers
+                </Button>
+            </div>
+        </CardContent>
       </Card>
 
       <Card>
