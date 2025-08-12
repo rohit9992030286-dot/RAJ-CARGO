@@ -16,8 +16,21 @@ export function WaybillPrint({ waybill }: WaybillPrintProps) {
   const { users, isLoading: usersLoaded } = useAuth();
   
   const getHubName = () => {
-    if (!associationsLoaded || !usersLoaded || !waybill.partnerCode) return 'N/A';
+    if (!associationsLoaded || !usersLoaded) return 'N/A';
     
+    // First, try to find a hub partner by matching receiver's state and city
+    const locationBasedHub = users.find(u => 
+        u.roles.includes('hub') &&
+        u.state?.trim().toLowerCase() === waybill.receiverState.trim().toLowerCase() &&
+        u.city?.trim().toLowerCase() === waybill.receiverCity.trim().toLowerCase()
+    );
+
+    if (locationBasedHub) {
+        return locationBasedHub.partnerName || locationBasedHub.partnerCode;
+    }
+    
+    // Fallback to the direct association if no location match is found
+    if (!waybill.partnerCode) return 'N/A';
     const hubPartnerCode = associations.bookingToHub[waybill.partnerCode];
     if (!hubPartnerCode) return 'N/A';
     

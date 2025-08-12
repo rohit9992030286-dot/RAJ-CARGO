@@ -13,6 +13,8 @@ export interface User {
   roles: ('booking' | 'hub' | 'delivery' | 'account')[];
   partnerCode?: string;
   companyCode?: string;
+  state?: string;
+  city?: string;
 }
 
 export interface NewUser extends User {
@@ -96,6 +98,8 @@ export function useProvideAuth() {
         roles: userToLogin.roles?.filter((r:string) => ['booking', 'hub', 'delivery', 'account'].includes(r)) || [],
         partnerCode: userToLogin.partnerCode,
         companyCode: userToLogin.companyCode,
+        state: userToLogin.state,
+        city: userToLogin.city,
       };
       localStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify(loggedInUser));
       setUser(loggedInUser);

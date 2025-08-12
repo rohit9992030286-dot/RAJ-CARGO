@@ -12,7 +12,7 @@ import { Input } from '@/components/ui/input';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Loader2, UserPlus, Trash2, User as UserIcon, KeyRound, Shield, Briefcase, BookCopy, Cpu, Truck, Pencil, XCircle, DollarSign, Building } from 'lucide-react';
+import { Loader2, UserPlus, Trash2, User as UserIcon, KeyRound, Shield, Briefcase, BookCopy, Cpu, Truck, Pencil, XCircle, DollarSign, Building, MapPin } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { Badge } from '@/components/ui/badge';
 import {
@@ -36,6 +36,8 @@ const userFormSchema = z.object({
   password: z.string().min(6, 'Password must be at least 6 characters.'),
   partnerCode: z.string().min(1, 'Partner code is required.'),
   companyCode: z.string().optional(),
+  state: z.string().optional(),
+  city: z.string().optional(),
   roles: z.array(z.string()).refine((value) => value.some((item) => item), {
     message: 'You have to select at least one role.',
   }),
@@ -65,6 +67,8 @@ export default function UserManagementPage() {
       partnerCode: '',
       roles: [],
       companyCode: '',
+      state: '',
+      city: ''
     },
   });
 
@@ -79,9 +83,11 @@ export default function UserManagementPage() {
             partnerCode: editingUser.partnerCode,
             roles: editingUser.roles,
             companyCode: editingUser.companyCode,
+            state: editingUser.state,
+            city: editingUser.city
         });
     } else {
-        form.reset({ username: '', partnerName: '', password: '', partnerCode: '', roles: [], companyCode: '' });
+        form.reset({ username: '', partnerName: '', password: '', partnerCode: '', roles: [], companyCode: '', state: '', city: '' });
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [editingUser]);
@@ -223,6 +229,34 @@ export default function UserManagementPage() {
                     />
                      <FormField
                         control={form.control}
+                        name="state"
+                        render={({ field }) => (
+                            <FormItem>
+                                <FormLabel>State</FormLabel>
+                                <div className="relative">
+                                    <FormControl><Input {...field} placeholder="e.g., Maharashtra" className="pl-10" /></FormControl>
+                                    <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+                                </div>
+                                <FormMessage />
+                            </FormItem>
+                        )}
+                    />
+                      <FormField
+                        control={form.control}
+                        name="city"
+                        render={({ field }) => (
+                            <FormItem>
+                                <FormLabel>City</FormLabel>
+                                <div className="relative">
+                                    <FormControl><Input {...field} placeholder="e.g., Pune" className="pl-10" /></FormControl>
+                                    <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+                                </div>
+                                <FormMessage />
+                            </FormItem>
+                        )}
+                    />
+                     <FormField
+                        control={form.control}
                         name="roles"
                         render={() => (
                             <FormItem>
@@ -317,7 +351,7 @@ export default function UserManagementPage() {
                             <TableHead>Username</TableHead>
                             <TableHead>Partner Name</TableHead>
                             <TableHead>Partner Code</TableHead>
-                            <TableHead>Company</TableHead>
+                            <TableHead>Location</TableHead>
                             <TableHead>Roles</TableHead>
                             <TableHead className="text-right">Action</TableHead>
                         </TableRow>
@@ -328,13 +362,7 @@ export default function UserManagementPage() {
                                 <TableCell>{u.username}</TableCell>
                                 <TableCell className="font-medium">{u.partnerName}</TableCell>
                                 <TableCell><Badge variant="outline">{u.partnerCode}</Badge></TableCell>
-                                <TableCell>
-                                    {u.companyCode ? (
-                                        <Badge variant="secondary">{u.companyCode}</Badge>
-                                    ) : (
-                                        <span className="text-muted-foreground">N/A</span>
-                                    )}
-                                </TableCell>
+                                <TableCell>{u.city && u.state ? `${u.city}, ${u.state}`: 'N/A'}</TableCell>
                                 <TableCell>
                                     {u.role === 'admin' 
                                         ? <Badge variant="default">Admin</Badge>
