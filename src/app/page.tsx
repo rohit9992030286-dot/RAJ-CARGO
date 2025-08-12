@@ -9,7 +9,7 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { useWaybills } from '@/hooks/useWaybills';
 import { Waybill } from '@/types/waybill';
-import { Search, Package, CheckCircle, Truck, XCircle, Loader2, ArrowRight, LogIn } from 'lucide-react';
+import { Search, Package, CheckCircle, Truck, XCircle, Loader2, ArrowRight, LogIn, Info, FileText } from 'lucide-react';
 import { DataProvider } from '@/components/DataContext';
 import { format } from 'date-fns';
 import { Logo } from '@/components/Logo';
@@ -70,7 +70,7 @@ function TrackingPageContent() {
         }
         const waybill = waybills.find(w => 
             w.waybillNumber.toLowerCase() === searchTerm || 
-            w.invoiceNumber.toLowerCase() === searchTerm
+            (w.invoiceNumber && w.invoiceNumber.toLowerCase() === searchTerm)
         );
         if (waybill) {
             setFoundWaybill(waybill);
@@ -168,9 +168,21 @@ export default function Home() {
                     <div className="flex-shrink-0 flex items-center gap-2">
                         <Logo />
                     </div>
-                    <div className="flex items-center">
-                        <Link href="/login">
+                    <div className="flex items-center gap-2">
+                         <Link href="/about">
                             <Button variant="ghost">
+                                <Info className="mr-2 h-5 w-5" />
+                                About Us
+                            </Button>
+                        </Link>
+                         <Link href="/terms">
+                            <Button variant="ghost">
+                                <FileText className="mr-2 h-5 w-5" />
+                                Terms
+                            </Button>
+                        </Link>
+                        <Link href="/login">
+                            <Button>
                                 <LogIn className="mr-2 h-5 w-5" />
                                 Staff Login
                             </Button>
