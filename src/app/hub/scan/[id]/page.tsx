@@ -17,6 +17,7 @@ import { format, isBefore, differenceInHours } from 'date-fns';
 import { Input } from '@/components/ui/input';
 import { cn } from '@/lib/utils';
 import { Progress } from '@/components/ui/progress';
+import { BarcodeScanner } from '@/components/BarcodeScanner';
 
 interface ExpectedBox {
     waybillId: string;
@@ -148,10 +149,9 @@ function ScanManifestPage() {
     }
   }, [expectedBoxes, palletAssignments, isAssignmentLoading, allManifests, allWaybills, manifest?.status]);
 
-  const handleVerifyBox = () => {
+  const handleVerifyBox = (scannedId: string) => {
       setError(null);
       setLastScanResult(null);
-      const scannedId = inputValue.trim();
       if (!scannedId) {
           setError("Please scan or enter a box ID.");
           return;
@@ -173,6 +173,10 @@ function ScanManifestPage() {
       scanInputRef.current?.focus();
   };
   
+  const handleManualVerify = () => {
+    handleVerifyBox(inputValue.trim());
+  }
+
   const handleSaveAndConfirm = () => {
     if (manifest) {
       const allVerified = expectedBoxes.length > 0 && expectedBoxes.length === scannedBoxIds.size;
@@ -245,20 +249,25 @@ function ScanManifestPage() {
             <Card>
                 <CardHeader>
                     <CardTitle>Scan & Verify</CardTitle>
-                    <CardDescription>Scan individual box sticker barcode.</CardDescription>
+                    <CardDescription>Use camera or manual entry.</CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
+                    <BarcodeScanner onScan={handleVerifyBox} />
+                    <div className="flex items-center gap-2">
+                        <hr className="flex-grow border-border" />
+                        <span className="text-xs text-muted-foreground">OR</span>
+                        <hr className="flex-grow border-border" />
+                    </div>
                     <div className="flex gap-2">
                         <Input
                             ref={scanInputRef}
-                            placeholder="Scan or enter box barcode"
+                            placeholder="Enter box barcode"
                             value={inputValue}
                             onChange={(e) => setInputValue(e.target.value)}
-                            onKeyDown={(e) => { if (e.key === 'Enter') handleVerifyBox(); }}
+                            onKeyDown={(e) => { if (e.key === 'Enter') handleManualVerify(); }}
                             disabled={allVerified}
-                            autoFocus
                         />
-                        <Button onClick={handleVerifyBox} disabled={allVerified}>
+                        <Button onClick={handleManualVerify} disabled={allVerified}>
                             <ScanLine className="mr-2 h-4 w-4" /> Verify
                         </Button>
                     </div>

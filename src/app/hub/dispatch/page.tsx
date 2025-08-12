@@ -20,6 +20,7 @@ import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { useVehicles } from '@/hooks/useVehicles';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { BarcodeScanner } from '@/components/BarcodeScanner';
 
 interface ExpectedBox {
     waybillId: string;
@@ -349,13 +350,19 @@ export default function HubDispatchPage() {
                             <CardDescription>{scannedBoxIds.length} box(es) loaded.</CardDescription>
                         </CardHeader>
                         <CardContent className="space-y-4">
+                            <BarcodeScanner onScan={handleScanBox} />
+                             <div className="flex items-center gap-2">
+                                <hr className="flex-grow border-border" />
+                                <span className="text-xs text-muted-foreground">OR</span>
+                                <hr className="flex-grow border-border" />
+                            </div>
                             <div>
-                                <Label htmlFor="scan-box">Scan Box Barcode</Label>
+                                <Label htmlFor="scan-box" className="sr-only">Scan Box Barcode</Label>
                                 <div className="flex gap-2">
                                 <Input
                                     ref={scanInputRef}
                                     id="scan-box"
-                                    placeholder="Scan barcode to load..."
+                                    placeholder="Enter barcode manually"
                                     value={scanInputValue}
                                     onChange={(e) => setScanInputValue(e.target.value)}
                                     onKeyDown={(e) => {
@@ -363,10 +370,9 @@ export default function HubDispatchPage() {
                                             handleVerifyClick();
                                         }
                                     }}
-                                    className="font-mono text-lg h-12"
                                 />
-                                <Button onClick={handleVerifyClick} className="h-12">
-                                    <ScanLine className="h-6 w-6" />
+                                <Button onClick={handleVerifyClick}>
+                                    <ScanLine className="mr-2 h-4 w-4" /> Add
                                 </Button>
                                 </div>
                             </div>
@@ -459,5 +465,3 @@ export default function HubDispatchPage() {
         </div>
     );
 }
-
-    
