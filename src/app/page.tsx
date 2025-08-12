@@ -56,23 +56,27 @@ function TrackingResult({ waybill }: { waybill: Waybill }) {
 
 function TrackingPageContent() {
     const { waybills, isLoaded } = useWaybills();
-    const [waybillNumber, setWaybillNumber] = useState('');
+    const [trackingNumber, setTrackingNumber] = useState('');
     const [foundWaybill, setFoundWaybill] = useState<Waybill | null | undefined>(undefined);
     const [error, setError] = useState<string | null>(null);
 
     const handleTrack = () => {
         setError(null);
         setFoundWaybill(undefined);
-        if (!waybillNumber.trim()) {
-            setError("Please enter a waybill number.");
+        const searchTerm = trackingNumber.toLowerCase().trim();
+        if (!searchTerm) {
+            setError("Please enter a waybill or invoice number.");
             return;
         }
-        const waybill = waybills.find(w => w.waybillNumber.toLowerCase() === waybillNumber.toLowerCase().trim());
+        const waybill = waybills.find(w => 
+            w.waybillNumber.toLowerCase() === searchTerm || 
+            w.invoiceNumber.toLowerCase() === searchTerm
+        );
         if (waybill) {
             setFoundWaybill(waybill);
         } else {
             setFoundWaybill(null);
-            setError("No shipment found with that waybill number. Please check the number and try again.");
+            setError("No shipment found with that waybill or invoice number. Please check the number and try again.");
         }
     };
     
@@ -92,14 +96,14 @@ function TrackingPageContent() {
                         <Logo />
                     </div>
                     <CardTitle className="text-3xl font-bold mt-4">Track Your Shipment</CardTitle>
-                    <CardDescription>Enter your waybill number below to see the status of your package.</CardDescription>
+                    <CardDescription>Enter your waybill or invoice number below to see the status of your package.</CardDescription>
                 </CardHeader>
                 <CardContent>
                     <div className="flex gap-2">
                         <Input
-                            placeholder="Enter your waybill number"
-                            value={waybillNumber}
-                            onChange={(e) => setWaybillNumber(e.target.value)}
+                            placeholder="Enter waybill or invoice number"
+                            value={trackingNumber}
+                            onChange={(e) => setTrackingNumber(e.target.value)}
                             onKeyDown={(e) => e.key === 'Enter' && handleTrack()}
                         />
                         <Button onClick={handleTrack}>
