@@ -18,11 +18,10 @@ export function WaybillPrint({ waybill }: WaybillPrintProps) {
   const getHubName = () => {
     if (!associationsLoaded || !usersLoaded) return 'N/A';
     
-    // First, try to find a hub partner by matching receiver's state and city
+    // Find a hub partner by matching receiver's state
     const locationBasedHub = users.find(u => 
         u.roles.includes('hub') &&
-        u.state?.trim().toLowerCase() === waybill.receiverState.trim().toLowerCase() &&
-        u.city?.trim().toLowerCase() === waybill.receiverCity.trim().toLowerCase()
+        u.state?.trim().toLowerCase() === waybill.receiverState.trim().toLowerCase()
     );
 
     if (locationBasedHub) {
