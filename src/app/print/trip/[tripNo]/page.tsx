@@ -16,6 +16,8 @@ function TripPrintLayout({ waybills, tripNo }: { waybills: Waybill[], tripNo: st
   const totalWeight = waybills.reduce((acc, w) => acc + w.packageWeight, 0);
   const formattedDate = new Date().toLocaleDateString();
   const borderedCell = "border-r border-black last:border-r-0";
+  const partnerCode = waybills.length > 0 ? waybills[0].partnerCode : 'N/A';
+
 
   return (
     <div className="p-4 bg-white text-black font-sans max-w-4xl mx-auto print:shadow-none print:p-2">
@@ -80,6 +82,20 @@ function TripPrintLayout({ waybills, tripNo }: { waybills: Waybill[], tripNo: st
           <TableCaption className="border-t border-black">Trip sheet generated on {new Date().toLocaleString()}. Total of {waybills.length} waybills.</TableCaption>
         </Table>
       </main>
+
+       <footer className="mt-4 p-4 border-2 border-black grid grid-cols-2 gap-8 text-sm">
+        <div>
+          <p className="font-bold mb-2 mt-4">Receiver's Signature:</p>
+          <div className="h-12 border-b border-gray-400"></div>
+        </div>
+        <div>
+            <p className="font-bold mb-2">Booking Partner's Signature:</p>
+            <div className="h-12 border-b border-gray-400 flex items-center justify-center font-mono text-lg">
+                {partnerCode}
+            </div>
+        </div>
+       </footer>
+
     </div>
   );
 }
@@ -152,3 +168,4 @@ export default function PrintTripPage() {
       </DataProvider>
     )
 }
+
