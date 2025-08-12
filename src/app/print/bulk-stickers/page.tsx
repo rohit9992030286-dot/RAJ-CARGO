@@ -47,6 +47,15 @@ export default function BulkPrintStickersPage() {
       const storedStickers = sessionStorage.getItem('rajcargo-bulk-stickers');
       if (storedStickers) {
         const parsedStickers = JSON.parse(storedStickers);
+        // Sort by receiver city
+        parsedStickers.sort((a: any, b: any) => {
+            const cityA = (a.receiverCity || '').toUpperCase();
+            const cityB = (b.receiverCity || '').toUpperCase();
+            if (cityA < cityB) return -1;
+            if (cityA > cityB) return 1;
+            // Then by waybill number
+            return String(a.waybillNumber || '').localeCompare(String(b.waybillNumber || ''), undefined, { numeric: true });
+        });
         setStickers(parsedStickers);
       }
       const storedSize = localStorage.getItem('rajcargo-stickerSize');

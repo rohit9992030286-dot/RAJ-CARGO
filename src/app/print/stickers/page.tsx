@@ -21,6 +21,17 @@ function PrintStickersContent() {
     if (isLoaded) {
       const ids = searchParams.get('ids')?.split(',') || [];
       const waybills = ids.map(id => getWaybillById(id)).filter((w): w is Waybill => !!w);
+      
+      // Sort by receiver city
+      waybills.sort((a, b) => {
+        const cityA = (a.receiverCity || '').toUpperCase();
+        const cityB = (b.receiverCity || '').toUpperCase();
+        if (cityA < cityB) return -1;
+        if (cityA > cityB) return 1;
+        // Then by waybill number
+        return a.waybillNumber.localeCompare(b.waybillNumber, undefined, { numeric: true });
+      });
+
       setWaybillsToPrint(waybills);
     }
     const storedSize = localStorage.getItem('rajcargo-stickerSize');
