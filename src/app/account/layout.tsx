@@ -2,7 +2,7 @@
 'use client';
 import { useState, useEffect, ReactNode } from 'react';
 import Link from 'next/link';
-import { Menu, Settings, LayoutDashboard, DollarSign, Users, LogOut, Loader2, Handshake } from 'lucide-react';
+import { Menu, Settings, LayoutDashboard, DollarSign, Users, LogOut, Loader2, Handshake, Building } from 'lucide-react';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/hooks/useAuth';
@@ -19,6 +19,7 @@ function NavLinks({ onLinkClick, onLogout, pathname }: { onLinkClick?: () => voi
         { href: '/account', label: 'Account Dashboard', icon: DollarSign },
         { href: '/account/employees', label: 'Employee Management', icon: Users },
         { href: '/account/partners', label: 'Partner Payments', icon: Handshake },
+        { href: '/account/company-sales', label: 'Company Sales Report', icon: Building },
     ];
     
     return (

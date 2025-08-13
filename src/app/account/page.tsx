@@ -2,7 +2,7 @@
 'use client';
 import Link from 'next/link';
 import { Card, CardHeader, CardTitle, CardContent, CardDescription, CardFooter } from '@/components/ui/card';
-import { Users, ArrowRight, Handshake, DollarSign } from 'lucide-react';
+import { Users, ArrowRight, Handshake, DollarSign, Building } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 
@@ -23,6 +23,14 @@ const accountLinks = [
         iconBgColor: 'bg-green-100 dark:bg-green-900/50',
         iconColor: 'text-green-600 dark:text-green-300'
     },
+    {
+        href: '/account/company-sales',
+        title: 'Company Sales Report',
+        description: 'View sales reports for corporate clients.',
+        icon: Building,
+        iconBgColor: 'bg-purple-100 dark:bg-purple-900/50',
+        iconColor: 'text-purple-600 dark:text-purple-300'
+    }
 ]
 
 export default function AccountDashboardPage() {
