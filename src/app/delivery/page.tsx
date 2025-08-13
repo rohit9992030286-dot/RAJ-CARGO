@@ -8,7 +8,7 @@ import { Card, CardHeader, CardTitle, CardContent, CardDescription } from '@/com
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { Loader2, Package, Search, CheckCircle, RotateCcw, AlertCircle } from 'lucide-react';
+import { Loader2, Package, Search, CheckCircle, RotateCcw, AlertCircle, User } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { format } from 'date-fns';
 import { Badge } from '@/components/ui/badge';
@@ -23,6 +23,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
+import { Label } from '@/components/ui/label';
 
 
 export default function DeliverySheetPage() {
@@ -30,6 +31,8 @@ export default function DeliverySheetPage() {
     const { allWaybills, getWaybillById, updateWaybill, isLoaded: waybillsLoaded } = useWaybills();
     const { toast } = useToast();
     const [searchTerm, setSearchTerm] = useState('');
+    const [receivedBy, setReceivedBy] = useState('');
+    const [currentWaybillForUpdate, setCurrentWaybillForUpdate] = useState<Waybill | null>(null);
 
     const outForDeliveryWaybills = useMemo(() => {
         if (!manifestsLoaded || !waybillsLoaded) return [];
@@ -62,16 +65,32 @@ export default function DeliverySheetPage() {
     }, [allManifests, getWaybillById, manifestsLoaded, waybillsLoaded, searchTerm]);
 
 
-    const handleUpdateStatus = (waybill: Waybill, newStatus: 'Delivered' | 'Returned') => {
+    const handleUpdateStatus = (newStatus: 'Delivered' | 'Returned') => {
+        if (!currentWaybillForUpdate) return;
+        
+        if (newStatus === 'Delivered' && !receivedBy.trim()) {
+            toast({
+                title: 'Receiver Name Required',
+                description: "Please enter the name of the person who received the package.",
+                variant: 'destructive',
+            });
+            return;
+        }
+
         updateWaybill({
-            ...waybill,
+            ...currentWaybillForUpdate,
             status: newStatus,
-            deliveryDate: new Date().toISOString()
+            deliveryDate: new Date().toISOString(),
+            receivedBy: newStatus === 'Delivered' ? receivedBy : undefined,
         });
         toast({
             title: `Waybill ${newStatus}`,
-            description: `Waybill #${waybill.waybillNumber} has been marked as ${newStatus}.`
+            description: `Waybill #${currentWaybillForUpdate.waybillNumber} has been marked as ${newStatus}.`
         });
+
+        // Close dialog
+        setCurrentWaybillForUpdate(null);
+        setReceivedBy('');
     };
 
     const waybillsByManifest = useMemo(() => {
@@ -153,7 +172,7 @@ export default function DeliverySheetPage() {
                                                     <TableCell className="text-right space-x-2">
                                                         <AlertDialog>
                                                             <AlertDialogTrigger asChild>
-                                                                <Button size="sm" variant="outline" className="text-green-600 border-green-600 hover:bg-green-100 hover:text-green-700">
+                                                                <Button size="sm" variant="outline" className="text-green-600 border-green-600 hover:bg-green-100 hover:text-green-700" onClick={() => setCurrentWaybillForUpdate(wb)}>
                                                                     <CheckCircle className="mr-2 h-4 w-4" /> Delivered
                                                                 </Button>
                                                             </AlertDialogTrigger>
@@ -161,19 +180,32 @@ export default function DeliverySheetPage() {
                                                                 <AlertDialogHeader>
                                                                     <AlertDialogTitle>Confirm Delivery?</AlertDialogTitle>
                                                                     <AlertDialogDescription>
-                                                                        Mark waybill #{wb.waybillNumber} as 'Delivered'. This action cannot be easily undone.
+                                                                        Mark waybill #{currentWaybillForUpdate?.waybillNumber} as 'Delivered'.
                                                                     </AlertDialogDescription>
                                                                 </AlertDialogHeader>
+                                                                <div className="py-4">
+                                                                    <Label htmlFor="received-by">Received By</Label>
+                                                                    <div className="relative mt-2">
+                                                                         <User className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+                                                                        <Input 
+                                                                            id="received-by"
+                                                                            value={receivedBy}
+                                                                            onChange={(e) => setReceivedBy(e.target.value)}
+                                                                            placeholder="Enter receiver's name"
+                                                                            className="pl-10"
+                                                                        />
+                                                                    </div>
+                                                                </div>
                                                                 <AlertDialogFooter>
-                                                                    <AlertDialogCancel>Cancel</AlertDialogCancel>
-                                                                    <AlertDialogAction onClick={() => handleUpdateStatus(wb, 'Delivered')}>Confirm</AlertDialogAction>
+                                                                    <AlertDialogCancel onClick={() => setReceivedBy('')}>Cancel</AlertDialogCancel>
+                                                                    <AlertDialogAction onClick={() => handleUpdateStatus('Delivered')}>Confirm</AlertDialogAction>
                                                                 </AlertDialogFooter>
                                                             </AlertDialogContent>
                                                         </AlertDialog>
 
                                                         <AlertDialog>
                                                             <AlertDialogTrigger asChild>
-                                                                <Button size="sm" variant="destructive">
+                                                                <Button size="sm" variant="destructive" onClick={() => setCurrentWaybillForUpdate(wb)}>
                                                                     <RotateCcw className="mr-2 h-4 w-4" /> Returned
                                                                 </Button>
                                                             </AlertDialogTrigger>
@@ -181,12 +213,12 @@ export default function DeliverySheetPage() {
                                                                 <AlertDialogHeader>
                                                                     <AlertDialogTitle>Confirm Return?</AlertDialogTitle>
                                                                     <AlertDialogDescription>
-                                                                        Mark waybill #{wb.waybillNumber} as 'Returned'. This action cannot be easily undone.
+                                                                        Mark waybill #{currentWaybillForUpdate?.waybillNumber} as 'Returned'. This action cannot be easily undone.
                                                                     </AlertDialogDescription>
                                                                 </AlertDialogHeader>
                                                                 <AlertDialogFooter>
                                                                     <AlertDialogCancel>Cancel</AlertDialogCancel>
-                                                                    <AlertDialogAction className="bg-destructive hover:bg-destructive/90" onClick={() => handleUpdateStatus(wb, 'Returned')}>Confirm Return</AlertDialogAction>
+                                                                    <AlertDialogAction className="bg-destructive hover:bg-destructive/90" onClick={() => handleUpdateStatus('Returned')}>Confirm Return</AlertDialogAction>
                                                                 </AlertDialogFooter>
                                                             </AlertDialogContent>
                                                         </AlertDialog>

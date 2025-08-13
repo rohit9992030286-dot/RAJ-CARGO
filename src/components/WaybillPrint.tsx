@@ -2,10 +2,11 @@
 'use client';
 
 import { Waybill } from '@/types/waybill';
-import { Truck, User, MapPin, Phone, Calendar, Hash, Box, Weight, IndianRupee, Package, FileText, Globe, Cpu } from 'lucide-react';
+import { Truck, User, MapPin, Phone, Calendar, Hash, Box, Weight, IndianRupee, Package, FileText, Globe, Cpu, CheckCircle } from 'lucide-react';
 import Barcode from 'react-barcode';
 import { usePartnerAssociations } from '@/hooks/usePartnerAssociations';
 import { useAuth } from '@/hooks/useAuth';
+import { format } from 'date-fns';
 
 interface WaybillPrintProps {
   waybill: Waybill;
@@ -36,6 +37,8 @@ export function WaybillPrint({ waybill }: WaybillPrintProps) {
     const hubUser = users.find(u => u.partnerCode === hubPartnerCode);
     return hubUser?.partnerName || hubPartnerCode;
   };
+
+  const isDelivered = waybill.status === 'Delivered';
 
   return (
     <div className="p-4 bg-white text-black font-sans max-w-3xl mx-auto print:shadow-none print:p-2">
@@ -137,6 +140,30 @@ export function WaybillPrint({ waybill }: WaybillPrintProps) {
          </div>
       </section>
 
+      {/* POD Section */}
+      {isDelivered && (
+          <section className="my-6">
+             <h3 className="text-md font-bold uppercase tracking-wider text-black mb-3">Proof of Delivery (POD)</h3>
+             <div className="p-4 border-2 border-black rounded-lg grid grid-cols-3 gap-4">
+                <div className="flex items-center gap-2">
+                    <CheckCircle className="h-5 w-5 text-green-600" />
+                    <div>
+                        <p className="font-semibold text-black text-xs">Delivery Date</p>
+                        <p className="text-sm">{waybill.deliveryDate ? format(new Date(waybill.deliveryDate), 'PPp') : 'N/A'}</p>
+                    </div>
+                </div>
+                 <div className="flex items-center gap-2 col-span-2">
+                    <User className="h-5 w-5 text-black" />
+                    <div>
+                        <p className="font-semibold text-black text-xs">Received By</p>
+                        <p className="text-sm">{waybill.receivedBy || 'N/A'}</p>
+                    </div>
+                </div>
+             </div>
+          </section>
+      )}
+
+
       {/* Terms & Conditions */}
       <section className="my-6">
         <h3 className="text-md font-bold uppercase tracking-wider text-black mb-3">Terms & Conditions</h3>
@@ -147,7 +174,6 @@ export function WaybillPrint({ waybill }: WaybillPrintProps) {
           <p>4. Prohibited items will not be accepted. The sender is responsible for any legal consequences arising from shipping restricted goods.</p>
         </div>
       </section>
-
 
       {/* Footer */}
       <footer className="mt-8 pt-4 border-t-2 border-dashed border-gray-400 text-center">
