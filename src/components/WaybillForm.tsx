@@ -184,7 +184,7 @@ export function WaybillForm({ initialData, onSave, onCancel }: WaybillFormProps)
                     <FormControl>
                         <RadioGroup
                         onValueChange={field.onChange}
-                        defaultValue={field.value}
+                        value={field.value}
                         className="grid grid-cols-2 gap-4"
                         >
                         <FormItem>
@@ -409,7 +409,7 @@ export function WaybillForm({ initialData, onSave, onCancel }: WaybillFormProps)
                     render={({ field }) => (
                     <FormItem>
                         <FormLabel>Waybill Number</FormLabel>
-                        <Select onValueChange={field.onChange} value={field.value} defaultValue={field.value} disabled={!!initialData}>
+                        <Select onValueChange={field.onChange} value={field.value} disabled={!!initialData}>
                             <FormControl>
                                 <div className="relative">
                                 <SelectTrigger className="pl-10">
@@ -647,3 +647,5 @@ export function WaybillForm({ initialData, onSave, onCancel }: WaybillFormProps)
     </Form>
   );
 }
+
+    
