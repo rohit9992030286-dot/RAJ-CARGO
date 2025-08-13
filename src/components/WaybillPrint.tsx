@@ -141,10 +141,11 @@ export function WaybillPrint({ waybill }: WaybillPrintProps) {
       </section>
 
       {/* POD Section */}
-      {isDelivered && (
-          <section className="my-6">
-             <h3 className="text-md font-bold uppercase tracking-wider text-black mb-3">Proof of Delivery (POD)</h3>
-             <div className="p-4 border-2 border-black rounded-lg grid grid-cols-3 gap-4">
+      <section className="my-6">
+          <h3 className="text-md font-bold uppercase tracking-wider text-black mb-3">Proof of Delivery (POD)</h3>
+          <div className="p-4 border-2 border-black rounded-lg grid grid-cols-3 gap-4">
+            {isDelivered ? (
+              <>
                 <div className="flex items-center gap-2">
                     <CheckCircle className="h-5 w-5 text-green-600" />
                     <div>
@@ -152,16 +153,28 @@ export function WaybillPrint({ waybill }: WaybillPrintProps) {
                         <p className="text-sm">{waybill.deliveryDate ? format(new Date(waybill.deliveryDate), 'PPp') : 'N/A'}</p>
                     </div>
                 </div>
-                 <div className="flex items-center gap-2 col-span-2">
+                <div className="flex items-center gap-2 col-span-2">
                     <User className="h-5 w-5 text-black" />
                     <div>
                         <p className="font-semibold text-black text-xs">Received By</p>
                         <p className="text-sm">{waybill.receivedBy || 'N/A'}</p>
                     </div>
                 </div>
-             </div>
-          </section>
-      )}
+              </>
+            ) : (
+              <>
+                <div>
+                  <p className="font-semibold text-black text-xs mb-2">Receiver's Name & Signature:</p>
+                  <div className="h-12 border-b border-gray-400"></div>
+                </div>
+                 <div className="col-span-2">
+                  <p className="font-semibold text-black text-xs mb-2">Date & Remarks:</p>
+                  <div className="h-12 border-b border-gray-400"></div>
+                </div>
+              </>
+            )}
+          </div>
+      </section>
 
 
       {/* Terms & Conditions */}
