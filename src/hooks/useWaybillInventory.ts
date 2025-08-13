@@ -19,7 +19,7 @@ export function useWaybillInventory() {
     return context.waybillInventory.filter(item => item.partnerCode === user.partnerCode && !item.isUsed);
   }, [context.waybillInventory, user, context.isLoaded]);
   
-  const getAvailableInventoryForCompany = (companyCode?: string): InventoryItem[] => {
+  const getAvailableInventoryForCompany = (companyCode?: string, marketOnly = false): InventoryItem[] => {
     if (!user || !context.isLoaded) return [];
     
     // Filter for the partner's available inventory first
@@ -27,15 +27,17 @@ export function useWaybillInventory() {
         item.partnerCode === user.partnerCode && !item.isUsed
     );
 
-    if (companyCode) {
-        // If a company is selected, return inventory for that company AND market inventory
-        return partnerInventory.filter(item => 
-            item.companyCode === companyCode || !item.companyCode
-        );
-    } else {
-        // If no company is selected (market booking), return only market inventory
+    if (marketOnly) {
         return partnerInventory.filter(item => !item.companyCode);
     }
+    
+    if (companyCode) {
+        // If a company is selected, return inventory for that company
+        return partnerInventory.filter(item => item.companyCode === companyCode);
+    }
+
+    // Default case (e.g. initial load) return all partner inventory
+    return partnerInventory;
   };
 
 

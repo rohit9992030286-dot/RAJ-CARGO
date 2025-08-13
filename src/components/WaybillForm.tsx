@@ -10,12 +10,14 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
 import { Waybill, waybillFormSchema, WaybillFormData } from '@/types/waybill';
-import { User, Phone, Package, Weight, Calendar, ListChecks, Save, XCircle, MapPin, Hash, Box, IndianRupee, Clock, Building, Globe, Loader2, FileText, Truck } from 'lucide-react';
+import { User, Phone, Package, Weight, Calendar, ListChecks, Save, XCircle, MapPin, Hash, Box, IndianRupee, Clock, Building, Globe, Loader2, FileText, Truck, CreditCard, Wallet } from 'lucide-react';
 import { Textarea } from './ui/textarea';
 import { useState, useEffect, useMemo } from 'react';
 import { useWaybillInventory } from '@/hooks/useWaybillInventory';
 import { useAuth } from '@/hooks/useAuth';
 import { useCompanies } from '@/hooks/useCompanies';
+import { RadioGroup, RadioGroupItem } from './ui/radio-group';
+import { Label } from './ui/label';
 
 const getInitialValues = (initialData?: Waybill): WaybillFormData => {
     const defaults = {
@@ -44,6 +46,7 @@ const getInitialValues = (initialData?: Waybill): WaybillFormData => {
         status: 'Pending' as 'Pending',
         partnerCode: '',
         companyCode: '',
+        paymentType: 'Credit' as 'Credit',
     };
     
     if (initialData) {
@@ -78,14 +81,19 @@ export function WaybillForm({ initialData, onSave, onCancel }: WaybillFormProps)
       name: 'shipmentValue'
   });
   
-  const selectedCompanyCode = useWatch({
+  const selectedPaymentType = useWatch({
       control: form.control,
-      name: 'companyCode'
+      name: 'paymentType'
   });
 
   const availableInventory = useMemo(() => {
-    return getAvailableInventoryForCompany(selectedCompanyCode);
-  }, [getAvailableInventoryForCompany, selectedCompanyCode]);
+    if (selectedPaymentType === 'Credit') {
+        // For credit, only show inventory for the user's assigned company
+        return getAvailableInventoryForCompany(user?.companyCode, false);
+    }
+    // For "To Pay", show only market inventory
+    return getAvailableInventoryForCompany(undefined, true);
+  }, [getAvailableInventoryForCompany, selectedPaymentType, user?.companyCode]);
 
 
   useEffect(() => {
@@ -124,20 +132,21 @@ export function WaybillForm({ initialData, onSave, onCancel }: WaybillFormProps)
   }, [initialData, user, companiesLoaded]);
   
   useEffect(() => {
-    // When the company changes, if the currently selected waybill number is no longer
+    // When the payment type changes, if the currently selected waybill number is no longer
     // in the available list, reset it.
     const currentWb = form.getValues('waybillNumber');
     if (currentWb && !availableInventory.some(inv => inv.waybillNumber === currentWb)) {
         form.setValue('waybillNumber', '');
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selectedCompanyCode, availableInventory]);
+  }, [selectedPaymentType, availableInventory]);
 
   const onSubmit = (data: WaybillFormData) => {
     const waybillToSave: Waybill = {
         ...data,
         id: initialData?.id || crypto.randomUUID(),
-        partnerCode: user?.partnerCode
+        partnerCode: user?.partnerCode,
+        companyCode: data.paymentType === 'Credit' ? user?.companyCode : undefined
     };
 
     const success = onSave(waybillToSave);
@@ -168,28 +177,40 @@ export function WaybillForm({ initialData, onSave, onCancel }: WaybillFormProps)
             <CardContent className="space-y-4">
                <FormField
                 control={form.control}
-                name="companyCode"
+                name="paymentType"
                 render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Company</FormLabel>
-                    <Select onValueChange={field.onChange} value={field.value || ''} defaultValue={field.value}>
-                        <FormControl>
-                            <div className="relative">
-                            <SelectTrigger className="pl-10">
-                                <SelectValue placeholder="Select a Company (for Market booking)" />
-                            </SelectTrigger>
-                            <IconWrapper><Building /></IconWrapper>
-                            </div>
-                        </FormControl>
-                        <SelectContent>
-                            <SelectItem value="market">Market Booking</SelectItem>
-                            {companies.map(c => <SelectItem key={c.id} value={c.companyCode!}>{c.companyName} ({c.companyCode})</SelectItem>)}
-                        </SelectContent>
-                    </Select>
+                    <FormItem className="space-y-3">
+                    <FormLabel>Payment Type</FormLabel>
+                    <FormControl>
+                        <RadioGroup
+                        onValueChange={field.onChange}
+                        defaultValue={field.value}
+                        className="grid grid-cols-2 gap-4"
+                        >
+                        <FormItem>
+                            <FormControl>
+                                <RadioGroupItem value="Credit" id="credit" className="sr-only" />
+                            </FormControl>
+                             <Label htmlFor="credit" className="flex flex-col items-center justify-between rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground [&:has([data-state=checked])]:border-primary">
+                                <CreditCard className="mb-3 h-6 w-6" />
+                                Credit
+                             </Label>
+                        </FormItem>
+                        <FormItem>
+                           <FormControl>
+                             <RadioGroupItem value="To Pay" id="topay" className="sr-only" />
+                           </FormControl>
+                            <Label htmlFor="topay" className="flex flex-col items-center justify-between rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground [&:has([data-state=checked])]:border-primary">
+                               <Wallet className="mb-3 h-6 w-6" />
+                               To Pay
+                            </Label>
+                        </FormItem>
+                        </RadioGroup>
+                    </FormControl>
                     <FormMessage />
-                  </FormItem>
+                    </FormItem>
                 )}
-              />
+                />
               <FormField
                 control={form.control}
                 name="senderName"

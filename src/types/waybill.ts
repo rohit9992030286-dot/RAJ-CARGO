@@ -35,6 +35,7 @@ const baseWaybillSchema = z.object({
   companyCode: z.string().optional(),
   deliveryDate: z.string().optional(),
   receivedBy: z.string().optional(),
+  paymentType: z.enum(['Credit', 'To Pay']).default('Credit'),
 });
 
 // Schema for the form data, with the superRefine for conditional validation.
