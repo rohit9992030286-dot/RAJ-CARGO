@@ -61,7 +61,7 @@ function PrintWaybillContent() {
   return (
     <>
       <style>{printStyles}</style>
-      <div className="bg-white px-4">
+      <div className="bg-white">
           <WaybillPrint waybill={waybillToPrint} />
       </div>
     </>

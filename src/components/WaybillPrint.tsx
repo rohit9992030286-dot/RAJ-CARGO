@@ -41,8 +41,8 @@ export function WaybillPrint({ waybill }: WaybillPrintProps) {
   const isDelivered = waybill.status === 'Delivered';
 
   return (
-    <div className="p-1 bg-white text-black font-sans mx-auto print:shadow-none print:p-0" style={{ fontSize: '10px' }}>
-      <div className="border-2 border-black">
+    <div className="bg-white text-black font-sans mx-auto print:shadow-none print:p-0" style={{ fontSize: '10px', height: '25cm', width: '100%', display: 'flex', flexDirection: 'column' }}>
+      <div className="border-2 border-black flex flex-col flex-grow">
           {/* Header */}
           <header className="flex justify-between items-start p-2 border-b-2 border-black">
             <div className="flex items-center gap-3">
@@ -67,7 +67,7 @@ export function WaybillPrint({ waybill }: WaybillPrintProps) {
             </div>
           </header>
           
-          <div className="p-2">
+          <div className="p-2 flex-grow flex flex-col">
               {/* Sender & Receiver Info */}
               <section className="grid grid-cols-2 gap-2">
                 <div className="p-2 border-2 border-black">
@@ -138,9 +138,9 @@ export function WaybillPrint({ waybill }: WaybillPrintProps) {
               </section>
               
               {/* Package Description */}
-              <section className="mt-1">
-                <div className="p-2 border-2 border-black min-h-[25px] flex items-center gap-2 text-xs">
-                    <Package className="h-4 w-4 text-black shrink-0" />
+              <section className="mt-1 flex-grow">
+                <div className="p-2 border-2 border-black min-h-[50px] flex items-start gap-2 text-xs">
+                    <Package className="h-4 w-4 text-black shrink-0 mt-0.5" />
                     <span className="font-semibold mr-2">Desc:</span>
                     <p>{waybill.packageDescription}</p>
                 </div>
@@ -167,11 +167,11 @@ export function WaybillPrint({ waybill }: WaybillPrintProps) {
                       <>
                         <div className="col-span-2">
                           <p className="font-semibold text-black mb-1">Receiver's Name & Signature:</p>
-                          <div className="h-6 border-b border-gray-400"></div>
+                          <div className="h-12 border-b border-gray-400"></div>
                         </div>
                         <div className="col-span-1">
                           <p className="font-semibold text-black mb-1">Date & Remarks:</p>
-                          <div className="h-6 border-b border-gray-400"></div>
+                          <div className="h-12 border-b border-gray-400"></div>
                         </div>
                       </>
                     )}

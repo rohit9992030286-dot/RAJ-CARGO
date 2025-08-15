@@ -50,15 +50,18 @@ function PrintWaybillsContent() {
       body {
         -webkit-print-color-adjust: exact;
       }
+       .waybill-print-container {
+        page-break-after: always;
+      }
     }
   `;
 
   return (
     <>
       <style>{printStyles}</style>
-      <div className="bg-white px-4">
+      <div className="bg-white">
         {waybillsToPrint.map((waybill, index) => (
-          <div key={waybill.id} className="print:page-break-after-always">
+          <div key={waybill.id} className="waybill-print-container">
             <WaybillPrint waybill={waybill} />
           </div>
         ))}
