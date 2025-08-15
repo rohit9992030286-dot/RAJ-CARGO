@@ -41,7 +41,7 @@ export function WaybillPrint({ waybill }: WaybillPrintProps) {
   const isDelivered = waybill.status === 'Delivered';
 
   return (
-    <div className="p-1 bg-white text-black font-sans max-w-full mx-auto print:shadow-none print:p-0" style={{ fontSize: '11px' }}>
+    <div className="p-1 bg-white text-black font-sans mx-auto print:shadow-none print:p-0" style={{ fontSize: '11px' }}>
       <div className="border-2 border-black">
           {/* Header */}
           <header className="flex justify-between items-start p-2 border-b-2 border-black">

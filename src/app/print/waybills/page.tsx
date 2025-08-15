@@ -56,7 +56,7 @@ function PrintWaybillsContent() {
   return (
     <>
       <style>{printStyles}</style>
-      <div className="bg-white">
+      <div className="bg-white px-4">
         {waybillsToPrint.map((waybill, index) => (
           <div key={waybill.id} className="print:page-break-after-always">
             <WaybillPrint waybill={waybill} />

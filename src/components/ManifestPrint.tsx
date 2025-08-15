@@ -30,7 +30,7 @@ export function ManifestPrint({ waybills, manifest }: ManifestPrintProps) {
   const waybillChunks = chunkArray(waybills, 25);
 
   return (
-    <div className="p-4 bg-white text-black font-sans max-w-4xl mx-auto print:shadow-none print:p-2">
+    <div className="p-1 bg-white text-black font-sans mx-auto print:shadow-none print:p-0">
       {waybillChunks.map((chunk, pageIndex) => (
         <div key={pageIndex} className="print:page-break-after-always last:print:page-break-after-auto">
           <header className="flex justify-between items-start p-4 border-2 border-black">
