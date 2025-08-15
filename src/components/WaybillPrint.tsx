@@ -41,7 +41,7 @@ export function WaybillPrint({ waybill }: WaybillPrintProps) {
   const isDelivered = waybill.status === 'Delivered';
 
   return (
-    <div className="bg-white text-black font-sans mx-auto print:shadow-none print:p-0" style={{ fontSize: '10px', height: '25cm', width: '100%', display: 'flex', flexDirection: 'column' }}>
+    <div className="bg-white text-black font-sans mx-auto print:shadow-none" style={{ fontSize: '10px', height: '25cm', width: '100%', display: 'flex', flexDirection: 'column' }}>
       <div className="border-2 border-black flex flex-col flex-grow">
           {/* Header */}
           <header className="flex justify-between items-start p-2 border-b-2 border-black">
@@ -145,7 +145,7 @@ export function WaybillPrint({ waybill }: WaybillPrintProps) {
               
               {/* Package Description */}
               <section className="mt-1 flex-grow">
-                <div className="p-2 border-2 border-black min-h-[50px] flex items-start gap-2 text-xs">
+                <div className="p-2 border-2 border-black h-full flex items-start gap-2 text-xs">
                     <Package className="h-4 w-4 text-black shrink-0 mt-0.5" />
                     <span className="font-semibold mr-2">Desc:</span>
                     <p>{waybill.packageDescription}</p>
