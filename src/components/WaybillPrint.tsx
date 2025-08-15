@@ -91,49 +91,55 @@ export function WaybillPrint({ waybill }: WaybillPrintProps) {
 
               {/* Shipment Details */}
               <section className="mt-1">
-                <div className="grid grid-cols-5 gap-1 text-center text-xs">
-                    <div className="p-1 border-2 border-black">
-                        <Calendar className="h-3 w-3 text-black mx-auto" />
-                        <p className="font-semibold text-black text-[9px]">Ship Date</p>
-                        <p className="text-[9px]">{new Date(waybill.shippingDate).toLocaleDateString()}</p>
-                    </div>
-                    <div className="p-1 border-2 border-black">
-                        <Hash className="h-3 w-3 text-black mx-auto" />
-                        <p className="font-semibold text-black text-[9px]">Invoice #</p>
-                        <p className="text-[9px] truncate">{waybill.invoiceNumber}</p>
-                    </div>
-                     <div className="p-1 border-2 border-black">
-                        <Box className="h-3 w-3 text-black mx-auto" />
-                        <p className="font-semibold text-black text-[9px]">Total Boxes</p>
-                        <p className="text-sm font-bold">{waybill.numberOfBoxes}</p>
-                    </div>
-                    <div className="p-1 border-2 border-black">
-                        <Weight className="h-3 w-3 text-black mx-auto" />
-                        <p className="font-semibold text-black text-[9px]">Weight</p>
-                        <p className="text-sm font-bold">{waybill.packageWeight} kg</p>
-                    </div>
-                     <div className="p-1 border-2 border-black">
-                        <Truck className="h-3 w-3 text-black mx-auto" />
-                        <p className="font-semibold text-black text-[9px]">Mode</p>
-                        <p className="text-sm font-bold">Surface</p>
-                    </div>
-                    <div className="p-1 border-2 border-black col-span-2">
-                        <Wallet className="h-3 w-3 text-black mx-auto" />
-                        <p className="font-semibold text-black text-[9px]">Payment Type</p>
-                        <p className="text-sm font-bold">{waybill.paymentType}</p>
-                    </div>
-                    <div className="p-1 border-2 border-black col-span-3">
-                        <IndianRupee className="h-3 w-3 text-black mx-auto" />
-                        <p className="font-semibold text-black text-[9px]">Declared Value</p>
-                        <p className="text-sm font-bold">₹{waybill.shipmentValue.toFixed(2)}</p>
-                    </div>
-                    {waybill.shipmentValue >= 50000 && waybill.eWayBillNo && (
-                        <div className="p-1 border-2 border-black col-span-5">
-                            <FileText className="h-3 w-3 text-black mx-auto" />
-                            <p className="font-semibold text-black text-[9px]">E-Way Bill Number</p>
-                            <p className="text-xs font-bold font-mono">{waybill.eWayBillNo}</p>
+                <div className="space-y-1 text-xs">
+                    {/* Row 1 */}
+                    <div className="grid grid-cols-3 gap-1">
+                        <div className="p-1 border-2 border-black text-center">
+                            <p className="font-semibold text-black text-[9px]">Ship Date</p>
+                            <p className="text-sm font-bold">{new Date(waybill.shippingDate).toLocaleDateString()}</p>
                         </div>
-                    )}
+                         <div className="p-1 border-2 border-black text-center">
+                            <p className="font-semibold text-black text-[9px]">Payment Type</p>
+                            <p className="text-sm font-bold">{waybill.paymentType}</p>
+                        </div>
+                        <div className="p-1 border-2 border-black text-center">
+                            <p className="font-semibold text-black text-[9px]">Mode</p>
+                            <p className="text-sm font-bold">Surface</p>
+                        </div>
+                    </div>
+                    {/* Row 2 */}
+                    <div className="grid grid-cols-2 gap-1">
+                        <div className="p-1 border-2 border-black text-center">
+                            <p className="font-semibold text-black text-[9px]">Total Boxes</p>
+                            <p className="text-sm font-bold">{waybill.numberOfBoxes}</p>
+                        </div>
+                        <div className="p-1 border-2 border-black text-center">
+                            <p className="font-semibold text-black text-[9px]">Weight</p>
+                            <p className="text-sm font-bold">{waybill.packageWeight} kg</p>
+                        </div>
+                    </div>
+                     {/* Row 3 */}
+                    <div className="grid grid-cols-3 gap-1">
+                        <div className="p-1 border-2 border-black text-center">
+                            <p className="font-semibold text-black text-[9px]">Invoice #</p>
+                            <p className="text-[9px] truncate">{waybill.invoiceNumber}</p>
+                        </div>
+                        <div className="p-1 border-2 border-black text-center">
+                            <p className="font-semibold text-black text-[9px]">Declared Value</p>
+                            <p className="text-sm font-bold">₹{waybill.shipmentValue.toFixed(2)}</p>
+                        </div>
+                        <div className="p-1 border-2 border-black text-center">
+                            <p className="font-semibold text-black text-[9px]">E-Way Bill #</p>
+                            <p className="text-[9px] truncate">{waybill.eWayBillNo || 'N/A'}</p>
+                        </div>
+                    </div>
+                     {/* Row 4 */}
+                    <div className="grid grid-cols-1 gap-1">
+                        <div className="p-1 border-2 border-black text-center">
+                            <p className="font-semibold text-black text-[9px]">Destination Hub</p>
+                            <p className="text-sm font-bold uppercase">{getHubName()}</p>
+                        </div>
+                    </div>
                 </div>
               </section>
               
