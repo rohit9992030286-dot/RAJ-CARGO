@@ -20,6 +20,8 @@ import { cn } from '@/lib/utils';
 import { useWaybillInventory } from '@/hooks/useWaybillInventory';
 import { DateRange } from 'react-day-picker';
 import { useAuth } from '@/hooks/useAuth';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Label } from '@/components/ui/label';
 
 function useDebounce(value: string, delay: number): string {
   const [debouncedValue, setDebouncedValue] = useState(value);
@@ -44,14 +46,13 @@ function WaybillsPageContent() {
   const [currentPage, setCurrentPage] = useState(1);
   const [searchTerm, setSearchTerm] = useState('');
   const [dateRange, setDateRange] = useState<DateRange | undefined>(undefined);
+  const [itemsPerPage, setItemsPerPage] = useState(10);
   const router = useRouter();
   const { toast } = useToast();
   const { user } = useAuth();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const debouncedSearchTerm = useDebounce(searchTerm, 300);
-
-  const WAYBILLS_PER_PAGE = 10;
 
   const filteredWaybills = useMemo(() => {
     let filtered = waybills;
@@ -94,12 +95,12 @@ function WaybillsPageContent() {
 
   useEffect(() => {
     setCurrentPage(1);
-  }, [debouncedSearchTerm, dateRange]);
+  }, [debouncedSearchTerm, dateRange, itemsPerPage]);
 
-  const indexOfLastWaybill = currentPage * WAYBILLS_PER_PAGE;
-  const indexOfFirstWaybill = indexOfLastWaybill - WAYBILLS_PER_PAGE;
+  const indexOfLastWaybill = currentPage * itemsPerPage;
+  const indexOfFirstWaybill = indexOfLastWaybill - itemsPerPage;
   const currentWaybills = filteredWaybills.slice(indexOfFirstWaybill, indexOfLastWaybill);
-  const totalPages = Math.ceil(filteredWaybills.length / WAYBILLS_PER_PAGE);
+  const totalPages = Math.ceil(filteredWaybills.length / itemsPerPage);
 
   const handleCreateNew = () => {
     router.push('/booking/waybills/create');
@@ -411,29 +412,47 @@ function WaybillsPageContent() {
                     onCreateNew={handleCreateNew}
                 />
             </CardContent>
-             {totalPages > 1 && (
-            <CardFooter className="flex justify-center items-center gap-4 mt-4">
-                <Button 
-                    variant="outline"
-                    size="sm"
-                    onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
-                    disabled={currentPage === 1}
-                >
-                    <ChevronLeft /> Previous
-                </Button>
-                <span className="text-sm font-medium">
-                    Page {currentPage} of {totalPages}
-                </span>
-                <Button 
-                    variant="outline"
-                    size="sm"
-                    onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
-                    disabled={currentPage === totalPages}
-                >
-                    Next <ChevronRight />
-                </Button>
-            </CardFooter>
-        )}
+             {totalPages > 0 && (
+                <CardFooter className="flex justify-center items-center gap-4 mt-4">
+                    <div className="flex items-center gap-2 text-sm">
+                        <Label htmlFor="items-per-page">Rows per page</Label>
+                        <Select
+                            value={itemsPerPage.toString()}
+                            onValueChange={(value) => setItemsPerPage(Number(value))}
+                        >
+                            <SelectTrigger id="items-per-page" className="w-20">
+                                <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                                {[10, 25, 50, 100, 200].map(size => (
+                                    <SelectItem key={size} value={size.toString()}>{size}</SelectItem>
+                                ))}
+                            </SelectContent>
+                        </Select>
+                    </div>
+                    <div className="flex-grow flex justify-center items-center gap-4">
+                        <Button 
+                            variant="outline"
+                            size="sm"
+                            onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                            disabled={currentPage === 1}
+                        >
+                            <ChevronLeft /> Previous
+                        </Button>
+                        <span className="text-sm font-medium">
+                            Page {currentPage} of {totalPages}
+                        </span>
+                        <Button 
+                            variant="outline"
+                            size="sm"
+                            onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                            disabled={currentPage === totalPages}
+                        >
+                            Next <ChevronRight />
+                        </Button>
+                    </div>
+                </CardFooter>
+            )}
         </Card>
     </div>
   );
@@ -442,3 +461,5 @@ function WaybillsPageContent() {
 export default function WaybillsPage() {
     return <WaybillsPageContent />;
 }
+
+    
