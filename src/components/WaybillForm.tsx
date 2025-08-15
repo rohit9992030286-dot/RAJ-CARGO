@@ -131,17 +131,22 @@ export function WaybillForm({ initialData, onSave, onCancel }: WaybillFormProps)
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [initialData, user, companiesLoaded]);
   
-  useEffect(() => {
-    // When the payment type changes, if the currently selected waybill number is no longer
-    // in the available list, reset it.
-    const currentWb = form.getValues('waybillNumber');
-    if (currentWb && !availableInventory.some(inv => inv.waybillNumber === currentWb)) {
-        form.setValue('waybillNumber', '');
-    }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selectedPaymentType, availableInventory]);
 
   const onSubmit = (data: WaybillFormData) => {
+    // Manual validation for waybill number against inventory
+    if (!initialData) { // Only check for new waybills
+        const inventoryItem = availableInventory.find(item => item.waybillNumber === data.waybillNumber);
+        if (!inventoryItem) {
+            toast({
+                title: 'Invalid Waybill Number',
+                description: `The number "${data.waybillNumber}" is not available in your assigned inventory for the selected payment type.`,
+                variant: 'destructive',
+            });
+            return;
+        }
+    }
+
+
     const waybillToSave: Waybill = {
         ...data,
         id: initialData?.id || crypto.randomUUID(),
@@ -436,24 +441,12 @@ export function WaybillForm({ initialData, onSave, onCancel }: WaybillFormProps)
                     render={({ field }) => (
                     <FormItem>
                         <FormLabel>Waybill Number</FormLabel>
-                        <Select onValueChange={field.onChange} value={field.value} disabled={!!initialData}>
+                         <div className="relative">
                             <FormControl>
-                                <div className="relative">
-                                <SelectTrigger className="pl-10">
-                                    <SelectValue placeholder={!isInventoryLoaded ? "Loading..." : "Select from inventory"} />
-                                </SelectTrigger>
-                                <IconWrapper>{isInventoryLoaded ? <Hash /> : <Loader2 className="animate-spin" />}</IconWrapper>
-                                </div>
+                                <Input placeholder="Enter waybill number" {...field} className="pl-10" disabled={!!initialData} />
                             </FormControl>
-                            <SelectContent>
-                                {initialData && <SelectItem value={initialData.waybillNumber}>{initialData.waybillNumber}</SelectItem>}
-                                {availableInventory.map(item => (
-                                    <SelectItem key={item.waybillNumber} value={item.waybillNumber}>
-                                        {item.waybillNumber}
-                                    </SelectItem>
-                                ))}
-                            </SelectContent>
-                        </Select>
+                            <IconWrapper><Hash /></IconWrapper>
+                        </div>
                         <FormMessage />
                     </FormItem>
                     )}
