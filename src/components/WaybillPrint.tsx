@@ -2,7 +2,7 @@
 'use client';
 
 import { Waybill } from '@/types/waybill';
-import { Truck, User, MapPin, Phone, Calendar, Hash, Box, Weight, IndianRupee, Package, FileText, Globe, Cpu, CheckCircle } from 'lucide-react';
+import { Truck, User, MapPin, Phone, Calendar, Hash, Box, Weight, IndianRupee, Package, FileText, Globe, Cpu, CheckCircle, Wallet } from 'lucide-react';
 import Barcode from 'react-barcode';
 import { usePartnerAssociations } from '@/hooks/usePartnerAssociations';
 import { useAuth } from '@/hooks/useAuth';
@@ -41,7 +41,7 @@ export function WaybillPrint({ waybill }: WaybillPrintProps) {
   const isDelivered = waybill.status === 'Delivered';
 
   return (
-    <div className="p-1 bg-white text-black font-sans mx-auto print:shadow-none print:p-0" style={{ fontSize: '11px' }}>
+    <div className="p-1 bg-white text-black font-sans mx-auto print:shadow-none print:p-0" style={{ fontSize: '10px' }}>
       <div className="border-2 border-black">
           {/* Header */}
           <header className="flex justify-between items-start p-2 border-b-2 border-black">
@@ -90,51 +90,56 @@ export function WaybillPrint({ waybill }: WaybillPrintProps) {
               </section>
 
               {/* Shipment Details */}
-              <section className="mt-2">
-                <div className="grid grid-cols-4 gap-2 text-center text-xs">
+              <section className="mt-1">
+                <div className="grid grid-cols-5 gap-1 text-center text-xs">
                     <div className="p-1 border-2 border-black">
                         <Calendar className="h-3 w-3 text-black mx-auto" />
-                        <p className="font-semibold text-black text-[10px]">Ship Date</p>
-                        <p className="text-[10px]">{new Date(waybill.shippingDate).toLocaleDateString()}</p>
+                        <p className="font-semibold text-black text-[9px]">Ship Date</p>
+                        <p className="text-[9px]">{new Date(waybill.shippingDate).toLocaleDateString()}</p>
                     </div>
                     <div className="p-1 border-2 border-black">
                         <Hash className="h-3 w-3 text-black mx-auto" />
-                        <p className="font-semibold text-black text-[10px]">Invoice #</p>
-                        <p className="text-[10px] truncate">{waybill.invoiceNumber}</p>
+                        <p className="font-semibold text-black text-[9px]">Invoice #</p>
+                        <p className="text-[9px] truncate">{waybill.invoiceNumber}</p>
                     </div>
-                    <div className="p-1 border-2 border-black">
+                     <div className="p-1 border-2 border-black">
                         <Box className="h-3 w-3 text-black mx-auto" />
-                        <p className="font-semibold text-black text-[10px]">Total Boxes</p>
-                        <p className="text-md font-bold">{waybill.numberOfBoxes}</p>
+                        <p className="font-semibold text-black text-[9px]">Total Boxes</p>
+                        <p className="text-sm font-bold">{waybill.numberOfBoxes}</p>
                     </div>
                     <div className="p-1 border-2 border-black">
                         <Weight className="h-3 w-3 text-black mx-auto" />
-                        <p className="font-semibold text-black text-[10px]">Total Weight</p>
-                        <p className="text-md font-bold">{waybill.packageWeight} kg</p>
+                        <p className="font-semibold text-black text-[9px]">Weight</p>
+                        <p className="text-sm font-bold">{waybill.packageWeight} kg</p>
+                    </div>
+                     <div className="p-1 border-2 border-black">
+                        <Truck className="h-3 w-3 text-black mx-auto" />
+                        <p className="font-semibold text-black text-[9px]">Mode</p>
+                        <p className="text-sm font-bold">Surface</p>
                     </div>
                     <div className="p-1 border-2 border-black col-span-2">
-                        <Cpu className="h-3 w-3 text-black mx-auto" />
-                        <p className="font-semibold text-black text-[10px]">Hub Name</p>
-                        <p className="text-xs font-bold truncate">{getHubName()}</p>
+                        <Wallet className="h-3 w-3 text-black mx-auto" />
+                        <p className="font-semibold text-black text-[9px]">Payment Type</p>
+                        <p className="text-sm font-bold">{waybill.paymentType}</p>
                     </div>
-                    <div className="p-1 border-2 border-black col-span-2">
+                    <div className="p-1 border-2 border-black col-span-3">
                         <IndianRupee className="h-3 w-3 text-black mx-auto" />
-                        <p className="font-semibold text-black text-[10px]">Declared Value</p>
-                        <p className="text-md font-bold">₹{waybill.shipmentValue.toFixed(2)}</p>
+                        <p className="font-semibold text-black text-[9px]">Declared Value</p>
+                        <p className="text-sm font-bold">₹{waybill.shipmentValue.toFixed(2)}</p>
                     </div>
                     {waybill.shipmentValue >= 50000 && waybill.eWayBillNo && (
-                        <div className="p-1 border-2 border-black col-span-4">
+                        <div className="p-1 border-2 border-black col-span-5">
                             <FileText className="h-3 w-3 text-black mx-auto" />
-                            <p className="font-semibold text-black text-[10px]">E-Way Bill Number</p>
-                            <p className="text-sm font-bold font-mono">{waybill.eWayBillNo}</p>
+                            <p className="font-semibold text-black text-[9px]">E-Way Bill Number</p>
+                            <p className="text-xs font-bold font-mono">{waybill.eWayBillNo}</p>
                         </div>
                     )}
                 </div>
               </section>
               
               {/* Package Description */}
-              <section className="mt-2">
-                <div className="p-2 border-2 border-black min-h-[30px] flex items-center gap-2 text-xs">
+              <section className="mt-1">
+                <div className="p-2 border-2 border-black min-h-[25px] flex items-center gap-2 text-xs">
                     <Package className="h-4 w-4 text-black shrink-0" />
                     <span className="font-semibold mr-2">Desc:</span>
                     <p>{waybill.packageDescription}</p>
@@ -142,7 +147,7 @@ export function WaybillPrint({ waybill }: WaybillPrintProps) {
               </section>
 
               {/* POD Section */}
-              <section className="mt-2">
+              <section className="mt-1">
                   <div className="p-2 border-2 border-black grid grid-cols-3 gap-4 text-xs">
                     {isDelivered ? (
                       <>
@@ -174,8 +179,8 @@ export function WaybillPrint({ waybill }: WaybillPrintProps) {
               </section>
 
               {/* Terms & Conditions */}
-              <section className="mt-2">
-                <div className="p-1 border-2 border-black text-[9px] space-y-0.5">
+              <section className="mt-1">
+                <div className="p-1 border-2 border-black text-[8px] space-y-0.5">
                   <p className="font-bold mb-0.5">Terms & Conditions:</p>
                   <p>1. All shipments are carried at the sender's risk. RAJ CARGO is not liable for any loss or damage unless insurance is purchased.</p>
                   <p>2. Liability of RAJ CARGO is limited to the declared value or ₹1,000, whichever is lower. Sender is responsible for shipping non-prohibited items.</p>
@@ -183,8 +188,7 @@ export function WaybillPrint({ waybill }: WaybillPrintProps) {
               </section>
 
               {/* Footer */}
-              <footer className="mt-2 pt-1 border-t-2 border-dashed border-gray-400 text-center">
-                <p className="text-xs font-bold text-black">Thank you for shipping with RAJ CARGO! 🚀</p>
+              <footer className="mt-1 pt-1 border-t-2 border-dashed border-gray-400 text-center">
                 <p className="text-[9px] text-black">Generated on: {new Date().toLocaleString()}</p>
               </footer>
           </div>
