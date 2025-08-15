@@ -18,18 +18,18 @@ export function WaybillPrint({ waybill }: WaybillPrintProps) {
   
   const getHubName = () => {
     if (!associationsLoaded || !usersLoaded) return 'N/A';
-    
-    // Find a hub partner by matching receiver's state
-    const locationBasedHub = users.find(u => 
-        u.roles.includes('hub') &&
+
+    // Find a hub or delivery partner by matching receiver's state
+    const locationBasedPartner = users.find(u => 
+        (u.roles.includes('hub') || u.roles.includes('delivery')) &&
         u.state?.trim().toLowerCase() === waybill.receiverState.trim().toLowerCase()
     );
 
-    if (locationBasedHub) {
-        return locationBasedHub.partnerName || locationBasedHub.partnerCode;
+    if (locationBasedPartner) {
+        return locationBasedPartner.partnerName || locationBasedPartner.partnerCode;
     }
     
-    // Fallback to the direct association if no location match is found
+    // Fallback to the direct booking-to-hub association if no location match is found
     if (!waybill.partnerCode) return 'N/A';
     const hubPartnerCode = associations.bookingToHub[waybill.partnerCode];
     if (!hubPartnerCode) return 'N/A';
