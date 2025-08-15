@@ -146,7 +146,6 @@ export function WaybillForm({ initialData, onSave, onCancel }: WaybillFormProps)
         ...data,
         id: initialData?.id || crypto.randomUUID(),
         partnerCode: user?.partnerCode,
-        companyCode: data.paymentType === 'Credit' ? user?.companyCode : undefined
     };
 
     const success = onSave(waybillToSave);
@@ -184,7 +183,7 @@ export function WaybillForm({ initialData, onSave, onCancel }: WaybillFormProps)
                     <FormControl>
                         <RadioGroup
                         onValueChange={field.onChange}
-                        value={field.value}
+                        defaultValue={field.value}
                         className="grid grid-cols-2 gap-4"
                         >
                         <FormItem>
@@ -405,6 +404,30 @@ export function WaybillForm({ initialData, onSave, onCancel }: WaybillFormProps)
              <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-4">
                 <FormField
                     control={form.control}
+                    name="companyCode"
+                    render={({ field }) => (
+                        <FormItem>
+                        <FormLabel>Company (Optional)</FormLabel>
+                            <Select onValueChange={field.onChange} value={field.value} defaultValue={field.value}>
+                                <FormControl>
+                                    <div className="relative">
+                                    <SelectTrigger className="pl-10">
+                                        <SelectValue placeholder="Select a Company" />
+                                    </SelectTrigger>
+                                    <IconWrapper><Building /></IconWrapper>
+                                    </div>
+                                </FormControl>
+                                <SelectContent>
+                                    <SelectItem value="">None</SelectItem>
+                                    {companies.map(c => <SelectItem key={c.id} value={c.companyCode!}>{c.companyName} ({c.companyCode})</SelectItem>)}
+                                </SelectContent>
+                            </Select>
+                        <FormMessage />
+                        </FormItem>
+                    )}
+                />
+                <FormField
+                    control={form.control}
                     name="waybillNumber"
                     render={({ field }) => (
                     <FormItem>
@@ -467,7 +490,7 @@ export function WaybillForm({ initialData, onSave, onCancel }: WaybillFormProps)
                 control={form.control}
                 name="packageDescription"
                 render={({ field }) => (
-                  <FormItem>
+                  <FormItem className="lg:col-span-2">
                     <FormLabel>Package Description</FormLabel>
                     <FormControl>
                       <Textarea
@@ -647,5 +670,3 @@ export function WaybillForm({ initialData, onSave, onCancel }: WaybillFormProps)
     </Form>
   );
 }
-
-    

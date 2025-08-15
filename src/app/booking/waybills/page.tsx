@@ -207,6 +207,7 @@ function WaybillsPageContent() {
                       packageWeight: Number(row.packageWeight || 0),
                       shipmentValue: Number(row.shipmentValue || 0),
                       partnerCode: user?.partnerCode,
+                      companyCode: String(row.companyCode || ''),
                     };
                     
                     // Basic check to avoid blank waybill numbers
