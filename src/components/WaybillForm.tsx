@@ -146,6 +146,7 @@ export function WaybillForm({ initialData, onSave, onCancel }: WaybillFormProps)
         ...data,
         id: initialData?.id || crypto.randomUUID(),
         partnerCode: user?.partnerCode,
+        companyCode: data.companyCode === 'none' ? '' : data.companyCode
     };
 
     const success = onSave(waybillToSave);
@@ -408,7 +409,10 @@ export function WaybillForm({ initialData, onSave, onCancel }: WaybillFormProps)
                     render={({ field }) => (
                         <FormItem>
                         <FormLabel>Company (Optional)</FormLabel>
-                            <Select onValueChange={field.onChange} value={field.value} defaultValue={field.value}>
+                            <Select 
+                              onValueChange={field.onChange} 
+                              value={field.value || ''}
+                            >
                                 <FormControl>
                                     <div className="relative">
                                     <SelectTrigger className="pl-10">
@@ -418,7 +422,7 @@ export function WaybillForm({ initialData, onSave, onCancel }: WaybillFormProps)
                                     </div>
                                 </FormControl>
                                 <SelectContent>
-                                    <SelectItem value="">None</SelectItem>
+                                    <SelectItem value="none">None</SelectItem>
                                     {companies.map(c => <SelectItem key={c.id} value={c.companyCode!}>{c.companyName} ({c.companyCode})</SelectItem>)}
                                 </SelectContent>
                             </Select>
