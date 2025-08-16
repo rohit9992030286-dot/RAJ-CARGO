@@ -6,6 +6,7 @@ import Barcode from 'react-barcode';
 
 interface WaybillStickerCustomProps {
   waybill: Waybill;
+  boxId?: string;
   boxNumber?: number;
   totalBoxes?: number;
   storeCode?: string;
@@ -25,9 +26,11 @@ const BorderedBox = ({ children, style }: { children: React.ReactNode; style?: R
 );
 
 
-export function WaybillStickerCustom({ waybill, boxNumber = 1, totalBoxes = 1, storeCode }: WaybillStickerCustomProps) {
+export function WaybillStickerCustom({ waybill, boxId, boxNumber = 1, totalBoxes, storeCode }: WaybillStickerCustomProps) {
   // Unique ID for each box barcode
-  const boxIdBarcode = `${waybill.waybillNumber}-${boxNumber}`;
+  const barcodeValue = boxId || `${waybill.waybillNumber}-${boxNumber}`;
+  const finalTotalBoxes = totalBoxes || waybill.numberOfBoxes;
+  const finalBoxNumber = boxNumber || 1;
 
   return (
     <div style={{
@@ -131,7 +134,7 @@ export function WaybillStickerCustom({ waybill, boxNumber = 1, totalBoxes = 1, s
 
                 {/* Box Number */}
                 <BorderedBox style={{ height: '0.7cm', fontSize: '10px', fontWeight: 'bold', borderTop: 'none', borderRight: 'none', borderLeft: 'none' }}>
-                    BOX: {boxNumber} OF {totalBoxes}
+                    BOX: {finalBoxNumber} OF {finalTotalBoxes}
                 </BorderedBox>
                 
                 {/* Truck Illustration */}
@@ -167,18 +170,16 @@ export function WaybillStickerCustom({ waybill, boxNumber = 1, totalBoxes = 1, s
                     alignItems: 'center'
                 }}>
                     <Barcode
-                        value={boxIdBarcode}
+                        value={barcodeValue}
                         height={35}
                         width={1.2}
                         displayValue={false}
                         margin={0}
                     />
-                    <span style={{ fontSize: '8px', letterSpacing: '0.1em', marginTop: '2px' }}>{boxIdBarcode}</span>
+                    <span style={{ fontSize: '8px', letterSpacing: '0.1em', marginTop: '2px' }}>{barcodeValue}</span>
                 </BorderedBox>
             </div>
         </div>
     </div>
   );
 }
-
-    

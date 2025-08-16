@@ -107,24 +107,20 @@ export default function PrintStickerPage() {
         const sheetName = workbook.SheetNames[0];
         const worksheet = workbook.Sheets[sheetName];
         const json: any[] = XLSX.utils.sheet_to_json(worksheet, {
-          header: ["boxId", "senderCity", "receiverCity", "receiverName", "storeCode"],
+          header: ["waybillNumber", "boxId"],
           range: 1 // Skip header row
         });
         
         const validStickers = json.map(row => {
-          if (!row.boxId) return null;
-          const parts = String(row.boxId).split('-');
-          const waybillNumber = parts[0];
-          const boxNumber = parts.length > 1 ? parseInt(parts[1], 10) : 1;
+          if (!row.waybillNumber || !row.boxId) return null;
           
-          if (!waybillNumber || isNaN(boxNumber)) return null;
+          const waybill = waybills.find(w => w.waybillNumber === String(row.waybillNumber));
+          if (!waybill) return null; // Skip if waybill not found
 
           return {
-            ...row,
-            waybillNumber,
-            boxNumber,
-            totalBoxes: boxNumber, // We don't know total from just one box ID, so we set it to current box for now
-          }
+            waybillId: waybill.id,
+            boxId: String(row.boxId),
+          };
         }).filter(item => item !== null);
 
         if (validStickers.length > 0) {
@@ -135,8 +131,8 @@ export default function PrintStickerPage() {
             });
         } else {
              toast({
-                title: 'No Data Found',
-                description: 'The Excel file seems to be empty or in the wrong format. Make sure the "boxId" column is present.',
+                title: 'No Valid Data Found',
+                description: 'The Excel file seems to be empty or contains waybill numbers not found in your system.',
                 variant: 'destructive'
             });
         }
@@ -171,7 +167,7 @@ export default function PrintStickerPage() {
   };
   
   const handleDownloadTemplate = () => {
-    const headers = ["boxId", "senderCity", "receiverCity", "receiverName", "storeCode"];
+    const headers = ["waybillNumber", "boxId"];
     const worksheet = XLSX.utils.json_to_sheet([{}], { header: headers });
     const workbook = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(workbook, worksheet, "Sticker Template");
@@ -317,7 +313,3 @@ export default function PrintStickerPage() {
     </div>
   );
 }
-
-    
-
-    

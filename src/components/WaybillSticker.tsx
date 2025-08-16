@@ -7,6 +7,7 @@ import Barcode from 'react-barcode';
 
 interface WaybillStickerProps {
   waybill: Waybill;
+  boxId?: string;
   boxNumber?: number;
   totalBoxes?: number;
   storeCode?: string;
@@ -39,12 +40,14 @@ const CityName = ({ city }: { city: string }) => {
 }
 
 
-export function WaybillSticker({ waybill, boxNumber, totalBoxes, storeCode }: WaybillStickerProps) {
+export function WaybillSticker({ waybill, boxId, boxNumber, totalBoxes, storeCode }: WaybillStickerProps) {
   
   const sizeClasses = 'w-[73mm] h-[73mm] p-2';
   const baseClasses = "bg-white text-black font-sans flex flex-col border-2 border-black print:border-2 print:shadow-none";
 
-  const boxIdBarcode = `${waybill.waybillNumber}-${boxNumber}`;
+  const barcodeValue = boxId || `${waybill.waybillNumber}-${boxNumber || 1}`;
+  const finalTotalBoxes = totalBoxes || waybill.numberOfBoxes;
+  const finalBoxNumber = boxNumber || 1;
 
   return (
     <div className={cn(baseClasses, sizeClasses)}>
@@ -53,7 +56,7 @@ export function WaybillSticker({ waybill, boxNumber, totalBoxes, storeCode }: Wa
             <p className="font-bold text-sm">RAJ CARGO</p>
             <div className={cn("mx-auto flex justify-center items-center", 'w-full h-auto')}>
                 <Barcode 
-                  value={boxIdBarcode} 
+                  value={barcodeValue} 
                   height={30} 
                   displayValue={false} 
                   width={2} 
@@ -77,15 +80,13 @@ export function WaybillSticker({ waybill, boxNumber, totalBoxes, storeCode }: Wa
                  <p className="text-sm font-semibold truncate">{waybill.receiverName}</p>
                  {storeCode && <p className="text-xs font-bold">STORE: {storeCode}</p>}
             </div>
-            {boxNumber && totalBoxes && (
+            {(finalBoxNumber && finalTotalBoxes) && (
                 <div className="text-center p-2 border-l-2 border-black pl-4 h-full flex flex-col justify-center">
                     <p className="text-xs uppercase text-gray-500">Box</p>
-                    <p className={cn("font-black", 'text-3xl')}>{boxNumber}/{totalBoxes}</p>
+                    <p className={cn("font-black", 'text-3xl')}>{finalBoxNumber}/{finalTotalBoxes}</p>
                 </div>
             )}
         </div>
     </div>
   );
 }
-
-    

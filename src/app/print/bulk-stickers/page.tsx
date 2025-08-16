@@ -6,59 +6,22 @@ import { WaybillSticker } from '@/components/WaybillSticker';
 import { WaybillStickerCustom } from '@/components/WaybillStickerCustom';
 import { Loader2 } from 'lucide-react';
 import { Waybill } from '@/types/waybill';
-
-// Create a mock Waybill object from the row data
-function createMockWaybill(data: any): Waybill {
-    return {
-        id: data.waybillNumber || crypto.randomUUID(),
-        waybillNumber: String(data.waybillNumber || ''),
-        senderName: String(data.senderName || ''),
-        senderCity: String(data.senderCity || 'N/A'),
-        receiverCity: String(data.receiverCity || 'N/A'),
-        receiverName: String(data.receiverName || ''),
-        numberOfBoxes: Number(data.totalBoxes || 1),
-        // Add default values for other required Waybill fields
-        invoiceNumber: '',
-        eWayBillNo: '',
-        senderAddress: '',
-        senderPincode: '',
-        senderPhone: '',
-        receiverAddress: '',
-        receiverPincode: '',
-        receiverPhone: '',
-        packageDescription: '',
-        packageWeight: 0,
-        shipmentValue: 0,
-        shippingDate: new Date().toISOString().split('T')[0],
-        shippingTime: '10:00',
-        status: 'Pending',
-        receiverState: data.receiverState || '',
-        paymentType: 'To Pay',
-    };
-}
+import { useWaybills } from '@/hooks/useWaybills';
+import { DataProvider } from '@/components/DataContext';
 
 
-export default function BulkPrintStickersPage() {
-  const [stickers, setStickers] = useState<any[]>([]);
+function BulkPrintStickersPageContent() {
+  const [stickers, setStickers] = useState<{waybillId: string, boxId: string}[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [stickerSize, setStickerSize] = useState('75mm');
   const printTriggered = useRef(false);
+  const { getWaybillById, isLoaded } = useWaybills();
 
   useEffect(() => {
     try {
       const storedStickers = sessionStorage.getItem('rajcargo-bulk-stickers');
       if (storedStickers) {
-        const parsedStickers = JSON.parse(storedStickers);
-        // Sort by receiver city
-        parsedStickers.sort((a: any, b: any) => {
-            const cityA = (a.receiverCity || '').toUpperCase();
-            const cityB = (b.receiverCity || '').toUpperCase();
-            if (cityA < cityB) return -1;
-            if (cityA > cityB) return 1;
-            // Then by waybill number
-            return String(a.waybillNumber || '').localeCompare(String(b.waybillNumber || ''), undefined, { numeric: true });
-        });
-        setStickers(parsedStickers);
+        setStickers(JSON.parse(storedStickers));
       }
       const storedSize = localStorage.getItem('rajcargo-stickerSize');
       if (storedSize) {
@@ -72,7 +35,7 @@ export default function BulkPrintStickersPage() {
   }, []);
 
   useEffect(() => {
-    if (stickers.length > 0 && !printTriggered.current) {
+    if (stickers.length > 0 && isLoaded && !printTriggered.current) {
       printTriggered.current = true;
       const timer = setTimeout(() => {
         window.print();
@@ -81,9 +44,9 @@ export default function BulkPrintStickersPage() {
       }, 500);
       return () => clearTimeout(timer);
     }
-  }, [stickers]);
+  }, [stickers, isLoaded]);
 
-  if (isLoading) {
+  if (isLoading || !isLoaded) {
     return (
       <div className="flex justify-center items-center h-screen bg-white">
         <Loader2 className="h-16 w-16 animate-spin text-primary" />
@@ -100,19 +63,11 @@ export default function BulkPrintStickersPage() {
     );
   }
 
-  const allStickersToPrint: { waybill: Waybill; boxNumber: number; totalBoxes: number; storeCode?: string }[] = [];
-  
-  // Group by waybill number to determine total boxes
-  const waybillGroups = stickers.reduce((acc, sticker) => {
-    acc[sticker.waybillNumber] = (acc[sticker.waybillNumber] || 0) + 1;
-    return acc;
-  }, {} as Record<string, number>);
+  const allStickersToPrint = stickers.map(sticker => {
+    const waybill = getWaybillById(sticker.waybillId);
+    return { waybill, boxId: sticker.boxId };
+  }).filter(item => item.waybill !== null);
 
-  stickers.forEach(stickerData => {
-    const waybill = createMockWaybill(stickerData);
-    const totalBoxesForWaybill = waybillGroups[stickerData.waybillNumber] || stickerData.totalBoxes;
-    allStickersToPrint.push({ waybill, boxNumber: stickerData.boxNumber, totalBoxes: totalBoxesForWaybill, storeCode: stickerData.storeCode });
-  });
 
   const StickerComponent = stickerSize === 'custom' ? WaybillStickerCustom : WaybillSticker;
 
@@ -132,13 +87,11 @@ export default function BulkPrintStickersPage() {
     <>
       <style>{printStyles}</style>
       <div className="bg-white">
-        {allStickersToPrint.map(({ waybill, boxNumber, totalBoxes, storeCode }, index) => (
-          <div key={`${waybill.id}-${boxNumber}-${index}`} className="print:page-break-after-always">
+        {allStickersToPrint.map(({ waybill, boxId }, index) => (
+          <div key={`${waybill!.id}-${boxId}-${index}`} className="print:page-break-after-always">
               <StickerComponent
-                waybill={waybill}
-                boxNumber={boxNumber}
-                totalBoxes={totalBoxes}
-                storeCode={storeCode}
+                waybill={waybill!}
+                boxId={boxId}
               />
           </div>
         ))}
@@ -147,4 +100,11 @@ export default function BulkPrintStickersPage() {
   );
 }
 
-    
+
+export default function BulkPrintStickersPage() {
+    return (
+        <DataProvider>
+            <BulkPrintStickersPageContent />
+        </DataProvider>
+    )
+}
