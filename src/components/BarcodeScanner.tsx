@@ -37,7 +37,7 @@ export function BarcodeScanner({ onScan, className }: BarcodeScannerProps) {
     try {
         const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
         videoRef.current.srcObject = stream;
-        videoRef.current.play();
+        await videoRef.current.play();
         setHasCameraPermission(true);
         setIsScanning(true);
 
@@ -50,9 +50,17 @@ export function BarcodeScanner({ onScan, className }: BarcodeScannerProps) {
             setIsScanning(false);
             return;
         }
+        
+        const supportedFormats = await window.BarcodeDetector.getSupportedFormats();
+        const formatsToUse = [
+            'code_128', 'code_39', 'code_93', 'codabar',
+            'ean_13', 'ean_8', 'itf', 'upc_a', 'upc_e',
+            'qr_code', 'data_matrix', 'aztec', 'pdf417'
+        ].filter(format => supportedFormats.includes(format));
+
 
         scannerRef.current = new window.BarcodeDetector({
-            formats: ['code_128', 'code_39', 'qr_code', 'ean_13', 'data_matrix', 'upc_e']
+            formats: formatsToUse
         });
 
     } catch (error) {
@@ -89,8 +97,10 @@ export function BarcodeScanner({ onScan, className }: BarcodeScannerProps) {
               // Briefly pause to prevent immediate re-scan
               setIsScanning(false);
               setTimeout(() => {
-                  if (videoRef.current?.srcObject) setIsScanning(true);
-              }, 1500); 
+                  if (videoRef.current?.srcObject) {
+                     setIsScanning(true);
+                  }
+              }, 1000); 
           }
       } catch (error) {
           console.error("Barcode detection failed:", error);
@@ -99,26 +109,25 @@ export function BarcodeScanner({ onScan, className }: BarcodeScannerProps) {
   }, [isScanning, onScan]);
 
   useEffect(() => {
-    startScan();
+    let scanInterval: NodeJS.Timeout;
 
-    const interval = setInterval(() => {
-      scanFrame();
-    }, 200);
+    if (isScanning) {
+        scanInterval = setInterval(scanFrame, 200);
+    }
 
     return () => {
-      clearInterval(interval);
-      stopScan();
+      if(scanInterval) clearInterval(scanInterval);
     };
+  }, [isScanning, scanFrame]);
+
+  useEffect(() => {
+    startScan();
+    return () => {
+        stopScan();
+    }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const handleToggleScan = () => {
-    if (isScanning) {
-        stopScan();
-    } else {
-        startScan();
-    }
-  };
 
   return (
     <div className={cn("relative w-full p-4 border rounded-md bg-muted/50", className)}>
@@ -130,6 +139,12 @@ export function BarcodeScanner({ onScan, className }: BarcodeScannerProps) {
                     <p>Initializing Camera...</p>
                 </div>
             )}
+             {hasCameraPermission && !isScanning && videoRef.current?.srcObject && (
+                 <div className="absolute inset-0 flex flex-col items-center justify-center text-white bg-black/50">
+                    <Loader2 className="h-10 w-10 animate-spin" />
+                    <p>Processing...</p>
+                </div>
+            )}
             {hasCameraPermission === false && (
                  <Alert variant="destructive" className="absolute bottom-4 left-4 right-4 w-auto">
                     <CameraOff className="h-4 w-4" />
@@ -139,12 +154,6 @@ export function BarcodeScanner({ onScan, className }: BarcodeScannerProps) {
                     </AlertDescription>
                 </Alert>
             )}
-        </div>
-        <div className="mt-4 flex justify-center">
-            <Button onClick={handleToggleScan} variant={isScanning ? 'destructive': 'outline'}>
-                {isScanning ? <CameraOff className="mr-2"/> : <CameraIcon className="mr-2"/>}
-                {isScanning ? 'Stop Scanning' : 'Start Scanner'}
-            </Button>
         </div>
     </div>
   );
