@@ -147,85 +147,16 @@ export default function PrintStickerPage() {
   }
 
   return (
-    <div className="max-w-xl mx-auto space-y-8">
+    <div className="space-y-8">
       <div>
         <h1 className="text-3xl font-bold">Print Waybill Sticker</h1>
         <p className="text-muted-foreground">Print a single sticker, bulk print from an Excel file, or print all stickers for a trip.</p>
       </div>
-      
-      <Card>
-        <CardHeader>
-          <CardTitle>Print Single Sticker</CardTitle>
-          <CardDescription>Find an existing waybill to print its sticker.</CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="flex gap-2">
-            <Input
-              id="waybill-number"
-              placeholder="Enter Waybill Number"
-              value={waybillNumber}
-              onChange={(e) => setWaybillNumber(e.target.value)}
-              onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
-              className="flex-grow"
-            />
-            <Button onClick={handleSearch}>
-              <Search className="mr-2 h-4 w-4" /> Search
-            </Button>
-          </div>
-          {error && (
-            <Alert variant="destructive">
-                <AlertCircle className="h-4 w-4" />
-                <AlertTitle>Error</AlertTitle>
-                <AlertDescription>{error}</AlertDescription>
-            </Alert>
-          )}
-        </CardContent>
-        {foundWaybill && (
-          <>
-            <CardContent>
-                <Alert>
-                    <Terminal className="h-4 w-4" />
-                    <AlertTitle>Waybill Found!</AlertTitle>
-                    <AlertDescription>
-                        <p><strong>To:</strong> {foundWaybill.receiverName}</p>
-                        <p><strong>Boxes:</strong> {foundWaybill.numberOfBoxes}</p>
-                    </AlertDescription>
-                </Alert>
-            </CardContent>
-            <CardFooter>
-              <Button onClick={handlePrintSticker} className="w-full">
-                <Printer className="mr-2 h-4 w-4" />
-                Print {foundWaybill.numberOfBoxes} {foundWaybill.numberOfBoxes > 1 ? 'Stickers' : 'Sticker'}
-              </Button>
-            </CardFooter>
-          </>
-        )}
-      </Card>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Bulk Print by Trip No.</CardTitle>
-          <CardDescription>Enter a Trip Number to print all its associated stickers.</CardDescription>
-        </CardHeader>
-        <CardContent>
-           <div className="flex gap-2">
-                <Input
-                    placeholder="Enter Trip No."
-                    value={tripNo}
-                    onChange={(e) => setTripNo(e.target.value)}
-                    onKeyDown={(e) => e.key === 'Enter' && handlePrintTripStickers()}
-                />
-                <Button onClick={handlePrintTripStickers}>
-                    <Truck className="mr-2 h-4 w-4" /> Print Trip Stickers
-                </Button>
-            </div>
-        </CardContent>
-      </Card>
-
-      <Card>
+       <Card className="md:col-span-2">
         <CardHeader>
           <CardTitle>Bulk Print from Excel</CardTitle>
-          <CardDescription>Upload an Excel file to print multiple stickers at once without creating waybills.</CardDescription>
+          <CardDescription>Upload an Excel file to print multiple stickers at once without creating waybills. This is ideal for Bluetooth printers.</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
             <div className="flex gap-2">
@@ -254,6 +185,78 @@ export default function PrintStickerPage() {
             </Button>
         </CardFooter>
       </Card>
+
+      <div className="grid md:grid-cols-2 gap-8">
+        <Card>
+            <CardHeader>
+            <CardTitle>Print Single Sticker</CardTitle>
+            <CardDescription>Find an existing waybill to print its sticker.</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+            <div className="flex gap-2">
+                <Input
+                id="waybill-number"
+                placeholder="Enter Waybill Number"
+                value={waybillNumber}
+                onChange={(e) => setWaybillNumber(e.target.value)}
+                onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
+                className="flex-grow"
+                />
+                <Button onClick={handleSearch}>
+                <Search className="mr-2 h-4 w-4" /> Search
+                </Button>
+            </div>
+            {error && (
+                <Alert variant="destructive">
+                    <AlertCircle className="h-4 w-4" />
+                    <AlertTitle>Error</AlertTitle>
+                    <AlertDescription>{error}</AlertDescription>
+                </Alert>
+            )}
+            </CardContent>
+            {foundWaybill && (
+            <>
+                <CardContent>
+                    <Alert>
+                        <Terminal className="h-4 w-4" />
+                        <AlertTitle>Waybill Found!</AlertTitle>
+                        <AlertDescription>
+                            <p><strong>To:</strong> {foundWaybill.receiverName}</p>
+                            <p><strong>Boxes:</strong> {foundWaybill.numberOfBoxes}</p>
+                        </AlertDescription>
+                    </Alert>
+                </CardContent>
+                <CardFooter>
+                <Button onClick={handlePrintSticker} className="w-full">
+                    <Printer className="mr-2 h-4 w-4" />
+                    Print {foundWaybill.numberOfBoxes} {foundWaybill.numberOfBoxes > 1 ? 'Stickers' : 'Sticker'}
+                </Button>
+                </CardFooter>
+            </>
+            )}
+        </Card>
+
+        <Card>
+            <CardHeader>
+            <CardTitle>Bulk Print by Trip No.</CardTitle>
+            <CardDescription>Enter a Trip Number to print all its associated stickers.</CardDescription>
+            </CardHeader>
+            <CardContent>
+            <div className="flex gap-2">
+                    <Input
+                        placeholder="Enter Trip No."
+                        value={tripNo}
+                        onChange={(e) => setTripNo(e.target.value)}
+                        onKeyDown={(e) => e.key === 'Enter' && handlePrintTripStickers()}
+                    />
+                    <Button onClick={handlePrintTripStickers}>
+                        <Truck className="mr-2 h-4 w-4" /> Print Trip Stickers
+                    </Button>
+                </div>
+            </CardContent>
+        </Card>
+      </div>
+      
     </div>
   );
 }
