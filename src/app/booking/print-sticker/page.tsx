@@ -41,7 +41,7 @@ export default function PrintStickerPage() {
             return;
         }
 
-        const stickerInfo = excelData.find(d => d.firstBarcodeId === scannedValue);
+        const stickerInfo = excelData.find(d => scannedValue.includes(d.firstBarcodeId));
 
         if (stickerInfo) {
             toast({
