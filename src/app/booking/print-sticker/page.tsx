@@ -15,6 +15,7 @@ import { saveAs } from 'file-saver';
 import { BarcodeScanner } from '@/components/BarcodeScanner';
 
 interface ExcelStickerData {
+    firstBarcodeId: string;
     waybillNumber: string;
     senderCity: string;
     receiverCity: string;
@@ -23,8 +24,6 @@ interface ExcelStickerData {
 }
 
 export default function PrintStickerPage() {
-  const [waybillNumber, setWaybillNumber] = useState('');
-  const [tripNo, setTripNo] = useState('');
   const [error, setError] = useState<string | null>(null);
   const router = useRouter();
   const { toast } = useToast();
@@ -42,12 +41,11 @@ export default function PrintStickerPage() {
             return;
         }
 
-        const waybillNum = scannedValue;
-        const stickerInfo = excelData.find(d => d.waybillNumber === waybillNum);
+        const stickerInfo = excelData.find(d => d.firstBarcodeId === scannedValue);
 
         if (stickerInfo) {
             toast({
-                title: "Waybill Found!",
+                title: "Barcode Match Found!",
                 description: `Printing ${stickerInfo.numberOfBoxes} sticker(s) for ${stickerInfo.waybillNumber}.`,
             });
             
@@ -58,7 +56,6 @@ export default function PrintStickerPage() {
                 receiverCity: stickerInfo.receiverCity,
                 receiverName: stickerInfo.receiverName,
                 numberOfBoxes: stickerInfo.numberOfBoxes,
-                // Add dummy data for other required fields
                 shippingDate: new Date().toISOString(),
                 packageWeight: 0,
             };
@@ -68,8 +65,8 @@ export default function PrintStickerPage() {
 
         } else {
             toast({
-                title: 'Waybill Not Found',
-                description: `Could not find a waybill matching ${waybillNum} in the uploaded Excel file.`,
+                title: 'Barcode Not Found',
+                description: `Could not find a match for ${scannedValue} in the uploaded Excel file.`,
                 variant: 'destructive',
             });
         }
@@ -97,14 +94,15 @@ export default function PrintStickerPage() {
         const sheetName = workbook.SheetNames[0];
         const worksheet = workbook.Sheets[sheetName];
         const json: any[] = XLSX.utils.sheet_to_json(worksheet, {
-          header: ["waybillNumber", "senderCity", "receiverCity", "receiverName", "numberOfBoxes"],
+          header: ["firstBarcodeId", "waybillNumber", "senderCity", "receiverCity", "receiverName", "numberOfBoxes"],
           range: 1 // Skip header row
         });
         
         const validStickers = json.map(row => {
-          if (!row.waybillNumber || !row.receiverCity) return null;
+          if (!row.firstBarcodeId || !row.waybillNumber || !row.receiverCity) return null;
           
           return {
+            firstBarcodeId: String(row.firstBarcodeId),
             waybillNumber: String(row.waybillNumber),
             senderCity: String(row.senderCity || 'N/A'),
             receiverCity: String(row.receiverCity),
@@ -122,7 +120,7 @@ export default function PrintStickerPage() {
         } else {
              toast({
                 title: 'No Valid Data Found',
-                description: 'The Excel file seems to be empty or does not contain a "waybillNumber" column.',
+                description: 'The Excel file seems to be empty or does not contain the required columns.',
                 variant: 'destructive'
             });
         }
@@ -143,13 +141,10 @@ export default function PrintStickerPage() {
   };
   
   const handleDownloadTemplate = () => {
-    const headers = ["Waybill No", "Sender City", "Receiver City", "Receiver Name", "Total Box"];
+    const headers = ["First Barcode ID", "Waybill No", "Sender City", "Receiver City", "Receiver Name", "Total Box"];
     const worksheet = XLSX.utils.json_to_sheet([{}], { header: headers });
     const workbook = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(workbook, worksheet, "Sticker Template");
-
-    // Note: The key in the downloaded file is "Waybill No", but when reading, we use "waybillNumber" due to sanitization.
-    // This is a known behavior of sheet_to_json.
     
     const excelBuffer = XLSX.write(workbook, { bookType: 'xlsx', type: 'array' });
     const data = new Blob([excelBuffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;charset=UTF-8' });
