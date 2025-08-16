@@ -173,7 +173,7 @@ function ScanManifestPage() {
           const assignedPallet = palletAssignments[box.destination];
           if(assignedPallet) {
             setLastScanResult({ boxId: scannedId, pallet: assignedPallet });
-            speak(`Place on Pallet #${assignedPallet}. Box ${scannedId.replace(/-/g, ' ')} goes to Pallet #${assignedPallet}.`);
+            speak(`Pallet ${assignedPallet}`);
           }
           toast({ title: "Verified", description: `Box #${scannedId} confirmed.`});
       } else {
@@ -407,5 +407,3 @@ export default function ScanManifestPageWrapper() {
         </Suspense>
     )
 }
-
-    
