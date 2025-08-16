@@ -16,7 +16,7 @@ function createMockWaybill(data: any): Waybill {
         senderCity: String(data.senderCity || 'N/A'),
         receiverCity: String(data.receiverCity || 'N/A'),
         receiverName: String(data.receiverName || ''),
-        numberOfBoxes: Number(data.numberOfBoxes || 1),
+        numberOfBoxes: Number(data.totalBoxes || 1),
         // Add default values for other required Waybill fields
         invoiceNumber: '',
         eWayBillNo: '',
@@ -101,12 +101,17 @@ export default function BulkPrintStickersPage() {
   }
 
   const allStickersToPrint: { waybill: Waybill; boxNumber: number; totalBoxes: number; storeCode?: string }[] = [];
+  
+  // Group by waybill number to determine total boxes
+  const waybillGroups = stickers.reduce((acc, sticker) => {
+    acc[sticker.waybillNumber] = (acc[sticker.waybillNumber] || 0) + 1;
+    return acc;
+  }, {} as Record<string, number>);
+
   stickers.forEach(stickerData => {
     const waybill = createMockWaybill(stickerData);
-    const totalBoxes = waybill.numberOfBoxes || 1;
-    for (let i = 1; i <= totalBoxes; i++) {
-        allStickersToPrint.push({ waybill, boxNumber: i, totalBoxes, storeCode: stickerData.storeCode });
-    }
+    const totalBoxesForWaybill = waybillGroups[stickerData.waybillNumber] || stickerData.totalBoxes;
+    allStickersToPrint.push({ waybill, boxNumber: stickerData.boxNumber, totalBoxes: totalBoxesForWaybill, storeCode: stickerData.storeCode });
   });
 
   const StickerComponent = stickerSize === 'custom' ? WaybillStickerCustom : WaybillSticker;

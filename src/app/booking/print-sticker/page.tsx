@@ -107,11 +107,25 @@ export default function PrintStickerPage() {
         const sheetName = workbook.SheetNames[0];
         const worksheet = workbook.Sheets[sheetName];
         const json: any[] = XLSX.utils.sheet_to_json(worksheet, {
-          header: ["waybillNumber", "senderCity", "receiverCity", "receiverName", "numberOfBoxes", "storeCode"],
+          header: ["boxId", "senderCity", "receiverCity", "receiverName", "storeCode"],
           range: 1 // Skip header row
         });
         
-        const validStickers = json.filter(row => row.waybillNumber && row.receiverCity);
+        const validStickers = json.map(row => {
+          if (!row.boxId) return null;
+          const parts = String(row.boxId).split('-');
+          const waybillNumber = parts[0];
+          const boxNumber = parts.length > 1 ? parseInt(parts[1], 10) : 1;
+          
+          if (!waybillNumber || isNaN(boxNumber)) return null;
+
+          return {
+            ...row,
+            waybillNumber,
+            boxNumber,
+            totalBoxes: boxNumber, // We don't know total from just one box ID, so we set it to current box for now
+          }
+        }).filter(item => item !== null);
 
         if (validStickers.length > 0) {
             setBulkStickers(validStickers);
@@ -122,7 +136,7 @@ export default function PrintStickerPage() {
         } else {
              toast({
                 title: 'No Data Found',
-                description: 'The Excel file seems to be empty or in the wrong format.',
+                description: 'The Excel file seems to be empty or in the wrong format. Make sure the "boxId" column is present.',
                 variant: 'destructive'
             });
         }
@@ -157,7 +171,7 @@ export default function PrintStickerPage() {
   };
   
   const handleDownloadTemplate = () => {
-    const headers = ["waybillNumber", "senderCity", "receiverCity", "receiverName", "numberOfBoxes", "storeCode"];
+    const headers = ["boxId", "senderCity", "receiverCity", "receiverName", "storeCode"];
     const worksheet = XLSX.utils.json_to_sheet([{}], { header: headers });
     const workbook = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(workbook, worksheet, "Sticker Template");
@@ -303,5 +317,7 @@ export default function PrintStickerPage() {
     </div>
   );
 }
+
+    
 
     
