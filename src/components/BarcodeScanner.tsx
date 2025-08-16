@@ -26,20 +26,39 @@ interface BarcodeScannerProps {
 
 export function BarcodeScanner({ onScan, className }: BarcodeScannerProps) {
   const videoRef = useRef<HTMLVideoElement>(null);
+  const scannerRef = useRef<any>(null); // For the BarcodeDetector instance
+  const streamRef = useRef<MediaStream | null>(null); // To hold the stream reference
+
   const [isScanning, setIsScanning] = useState(false);
   const [hasCameraPermission, setHasCameraPermission] = useState<boolean | null>(null);
   const { toast } = useToast();
-  const scannerRef = useRef<any>(null);
+
+  const stopScan = useCallback(() => {
+    if (streamRef.current) {
+      streamRef.current.getTracks().forEach(track => track.stop());
+      streamRef.current = null;
+    }
+    if (videoRef.current) {
+      videoRef.current.srcObject = null;
+    }
+    setIsScanning(false);
+  }, []);
 
   const startScan = useCallback(async () => {
-    if (!videoRef.current) return;
+    if (streamRef.current || !videoRef.current) return;
 
     try {
         const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
+        streamRef.current = stream;
+
         videoRef.current.srcObject = stream;
-        await videoRef.current.play();
+        
+        // Ensure metadata is loaded before playing
+        videoRef.current.onloadedmetadata = () => {
+            videoRef.current?.play().catch(e => console.error("Video play failed:", e));
+        };
+        
         setHasCameraPermission(true);
-        setIsScanning(true);
 
         if (!('BarcodeDetector' in window)) {
             toast({
@@ -58,10 +77,8 @@ export function BarcodeScanner({ onScan, className }: BarcodeScannerProps) {
             'qr_code', 'data_matrix', 'aztec', 'pdf417'
         ].filter(format => supportedFormats.includes(format));
 
-
-        scannerRef.current = new window.BarcodeDetector({
-            formats: formatsToUse
-        });
+        scannerRef.current = new window.BarcodeDetector({ formats: formatsToUse });
+        setIsScanning(true);
 
     } catch (error) {
         console.error('Error accessing camera:', error);
@@ -75,15 +92,6 @@ export function BarcodeScanner({ onScan, className }: BarcodeScannerProps) {
     }
   }, [toast]);
   
-  const stopScan = useCallback(() => {
-    if (videoRef.current && videoRef.current.srcObject) {
-      const stream = videoRef.current.srcObject as MediaStream;
-      stream.getTracks().forEach(track => track.stop());
-      videoRef.current.srcObject = null;
-    }
-    setIsScanning(false);
-  }, []);
-  
   const scanFrame = useCallback(async () => {
       if (!isScanning || !videoRef.current || !scannerRef.current || videoRef.current.readyState < 2) {
           return;
@@ -94,12 +102,14 @@ export function BarcodeScanner({ onScan, className }: BarcodeScannerProps) {
           if (barcodes.length > 0) {
               const scannedValue = barcodes[0].rawValue;
               onScan(scannedValue);
+              
               // Briefly pause to prevent immediate re-scan
               setIsScanning(false);
               setTimeout(() => {
-                  if (videoRef.current?.srcObject) {
-                     setIsScanning(true);
-                  }
+                 // Check if stream is still active before restarting
+                 if (streamRef.current?.active) {
+                    setIsScanning(true);
+                 }
               }, 1000); 
           }
       } catch (error) {
@@ -121,7 +131,10 @@ export function BarcodeScanner({ onScan, className }: BarcodeScannerProps) {
   }, [isScanning, scanFrame]);
 
   useEffect(() => {
+    // This effect now only runs once on mount
     startScan();
+    
+    // The cleanup function will run on unmount
     return () => {
         stopScan();
     }
@@ -139,7 +152,7 @@ export function BarcodeScanner({ onScan, className }: BarcodeScannerProps) {
                     <p>Initializing Camera...</p>
                 </div>
             )}
-             {hasCameraPermission && !isScanning && videoRef.current?.srcObject && (
+             {!isScanning && hasCameraPermission && streamRef.current?.active && (
                  <div className="absolute inset-0 flex flex-col items-center justify-center text-white bg-black/50">
                     <Loader2 className="h-10 w-10 animate-spin" />
                     <p>Processing...</p>
