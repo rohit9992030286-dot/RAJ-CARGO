@@ -73,8 +73,7 @@ export function BarcodeScanner({ onScan, className }: BarcodeScannerProps) {
         const supportedFormats = await window.BarcodeDetector.getSupportedFormats();
         const formatsToUse = [
             'code_128', 'code_39', 'code_93', 'codabar',
-            'ean_13', 'ean_8', 'itf', 'upc_a', 'upc_e',
-            'qr_code', 'data_matrix', 'aztec', 'pdf417'
+            'ean_13', 'ean_8', 'itf', 'upc_a', 'upc_e', 'qr_code'
         ].filter(format => supportedFormats.includes(format));
 
         scannerRef.current = new window.BarcodeDetector({ formats: formatsToUse });
@@ -166,6 +165,17 @@ export function BarcodeScanner({ onScan, className }: BarcodeScannerProps) {
                         Please allow camera access in your browser settings to use the scanner.
                     </AlertDescription>
                 </Alert>
+            )}
+        </div>
+         <div className="mt-4 flex justify-center gap-4">
+            {streamRef.current?.active ? (
+                <Button onClick={stopScan} variant="destructive">
+                    <CameraOff className="mr-2 h-4 w-4" /> Stop Camera
+                </Button>
+            ) : (
+                 <Button onClick={startScan}>
+                    <CameraIcon className="mr-2 h-4 w-4" /> Start Camera
+                </Button>
             )}
         </div>
     </div>
