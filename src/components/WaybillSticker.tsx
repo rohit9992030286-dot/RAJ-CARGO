@@ -9,6 +9,7 @@ interface WaybillStickerProps {
   waybill: Waybill;
   boxNumber?: number;
   totalBoxes?: number;
+  storeCode?: string;
 }
 
 const CityName = ({ city }: { city: string }) => {
@@ -38,7 +39,7 @@ const CityName = ({ city }: { city: string }) => {
 }
 
 
-export function WaybillSticker({ waybill, boxNumber, totalBoxes }: WaybillStickerProps) {
+export function WaybillSticker({ waybill, boxNumber, totalBoxes, storeCode }: WaybillStickerProps) {
   
   const sizeClasses = 'w-[73mm] h-[73mm] p-2';
   const baseClasses = "bg-white text-black font-sans flex flex-col border-2 border-black print:border-2 print:shadow-none";
@@ -74,6 +75,7 @@ export function WaybillSticker({ waybill, boxNumber, totalBoxes }: WaybillSticke
                  <p className="text-xs uppercase text-gray-500">To</p>
                  <CityName city={waybill.receiverCity} />
                  <p className="text-sm font-semibold truncate">{waybill.receiverName}</p>
+                 {storeCode && <p className="text-xs font-bold">STORE: {storeCode}</p>}
             </div>
             {boxNumber && totalBoxes && (
                 <div className="text-center p-2 border-l-2 border-black pl-4 h-full flex flex-col justify-center">
@@ -85,3 +87,5 @@ export function WaybillSticker({ waybill, boxNumber, totalBoxes }: WaybillSticke
     </div>
   );
 }
+
+    

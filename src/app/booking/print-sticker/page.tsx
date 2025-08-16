@@ -1,19 +1,19 @@
 
 'use client';
 
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useWaybills } from '@/hooks/useWaybills';
 import { Card, CardHeader, CardTitle, CardContent, CardFooter, CardDescription } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { Label } from '@/components/ui/label';
 import { Waybill } from '@/types/waybill';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { Terminal, Search, Printer, AlertCircle, Loader2, FileUp, FileSpreadsheet, Truck } from 'lucide-react';
+import { Terminal, Search, Printer, AlertCircle, Loader2, FileUp, FileSpreadsheet, Truck, Camera } from 'lucide-react';
 import * as XLSX from 'xlsx';
 import { useToast } from '@/hooks/use-toast';
 import { saveAs } from 'file-saver';
+import { BarcodeScanner } from '@/components/BarcodeScanner';
 
 export default function PrintStickerPage() {
   const { waybills, isLoaded } = useWaybills();
@@ -41,11 +41,41 @@ export default function PrintStickerPage() {
     }
   };
 
-  const handlePrintSticker = () => {
-    if (!foundWaybill) return;
-    const ids = foundWaybill.id;
-    window.open(`/print/stickers?ids=${ids}`, '_blank');
+  const handlePrintSticker = (id: string) => {
+    if (!id) return;
+    window.open(`/print/stickers?ids=${id}`, '_blank');
   };
+
+  const handleScanAndPrint = (scannedValue: string) => {
+    try {
+        // Assuming format is WAYBILL-BOXNUM
+        const waybillNum = scannedValue.split('-')[0];
+        const boxNum = scannedValue.split('-')[1] || '1';
+        const waybill = waybills.find(w => w.waybillNumber === waybillNum);
+
+        if (waybill) {
+            toast({
+                title: "Waybill Found!",
+                description: `Printing sticker for ${waybill.waybillNumber}, Box ${boxNum}`,
+            });
+            const totalBoxes = waybill.numberOfBoxes || 1;
+            window.open(`/print/sticker/${waybill.id}?boxNumber=${boxNum}&totalBoxes=${totalBoxes}`, '_blank');
+
+        } else {
+            toast({
+                title: 'Waybill Not Found',
+                description: `Could not find a waybill matching ${waybillNum}.`,
+                variant: 'destructive',
+            });
+        }
+    } catch (e) {
+        toast({
+            title: 'Scan Error',
+            description: 'Could not process the scanned barcode.',
+            variant: 'destructive'
+        });
+    }
+  }
 
   const handlePrintTripStickers = () => {
     if (!tripNo.trim()) {
@@ -77,7 +107,7 @@ export default function PrintStickerPage() {
         const sheetName = workbook.SheetNames[0];
         const worksheet = workbook.Sheets[sheetName];
         const json: any[] = XLSX.utils.sheet_to_json(worksheet, {
-          header: ["waybillNumber", "senderCity", "receiverCity", "receiverName", "numberOfBoxes"],
+          header: ["waybillNumber", "senderCity", "receiverCity", "receiverName", "numberOfBoxes", "storeCode"],
           range: 1 // Skip header row
         });
         
@@ -127,7 +157,7 @@ export default function PrintStickerPage() {
   };
   
   const handleDownloadTemplate = () => {
-    const headers = ["waybillNumber", "senderCity", "receiverCity", "receiverName", "numberOfBoxes"];
+    const headers = ["waybillNumber", "senderCity", "receiverCity", "receiverName", "numberOfBoxes", "storeCode"];
     const worksheet = XLSX.utils.json_to_sheet([{}], { header: headers });
     const workbook = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(workbook, worksheet, "Sticker Template");
@@ -150,113 +180,128 @@ export default function PrintStickerPage() {
     <div className="space-y-8">
       <div>
         <h1 className="text-3xl font-bold">Print Waybill Sticker</h1>
-        <p className="text-muted-foreground">Print a single sticker, bulk print from an Excel file, or print all stickers for a trip.</p>
-      </div>
-
-       <Card className="md:col-span-2">
-        <CardHeader>
-          <CardTitle>Bulk Print from Excel</CardTitle>
-          <CardDescription>Upload an Excel file to print multiple stickers at once without creating waybills. This is ideal for Bluetooth printers.</CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
-            <div className="flex gap-2">
-                <Button onClick={() => fileInputRef.current?.click()} variant="outline" className="w-full">
-                    <FileUp className="mr-2 h-4 w-4" /> Upload Excel File
-                </Button>
-                 <Button onClick={handleDownloadTemplate} variant="secondary" size="sm">
-                    <FileSpreadsheet className="mr-2 h-4 w-4" /> Template
-                </Button>
-            </div>
-            <input type="file" ref={fileInputRef} onChange={handleFileUpload} className="hidden" accept=".xlsx, .xls" />
-            {bulkStickers.length > 0 && (
-                 <Alert variant="default">
-                    <Terminal className="h-4 w-4" />
-                    <AlertTitle>File Ready</AlertTitle>
-                    <AlertDescription>
-                       {bulkStickers.length} stickers are ready for printing.
-                    </AlertDescription>
-                </Alert>
-            )}
-        </CardContent>
-        <CardFooter>
-            <Button onClick={handlePrintBulk} className="w-full" disabled={bulkStickers.length === 0}>
-                <Printer className="mr-2 h-4 w-4" />
-                Print All Stickers
-            </Button>
-        </CardFooter>
-      </Card>
-
-      <div className="grid md:grid-cols-2 gap-8">
-        <Card>
-            <CardHeader>
-            <CardTitle>Print Single Sticker</CardTitle>
-            <CardDescription>Find an existing waybill to print its sticker.</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-            <div className="flex gap-2">
-                <Input
-                id="waybill-number"
-                placeholder="Enter Waybill Number"
-                value={waybillNumber}
-                onChange={(e) => setWaybillNumber(e.target.value)}
-                onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
-                className="flex-grow"
-                />
-                <Button onClick={handleSearch}>
-                <Search className="mr-2 h-4 w-4" /> Search
-                </Button>
-            </div>
-            {error && (
-                <Alert variant="destructive">
-                    <AlertCircle className="h-4 w-4" />
-                    <AlertTitle>Error</AlertTitle>
-                    <AlertDescription>{error}</AlertDescription>
-                </Alert>
-            )}
-            </CardContent>
-            {foundWaybill && (
-            <>
-                <CardContent>
-                    <Alert>
-                        <Terminal className="h-4 w-4" />
-                        <AlertTitle>Waybill Found!</AlertTitle>
-                        <AlertDescription>
-                            <p><strong>To:</strong> {foundWaybill.receiverName}</p>
-                            <p><strong>Boxes:</strong> {foundWaybill.numberOfBoxes}</p>
-                        </AlertDescription>
-                    </Alert>
-                </CardContent>
-                <CardFooter>
-                <Button onClick={handlePrintSticker} className="w-full">
-                    <Printer className="mr-2 h-4 w-4" />
-                    Print {foundWaybill.numberOfBoxes} {foundWaybill.numberOfBoxes > 1 ? 'Stickers' : 'Sticker'}
-                </Button>
-                </CardFooter>
-            </>
-            )}
-        </Card>
-
-        <Card>
-            <CardHeader>
-            <CardTitle>Bulk Print by Trip No.</CardTitle>
-            <CardDescription>Enter a Trip Number to print all its associated stickers.</CardDescription>
-            </CardHeader>
-            <CardContent>
-            <div className="flex gap-2">
-                    <Input
-                        placeholder="Enter Trip No."
-                        value={tripNo}
-                        onChange={(e) => setTripNo(e.target.value)}
-                        onKeyDown={(e) => e.key === 'Enter' && handlePrintTripStickers()}
-                    />
-                    <Button onClick={handlePrintTripStickers}>
-                        <Truck className="mr-2 h-4 w-4" /> Print Trip Stickers
-                    </Button>
-                </div>
-            </CardContent>
-        </Card>
+        <p className="text-muted-foreground">Print single, bulk, trip, or scanned stickers.</p>
       </div>
       
+      <div className="grid lg:grid-cols-2 gap-8">
+        <div className="space-y-8">
+            <Card>
+                <CardHeader>
+                    <CardTitle className="flex items-center gap-2"><Camera className="h-6 w-6"/> Scan & Print Sticker</CardTitle>
+                    <CardDescription>Use your device's camera to scan a barcode and print a sticker instantly.</CardDescription>
+                </CardHeader>
+                <CardContent>
+                    <BarcodeScanner onScan={handleScanAndPrint} />
+                </CardContent>
+            </Card>
+
+            <Card>
+                <CardHeader>
+                <CardTitle>Bulk Print from Excel</CardTitle>
+                <CardDescription>Upload an Excel file to print multiple stickers at once. Ideal for Bluetooth printers.</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                    <div className="flex gap-2">
+                        <Button onClick={() => fileInputRef.current?.click()} variant="outline" className="w-full">
+                            <FileUp className="mr-2 h-4 w-4" /> Upload Excel File
+                        </Button>
+                        <Button onClick={handleDownloadTemplate} variant="secondary" size="sm">
+                            <FileSpreadsheet className="mr-2 h-4 w-4" /> Template
+                        </Button>
+                    </div>
+                    <input type="file" ref={fileInputRef} onChange={handleFileUpload} className="hidden" accept=".xlsx, .xls" />
+                    {bulkStickers.length > 0 && (
+                        <Alert variant="default">
+                            <Terminal className="h-4 w-4" />
+                            <AlertTitle>File Ready</AlertTitle>
+                            <AlertDescription>
+                            {bulkStickers.length} stickers are ready for printing.
+                            </AlertDescription>
+                        </Alert>
+                    )}
+                </CardContent>
+                <CardFooter>
+                    <Button onClick={handlePrintBulk} className="w-full" disabled={bulkStickers.length === 0}>
+                        <Printer className="mr-2 h-4 w-4" />
+                        Print All Stickers
+                    </Button>
+                </CardFooter>
+            </Card>
+        </div>
+
+        <div className="space-y-8">
+            <Card>
+                <CardHeader>
+                <CardTitle>Print Single Sticker</CardTitle>
+                <CardDescription>Find an existing waybill to print its sticker.</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                <div className="flex gap-2">
+                    <Input
+                    id="waybill-number"
+                    placeholder="Enter Waybill Number"
+                    value={waybillNumber}
+                    onChange={(e) => setWaybillNumber(e.target.value)}
+                    onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
+                    className="flex-grow"
+                    />
+                    <Button onClick={handleSearch}>
+                    <Search className="mr-2 h-4 w-4" /> Search
+                    </Button>
+                </div>
+                {error && (
+                    <Alert variant="destructive">
+                        <AlertCircle className="h-4 w-4" />
+                        <AlertTitle>Error</AlertTitle>
+                        <AlertDescription>{error}</AlertDescription>
+                    </Alert>
+                )}
+                </CardContent>
+                {foundWaybill && (
+                <>
+                    <CardContent>
+                        <Alert>
+                            <Terminal className="h-4 w-4" />
+                            <AlertTitle>Waybill Found!</AlertTitle>
+                            <AlertDescription>
+                                <p><strong>To:</strong> {foundWaybill.receiverName}</p>
+                                <p><strong>Boxes:</strong> {foundWaybill.numberOfBoxes}</p>
+                            </AlertDescription>
+                        </Alert>
+                    </CardContent>
+                    <CardFooter>
+                    <Button onClick={() => handlePrintSticker(foundWaybill.id)} className="w-full">
+                        <Printer className="mr-2 h-4 w-4" />
+                        Print {foundWaybill.numberOfBoxes} {foundWaybill.numberOfBoxes > 1 ? 'Stickers' : 'Sticker'}
+                    </Button>
+                    </CardFooter>
+                </>
+                )}
+            </Card>
+
+            <Card>
+                <CardHeader>
+                <CardTitle>Bulk Print by Trip No.</CardTitle>
+                <CardDescription>Enter a Trip Number to print all its associated stickers.</CardDescription>
+                </CardHeader>
+                <CardContent>
+                <div className="flex gap-2">
+                        <Input
+                            placeholder="Enter Trip No."
+                            value={tripNo}
+                            onChange={(e) => setTripNo(e.target.value)}
+                            onKeyDown={(e) => e.key === 'Enter' && handlePrintTripStickers()}
+                        />
+                        <Button onClick={handlePrintTripStickers}>
+                            <Truck className="mr-2 h-4 w-4" /> Print Trip Stickers
+                        </Button>
+                    </div>
+                </CardContent>
+            </Card>
+        </div>
+      </div>
     </div>
   );
 }
+
+    

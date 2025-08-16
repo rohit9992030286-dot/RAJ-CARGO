@@ -38,7 +38,7 @@ export function WaybillStickerCustom({ waybill, boxNumber = 1, totalBoxes = 1, s
       fontFamily: 'sans-serif',
       display: 'flex',
       flexDirection: 'column',
-      padding: '0.5cm',
+      padding: '0.2cm',
       boxSizing: 'border-box',
       position: 'relative'
     }}>
@@ -180,3 +180,5 @@ export function WaybillStickerCustom({ waybill, boxNumber = 1, totalBoxes = 1, s
     </div>
   );
 }
+
+    

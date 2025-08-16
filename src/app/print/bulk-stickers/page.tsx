@@ -32,6 +32,8 @@ function createMockWaybill(data: any): Waybill {
         shippingDate: new Date().toISOString().split('T')[0],
         shippingTime: '10:00',
         status: 'Pending',
+        receiverState: data.receiverState || '',
+        paymentType: 'To Pay',
     };
 }
 
@@ -139,3 +141,5 @@ export default function BulkPrintStickersPage() {
     </>
   );
 }
+
+    
