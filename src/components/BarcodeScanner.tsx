@@ -4,7 +4,7 @@ import { useState, useRef, useEffect, useCallback } from 'react';
 import jsQR from 'jsqr';
 import { useToast } from '@/hooks/use-toast';
 import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert';
-import { Camera, CameraOff, ScanLine, Zap } from 'lucide-react';
+import { Camera, CameraOff } from 'lucide-react';
 import { Button } from './ui/button';
 import { cn } from '@/lib/utils';
 
@@ -20,49 +20,19 @@ export function BarcodeScanner({ onScan, className }: BarcodeScannerProps) {
   const [isScanning, setIsScanning] = useState(false);
   const { toast } = useToast();
   const animationFrameId = useRef<number>();
+  const lastScanTime = useRef<number>(0);
+  const cooldownPeriod = 1000; // 1 second
 
-  const tick = useCallback(() => {
-    if (videoRef.current && videoRef.current.readyState === videoRef.current.HAVE_ENOUGH_DATA && canvasRef.current) {
-      const video = videoRef.current;
-      const canvas = canvasRef.current;
-      const context = canvas.getContext('2d');
-
-      if (context) {
-        canvas.height = video.videoHeight;
-        canvas.width = video.videoWidth;
-        context.drawImage(video, 0, 0, canvas.width, canvas.height);
-        const imageData = context.getImageData(0, 0, canvas.width, canvas.height);
-        const code = jsQR(imageData.data, imageData.width, imageData.height, {
-          inversionAttempts: "dontInvert",
-        });
-
-        if (code) {
-          onScan(code.data);
-          setIsScanning(false); // Stop scanning after a successful scan
-        }
-      }
+  const stopScan = useCallback(() => {
+    setIsScanning(false);
+    if (videoRef.current && videoRef.current.srcObject) {
+      const stream = videoRef.current.srcObject as MediaStream;
+      stream.getTracks().forEach(track => track.stop());
+      videoRef.current.srcObject = null;
     }
-    if (isScanning) {
-        animationFrameId.current = requestAnimationFrame(tick);
-    }
-  }, [isScanning, onScan]);
-
-  useEffect(() => {
-    if (isScanning) {
-      animationFrameId.current = requestAnimationFrame(tick);
-    } else {
-      if (animationFrameId.current) {
-        cancelAnimationFrame(animationFrameId.current);
-      }
-    }
-    return () => {
-      if (animationFrameId.current) {
-        cancelAnimationFrame(animationFrameId.current);
-      }
-    };
-  }, [isScanning, tick]);
-
-  const startScan = async () => {
+  }, []);
+  
+  const startScan = useCallback(async () => {
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } });
       setHasCameraPermission(true);
@@ -80,16 +50,59 @@ export function BarcodeScanner({ onScan, className }: BarcodeScannerProps) {
         description: 'Please enable camera permissions in your browser settings.',
       });
     }
-  };
+  }, [toast]);
 
-  const stopScan = () => {
-    setIsScanning(false);
-    if (videoRef.current && videoRef.current.srcObject) {
-      const stream = videoRef.current.srcObject as MediaStream;
-      stream.getTracks().forEach(track => track.stop());
-      videoRef.current.srcObject = null;
+  const tick = useCallback(() => {
+    if (videoRef.current && videoRef.current.readyState === videoRef.current.HAVE_ENOUGH_DATA && canvasRef.current) {
+      const video = videoRef.current;
+      const canvas = canvasRef.current;
+      const context = canvas.getContext('2d');
+
+      if (context) {
+        canvas.height = video.videoHeight;
+        canvas.width = video.videoWidth;
+        context.drawImage(video, 0, 0, canvas.width, canvas.height);
+        const imageData = context.getImageData(0, 0, canvas.width, canvas.height);
+        const code = jsQR(imageData.data, imageData.width, imageData.height, {
+          inversionAttempts: "dontInvert",
+        });
+
+        const now = Date.now();
+        if (code && now - lastScanTime.current > cooldownPeriod) {
+          lastScanTime.current = now;
+          onScan(code.data);
+        }
+      }
     }
-  };
+    if (isScanning) {
+        animationFrameId.current = requestAnimationFrame(tick);
+    }
+  }, [isScanning, onScan, cooldownPeriod]);
+  
+  // Effect to automatically start scanning on mount.
+  useEffect(() => {
+      startScan();
+      return () => {
+          stopScan();
+      }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  useEffect(() => {
+    if (isScanning) {
+      animationFrameId.current = requestAnimationFrame(tick);
+    } else {
+      if (animationFrameId.current) {
+        cancelAnimationFrame(animationFrameId.current);
+      }
+    }
+    return () => {
+      if (animationFrameId.current) {
+        cancelAnimationFrame(animationFrameId.current);
+      }
+    };
+  }, [isScanning, tick]);
+
   
   const handleToggleScan = () => {
     if (isScanning) {
@@ -102,8 +115,8 @@ export function BarcodeScanner({ onScan, className }: BarcodeScannerProps) {
   return (
     <div className={cn("relative w-full p-4 border rounded-md bg-muted/50", className)}>
        <div className="relative overflow-hidden rounded-md aspect-video bg-black flex items-center justify-center">
-            <video ref={videoRef} className={cn("w-full h-full object-cover", { 'hidden': !isScanning })} autoPlay playsInline muted />
-            {!isScanning && (
+            <video ref={videoRef} className={cn("w-full h-full object-cover", { 'hidden': !isScanning && hasCameraPermission !== true })} autoPlay playsInline muted />
+            {(!isScanning || hasCameraPermission !== true) && (
                 <div className="text-muted-foreground flex flex-col items-center gap-2">
                     <Camera className="h-12 w-12" />
                     <p>Camera is off</p>
