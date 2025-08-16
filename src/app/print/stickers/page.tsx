@@ -18,7 +18,17 @@ function PrintStickersContent() {
   const printTriggered = useRef(false);
 
   useEffect(() => {
-    if (isLoaded) {
+    const source = searchParams.get('source');
+
+    if (source === 'excel') {
+        const stickerData = sessionStorage.getItem('rajcargo-excel-sticker');
+        if (stickerData) {
+            const parsedData = JSON.parse(stickerData);
+            // The data is a partial waybill, so we cast it.
+            // The sticker component only needs a few fields.
+            setWaybillsToPrint([parsedData as Waybill]);
+        }
+    } else if (isLoaded) {
       const ids = searchParams.get('ids')?.split(',') || [];
       const waybills = ids.map(id => getWaybillById(id)).filter((w): w is Waybill => !!w);
       
@@ -34,6 +44,7 @@ function PrintStickersContent() {
 
       setWaybillsToPrint(waybills);
     }
+    
     const storedSize = localStorage.getItem('rajcargo-stickerSize');
     if (storedSize) {
         setStickerSize(storedSize);
@@ -50,7 +61,7 @@ function PrintStickersContent() {
     }
   }, [waybillsToPrint]);
 
-  if (!isLoaded || waybillsToPrint.length === 0) {
+  if ((!isLoaded && !searchParams.get('source')) || waybillsToPrint.length === 0) {
     return (
       <div className="flex justify-center items-center h-screen bg-white">
         <Loader2 className="h-16 w-16 animate-spin text-primary" />
