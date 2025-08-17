@@ -29,6 +29,8 @@ export default function PrintStickerPage() {
   const { toast } = useToast();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [excelData, setExcelData] = useState<ExcelStickerData[]>([]);
+  const [printedBoxIds, setPrintedBoxIds] = useState<Set<string>>(new Set());
+
 
   const handleScanAndPrint = (scannedValue: string) => {
     try {
@@ -44,6 +46,16 @@ export default function PrintStickerPage() {
         const stickerInfo = excelData.find(d => scannedValue.includes(d.firstBarcodeId));
 
         if (stickerInfo) {
+            if (printedBoxIds.has(stickerInfo.firstBarcodeId)) {
+                toast({
+                    title: 'Sticker Already Printed',
+                    description: `A sticker for barcode ${stickerInfo.firstBarcodeId} has already been printed in this session.`,
+                    variant: 'default',
+                });
+                return;
+            }
+
+
             toast({
                 title: "Barcode Match Found!",
                 description: `Printing ${stickerInfo.numberOfBoxes} sticker(s) for ${stickerInfo.waybillNumber}.`,
@@ -62,6 +74,7 @@ export default function PrintStickerPage() {
 
             sessionStorage.setItem('rajcargo-excel-sticker', JSON.stringify(waybillForSticker));
             window.open(`/print/stickers?source=excel`, '_blank');
+            setPrintedBoxIds(prev => new Set(prev).add(stickerInfo.firstBarcodeId));
 
         } else {
             toast({
@@ -84,6 +97,7 @@ export default function PrintStickerPage() {
     if (!file) return;
 
     setExcelData([]);
+    setPrintedBoxIds(new Set()); // Reset printed IDs on new file upload
     const reader = new FileReader();
     reader.onload = (e) => {
       const data = e.target?.result;
@@ -141,7 +155,7 @@ export default function PrintStickerPage() {
   };
   
   const handleDownloadTemplate = () => {
-    const headers = ["First Barcode ID", "Waybill No", "Sender City", "Receiver City", "Receiver Name", "Total Box"];
+    const headers = ["firstBarcodeId", "waybillNumber", "senderCity", "receiverCity", "receiverName", "numberOfBoxes"];
     const worksheet = XLSX.utils.json_to_sheet([{}], { header: headers });
     const workbook = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(workbook, worksheet, "Sticker Template");
@@ -179,7 +193,7 @@ export default function PrintStickerPage() {
                         <Terminal className="h-4 w-4" />
                         <AlertTitle>File Ready</AlertTitle>
                         <AlertDescription>
-                        {excelData.length} records loaded. You can now start scanning barcodes.
+                        {excelData.length} records loaded. You can now start scanning barcodes. {printedBoxIds.size} barcodes printed so far.
                         </AlertDescription>
                     </Alert>
                 )}
