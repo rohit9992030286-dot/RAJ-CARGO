@@ -9,7 +9,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter }
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
-import { KeyRound, Save, Download, Upload } from 'lucide-react';
+import { KeyRound, Save, Download, Upload, UploadCloud } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/hooks/useAuth.tsx';
 import { Label } from '@/components/ui/label';
@@ -25,6 +25,7 @@ import {
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
 import { saveAs } from 'file-saver';
+import { put } from "@vercel/blob";
 
 
 function getBackupData() {
@@ -99,15 +100,22 @@ export default function AccountSettingsPage() {
         }
     }
     
-    const handleExportData = () => {
+    const handleExportData = async () => {
         try {
           const allData = getBackupData();
-          const blob = new Blob([allData], { type: 'application/json' });
-          saveAs(blob, 'rajcargo_backup_all.json');
+          const filename = `rajcargo_backup_${new Date().toISOString()}.json`;
+          
+          // Upload to Vercel Blob
+          const { url } = await put(filename, allData, { access: 'public' });
+          
           toast({
-            title: 'Data Exported',
-            description: 'All system data has been saved.',
+            title: 'Data Exported to Cloud',
+            description: 'Backup has been uploaded successfully.',
           });
+          
+          // Also allow local download
+          const blob = new Blob([allData], { type: 'application/json' });
+          saveAs(blob, filename);
 
         } catch (error) {
            toast({
@@ -226,10 +234,10 @@ export default function AccountSettingsPage() {
                    <div className="flex items-center justify-between">
                         <div>
                             <Label className="font-medium">Export All Data</Label>
-                            <p className="text-sm text-muted-foreground">Save a complete JSON backup file to your local machine.</p>
+                            <p className="text-sm text-muted-foreground">Save a backup file to the cloud and your local machine.</p>
                         </div>
                         <Button variant="outline" onClick={handleExportData}>
-                            <Download className="mr-2 h-4 w-4" />
+                            <UploadCloud className="mr-2 h-4 w-4" />
                             Export Data
                         </Button>
                     </div>
