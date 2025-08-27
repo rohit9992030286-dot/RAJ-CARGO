@@ -10,9 +10,10 @@ import { format } from 'date-fns';
 
 interface WaybillPrintProps {
   waybill: Waybill;
+  copyType: 'Receiver Copy' | 'POD Copy';
 }
 
-export function WaybillPrint({ waybill }: WaybillPrintProps) {
+function WaybillCopy({ waybill, copyType }: WaybillPrintProps) {
   const { associations, isLoaded: associationsLoaded } = usePartnerAssociations();
   const { users, isLoading: usersLoaded } = useAuth();
   
@@ -41,7 +42,7 @@ export function WaybillPrint({ waybill }: WaybillPrintProps) {
   const isDelivered = waybill.status === 'Delivered';
 
   return (
-    <div className="bg-white text-black font-sans mx-auto print:shadow-none" style={{ fontSize: '10px', height: '25cm', width: '100%', display: 'flex', flexDirection: 'column' }}>
+    <div className="bg-white text-black font-sans mx-auto print:shadow-none" style={{ fontSize: '10px', height: '12.5cm', width: '100%', display: 'flex', flexDirection: 'column' }}>
       <div className="border-2 border-black flex flex-col flex-grow">
           {/* Header */}
           <header className="flex justify-between items-start p-2 border-b-2 border-black">
@@ -54,7 +55,7 @@ export function WaybillPrint({ waybill }: WaybillPrintProps) {
                 </div>
             </div>
             <div className="text-right">
-              <h2 className="text-md font-bold uppercase tracking-wider text-black">Waybill</h2>
+              <h2 className="text-md font-bold uppercase tracking-wider text-black">{copyType}</h2>
               <div className="flex justify-end">
                 <Barcode 
                     value={waybill.waybillNumber}
@@ -199,6 +200,15 @@ export function WaybillPrint({ waybill }: WaybillPrintProps) {
               </footer>
           </div>
       </div>
+    </div>
+  );
+}
+
+export function WaybillPrint({ waybill }: { waybill: Waybill }) {
+  return (
+    <div className="flex flex-col gap-4">
+      <WaybillCopy waybill={waybill} copyType="Receiver Copy" />
+      <WaybillCopy waybill={waybill} copyType="POD Copy" />
     </div>
   );
 }

@@ -50,7 +50,7 @@ function PrintWaybillContent() {
     @media print {
       @page {
         size: A4;
-        margin: 0.5in;
+        margin: 0.25in;
       }
       body {
         -webkit-print-color-adjust: exact;
