@@ -45,18 +45,17 @@ function WaybillCopy({ waybill, copyType }: WaybillPrintProps) {
     <div className="bg-white text-black font-sans mx-auto print:shadow-none" style={{ fontSize: '10px', height: '12.5cm', width: '100%', display: 'flex', flexDirection: 'column' }}>
       <div className="border-2 border-black flex flex-col flex-grow">
           {/* Header */}
-          <header className="flex justify-between items-start p-2 border-b-2 border-black">
+          <header className="flex justify-between items-center p-2 border-b-2 border-black">
             <div className="flex items-center gap-3">
                 <Truck className="h-8 w-8 text-black" />
                 <div>
-                    <h1 className="text-2xl font-bold text-black">RAJ CARGO</h1>
-                    <p className="text-black text-xs">DELHI NAJAFGARH. PINCODE 110048</p>
-                    <p className="text-black text-xs">EMAIL: RAJ89CARGO@GMAIL.COM</p>
+                    <h1 className="text-xl font-bold text-black">RAJ CARGO</h1>
+                    <p className="text-black text-xs">DELHI NAJAFGARH. PINCODE 110048 | EMAIL: RAJ89CARGO@GMAIL.COM</p>
                 </div>
             </div>
-            <div className="text-right">
+            <div className="text-right flex flex-col items-end">
               <h2 className="text-md font-bold uppercase tracking-wider text-black">{copyType}</h2>
-              <div className="flex justify-end">
+              <div className="h-[35px]">
                 <Barcode 
                     value={waybill.waybillNumber}
                     height={30}
@@ -64,7 +63,7 @@ function WaybillCopy({ waybill, copyType }: WaybillPrintProps) {
                     fontSize={12}
                 />
               </div>
-              {waybill.tripNo && <p className="text-xs text-black mt-1 font-semibold">Trip #{waybill.tripNo}</p>}
+              {waybill.tripNo && <p className="text-xs text-black font-semibold">Trip #{waybill.tripNo}</p>}
             </div>
           </header>
           
@@ -93,8 +92,8 @@ function WaybillCopy({ waybill, copyType }: WaybillPrintProps) {
               {/* Shipment Details */}
               <section className="mt-1">
                 <div className="space-y-1 text-xs">
-                    {/* Row 1 */}
-                    <div className="grid grid-cols-3 gap-1">
+                    {/* Row 1, 2, 3 combined */}
+                    <div className="grid grid-cols-4 gap-1">
                         <div className="p-1 border-2 border-black text-center">
                             <p className="font-semibold text-black text-[9px]">Ship Date</p>
                             <p className="text-sm font-bold">{new Date(waybill.shippingDate).toLocaleDateString()}</p>
@@ -104,13 +103,6 @@ function WaybillCopy({ waybill, copyType }: WaybillPrintProps) {
                             <p className="text-sm font-bold">{waybill.paymentType}</p>
                         </div>
                         <div className="p-1 border-2 border-black text-center">
-                            <p className="font-semibold text-black text-[9px]">Mode</p>
-                            <p className="text-sm font-bold">Surface</p>
-                        </div>
-                    </div>
-                    {/* Row 2 */}
-                    <div className="grid grid-cols-2 gap-1">
-                        <div className="p-1 border-2 border-black text-center">
                             <p className="font-semibold text-black text-[9px]">Total Boxes</p>
                             <p className="text-sm font-bold">{waybill.numberOfBoxes}</p>
                         </div>
@@ -118,10 +110,7 @@ function WaybillCopy({ waybill, copyType }: WaybillPrintProps) {
                             <p className="font-semibold text-black text-[9px]">Weight</p>
                             <p className="text-sm font-bold">{waybill.packageWeight} kg</p>
                         </div>
-                    </div>
-                     {/* Row 3 */}
-                    <div className="grid grid-cols-3 gap-1">
-                        <div className="p-1 border-2 border-black text-center">
+                        <div className="p-1 border-2 border-black text-center col-span-2">
                             <p className="font-semibold text-black text-[9px]">Invoice #</p>
                             <p className="text-[9px] truncate">{waybill.invoiceNumber}</p>
                         </div>
@@ -206,7 +195,7 @@ function WaybillCopy({ waybill, copyType }: WaybillPrintProps) {
 
 export function WaybillPrint({ waybill }: { waybill: Waybill }) {
   return (
-    <div className="flex flex-col gap-4">
+    <div className="flex flex-col" style={{ gap: '5mm' }}>
       <WaybillCopy waybill={waybill} copyType="Receiver Copy" />
       <WaybillCopy waybill={waybill} copyType="POD Copy" />
     </div>
