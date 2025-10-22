@@ -182,86 +182,90 @@ export function WaybillForm({ initialData, onSave, onCancel }: WaybillFormProps)
                 <CardTitle>Step 1: Core Details</CardTitle>
                 <CardDescription>Start by selecting the company, payment type, and waybill number.</CardDescription>
             </CardHeader>
-            <CardContent className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-                <FormField
-                    control={form.control}
-                    name="companyCode"
-                    render={({ field }) => (
-                        <FormItem>
-                        <FormLabel>Company (Optional)</FormLabel>
-                            <Select 
-                              onValueChange={field.onChange} 
-                              value={field.value || ''}
-                            >
-                                <FormControl>
-                                    <div className="relative">
-                                    <SelectTrigger className="pl-10">
-                                        <SelectValue placeholder="Select a Company" />
-                                    </SelectTrigger>
-                                    <IconWrapper><Building /></IconWrapper>
-                                    </div>
-                                </FormControl>
-                                <SelectContent>
-                                    <SelectItem value="none">None</SelectItem>
-                                    {companies.map(c => <SelectItem key={c.id} value={c.companyCode!}>{c.companyName} ({c.companyCode})</SelectItem>)}
-                                </SelectContent>
-                            </Select>
-                        <FormMessage />
-                        </FormItem>
-                    )}
-                />
-                <FormField
-                    control={form.control}
-                    name="paymentType"
-                    render={({ field }) => (
-                        <FormItem className="space-y-3">
-                            <FormLabel>Payment Type</FormLabel>
-                            <FormControl>
-                                <RadioGroup
-                                onValueChange={field.onChange}
-                                defaultValue={field.value}
-                                className="grid grid-cols-2 gap-4"
+            <CardContent className="grid lg:grid-cols-3 gap-6">
+                <div className="lg:col-span-2 grid md:grid-cols-2 gap-6">
+                    <FormField
+                        control={form.control}
+                        name="companyCode"
+                        render={({ field }) => (
+                            <FormItem>
+                            <FormLabel>Company (Optional)</FormLabel>
+                                <Select 
+                                onValueChange={field.onChange} 
+                                value={field.value || ''}
                                 >
-                                    <FormItem>
-                                        <FormControl>
-                                            <RadioGroupItem value="Credit" id="credit" className="sr-only" />
-                                        </FormControl>
-                                        <Label htmlFor="credit" className="flex flex-col items-center justify-between rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground [&:has([data-state=checked])]:border-primary">
-                                            <CreditCard className="mb-3 h-6 w-6" />
-                                            Credit
-                                        </Label>
-                                    </FormItem>
-                                    <FormItem>
                                     <FormControl>
-                                        <RadioGroupItem value="To Pay" id="topay" className="sr-only" />
+                                        <div className="relative">
+                                        <SelectTrigger className="pl-10">
+                                            <SelectValue placeholder="Select a Company" />
+                                        </SelectTrigger>
+                                        <IconWrapper><Building /></IconWrapper>
+                                        </div>
                                     </FormControl>
-                                        <Label htmlFor="topay" className="flex flex-col items-center justify-between rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground [&:has([data-state=checked])]:border-primary">
-                                        <Wallet className="mb-3 h-6 w-6" />
-                                        To Pay
-                                        </Label>
-                                    </FormItem>
-                                </RadioGroup>
-                            </FormControl>
+                                    <SelectContent>
+                                        <SelectItem value="none">None</SelectItem>
+                                        {companies.map(c => <SelectItem key={c.id} value={c.companyCode!}>{c.companyName} ({c.companyCode})</SelectItem>)}
+                                    </SelectContent>
+                                </Select>
+                            <FormMessage />
+                            </FormItem>
+                        )}
+                    />
+                    <FormField
+                        control={form.control}
+                        name="waybillNumber"
+                        render={({ field }) => (
+                        <FormItem>
+                            <FormLabel>Waybill Number</FormLabel>
+                            <div className="relative">
+                                <FormControl>
+                                    <Input placeholder="Enter waybill number" {...field} className="pl-10" disabled={!!initialData} />
+                                </FormControl>
+                                <IconWrapper><Hash /></IconWrapper>
+                            </div>
                             <FormMessage />
                         </FormItem>
-                    )}
-                />
-                <FormField
-                    control={form.control}
-                    name="waybillNumber"
-                    render={({ field }) => (
-                    <FormItem>
-                        <FormLabel>Waybill Number</FormLabel>
-                         <div className="relative">
-                            <FormControl>
-                                <Input placeholder="Enter waybill number" {...field} className="pl-10" disabled={!!initialData} />
-                            </FormControl>
-                            <IconWrapper><Hash /></IconWrapper>
-                        </div>
-                        <FormMessage />
-                    </FormItem>
-                    )}
-                />
+                        )}
+                    />
+                </div>
+                <div className="lg:col-span-1">
+                    <FormField
+                        control={form.control}
+                        name="paymentType"
+                        render={({ field }) => (
+                            <FormItem className="space-y-3">
+                                <FormLabel>Payment Type</FormLabel>
+                                <FormControl>
+                                    <RadioGroup
+                                    onValueChange={field.onChange}
+                                    defaultValue={field.value}
+                                    className="grid grid-cols-2 gap-4"
+                                    >
+                                        <FormItem>
+                                            <FormControl>
+                                                <RadioGroupItem value="Credit" id="credit" className="sr-only" />
+                                            </FormControl>
+                                            <Label htmlFor="credit" className="flex flex-col items-center justify-between rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground [&:has([data-state=checked])]:border-primary">
+                                                <CreditCard className="mb-3 h-6 w-6" />
+                                                Credit
+                                            </Label>
+                                        </FormItem>
+                                        <FormItem>
+                                        <FormControl>
+                                            <RadioGroupItem value="To Pay" id="topay" className="sr-only" />
+                                        </FormControl>
+                                            <Label htmlFor="topay" className="flex flex-col items-center justify-between rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground [&:has([data-state=checked])]:border-primary">
+                                            <Wallet className="mb-3 h-6 w-6" />
+                                            To Pay
+                                            </Label>
+                                        </FormItem>
+                                    </RadioGroup>
+                                </FormControl>
+                                <FormMessage />
+                            </FormItem>
+                        )}
+                    />
+                </div>
             </CardContent>
         </Card>
 
@@ -508,3 +512,5 @@ export function WaybillForm({ initialData, onSave, onCancel }: WaybillFormProps)
     </Form>
   );
 }
+
+    
