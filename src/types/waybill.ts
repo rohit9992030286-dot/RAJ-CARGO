@@ -14,6 +14,7 @@ const baseWaybillSchema = z.object({
   senderCity: z.string().min(2, 'Sender city must be at least 2 characters.'),
   senderPincode: z.string().min(5, 'Pincode must be at least 5 digits.'),
   senderPhone: z.string().min(10, 'Please enter a valid sender phone number.'),
+  senderState: z.string().min(2, 'Sender state is required.'),
   
   receiverName: z.string().min(2, 'Receiver name must be at least 2 characters.'),
   receiverAddress: z.string().min(10, 'Please enter a valid receiver address.'),

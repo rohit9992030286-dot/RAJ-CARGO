@@ -31,6 +31,7 @@ const getInitialValues = (initialData?: Waybill): WaybillFormData => {
         senderCity: '',
         senderPincode: '',
         senderPhone: '',
+        senderState: '',
         receiverName: '',
         receiverAddress: '',
         receiverCity: '',
@@ -111,6 +112,7 @@ export function WaybillForm({ initialData, onSave, onCancel }: WaybillFormProps)
                     senderCity: company.senderCity,
                     senderPincode: company.senderPincode,
                     senderPhone: company.senderPhone,
+                    senderState: company.senderState,
                 };
             }
         } else {
@@ -282,6 +284,7 @@ export function WaybillForm({ initialData, onSave, onCancel }: WaybillFormProps)
                     <FormField control={form.control} name="senderAddress" render={({ field }) => (<FormItem><FormLabel>Address</FormLabel><div className="relative"><FormControl><Input placeholder="Enter address" {...field} className="pl-10" /></FormControl><IconWrapper><MapPin /></IconWrapper></div><FormMessage /></FormItem>)} />
                     <FormField control={form.control} name="senderPincode" render={({ field }) => (<FormItem><FormLabel>Pincode</FormLabel><div className="relative"><FormControl><Input placeholder="e.g., 10001" {...field} className="pl-10" /></FormControl><IconWrapper><MapPin /></IconWrapper></div><FormMessage /></FormItem>)} />
                     <FormField control={form.control} name="senderCity" render={({ field }) => (<FormItem><FormLabel>City</FormLabel><div className="relative"><FormControl><Input placeholder="e.g., New York" {...field} className="pl-10" /></FormControl><IconWrapper><Building /></IconWrapper></div><FormMessage /></FormItem>)} />
+                    <FormField control={form.control} name="senderState" render={({ field }) => (<FormItem><FormLabel>State</FormLabel><div className="relative"><FormControl><Input placeholder="e.g., New York" {...field} className="pl-10" /></FormControl><IconWrapper><Globe /></IconWrapper></div><FormMessage /></FormItem>)} />
                     <FormField control={form.control} name="senderPhone" render={({ field }) => (<FormItem><FormLabel>Phone Number</FormLabel><div className="relative"><FormControl><Input placeholder="e.g., (555) 123-4567" {...field} className="pl-10" /></FormControl><IconWrapper><Phone /></IconWrapper></div><FormMessage /></FormItem>)} />
                 </div>
                  <div className="space-y-4 p-4 rounded-md border">
@@ -306,103 +309,105 @@ export function WaybillForm({ initialData, onSave, onCancel }: WaybillFormProps)
              <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
                 <FormField
                     control={form.control}
-                    name="invoiceNumber"
+                    name="numberOfBoxes"
                     render={({ field }) => (
                     <FormItem>
-                        <FormLabel>Invoice Number</FormLabel>
+                        <FormLabel>Number of Boxes</FormLabel>
                         <div className="relative">
                         <FormControl>
-                            <Input placeholder="e.g., INV-2024-001" {...field} className="pl-10" />
+                            <Input type="number" placeholder="e.g., 1" {...field} onChange={e => field.onChange(+e.target.value)} className="pl-10" />
                         </FormControl>
-                        <IconWrapper><Hash /></IconWrapper>
+                        <IconWrapper><Box /></IconWrapper>
                         </div>
                         <FormMessage />
                     </FormItem>
                     )}
                 />
-                 <FormField
+                <FormField
                     control={form.control}
-                    name="tripNo"
+                    name="packageWeight"
                     render={({ field }) => (
                     <FormItem>
-                        <FormLabel>Trip No.</FormLabel>
+                        <FormLabel>Actual Weight (kg)</FormLabel>
                         <div className="relative">
                         <FormControl>
-                            <Input placeholder="e.g., T-101" {...field} className="pl-10" />
+                            <Input type="number" step="0.1" placeholder="e.g., 2.5" {...field} onChange={e => field.onChange(+e.target.value)} className="pl-10" />
                         </FormControl>
-                        <IconWrapper><Truck /></IconWrapper>
+                        <IconWrapper><Weight /></IconWrapper>
                         </div>
                         <FormMessage />
                     </FormItem>
                     )}
                 />
-              <FormField
+                <FormField
+                    control={form.control}
+                    name="chargeableWeight"
+                    render={({ field }) => (
+                    <FormItem>
+                        <FormLabel>Chargeable Weight (kg)</FormLabel>
+                        <div className="relative">
+                        <FormControl>
+                            <Input type="number" step="0.1" placeholder="e.g., 3.0" {...field} onChange={e => field.onChange(+e.target.value)} className="pl-10" />
+                        </FormControl>
+                        <IconWrapper><Weight /></IconWrapper>
+                        </div>
+                        <FormMessage />
+                    </FormItem>
+                    )}
+                />
+            </div>
+            
+            <FormField
                 control={form.control}
                 name="packageDescription"
                 render={({ field }) => (
-                  <FormItem className="lg:col-span-1">
+                    <FormItem>
                     <FormLabel>Package Description</FormLabel>
                     <FormControl>
-                      <Textarea
+                        <Textarea
                         placeholder="e.g., Contains books and electronics"
                         className="resize-y"
                         {...field}
-                      />
+                        />
                     </FormControl>
                     <FormMessage />
-                  </FormItem>
+                    </FormItem>
                 )}
-              />
-            </div>
+            />
+
             <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-4">
                <FormField
                 control={form.control}
-                name="numberOfBoxes"
+                name="invoiceNumber"
                 render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Number of Boxes</FormLabel>
+                <FormItem>
+                    <FormLabel>Invoice Number</FormLabel>
                     <div className="relative">
-                      <FormControl>
-                        <Input type="number" placeholder="e.g., 1" {...field} onChange={e => field.onChange(+e.target.value)} className="pl-10" />
-                      </FormControl>
-                      <IconWrapper><Box /></IconWrapper>
+                    <FormControl>
+                        <Input placeholder="e.g., INV-2024-001" {...field} className="pl-10" />
+                    </FormControl>
+                    <IconWrapper><Hash /></IconWrapper>
                     </div>
                     <FormMessage />
-                  </FormItem>
+                </FormItem>
                 )}
-              />
-               <FormField
+            />
+             <FormField
                 control={form.control}
-                name="packageWeight"
+                name="tripNo"
                 render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Actual Weight (kg)</FormLabel>
+                <FormItem>
+                    <FormLabel>Trip No.</FormLabel>
                     <div className="relative">
-                      <FormControl>
-                        <Input type="number" step="0.1" placeholder="e.g., 2.5" {...field} onChange={e => field.onChange(+e.target.value)} className="pl-10" />
-                      </FormControl>
-                      <IconWrapper><Weight /></IconWrapper>
+                    <FormControl>
+                        <Input placeholder="e.g., T-101" {...field} className="pl-10" />
+                    </FormControl>
+                    <IconWrapper><Truck /></IconWrapper>
                     </div>
                     <FormMessage />
-                  </FormItem>
+                </FormItem>
                 )}
-              />
-                <FormField
-                control={form.control}
-                name="chargeableWeight"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Chargeable Weight (kg)</FormLabel>
-                    <div className="relative">
-                      <FormControl>
-                        <Input type="number" step="0.1" placeholder="e.g., 3.0" {...field} onChange={e => field.onChange(+e.target.value)} className="pl-10" />
-                      </FormControl>
-                      <IconWrapper><Weight /></IconWrapper>
-                    </div>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+            />
               <FormField
                 control={form.control}
                 name="shipmentValue"
@@ -512,5 +517,3 @@ export function WaybillForm({ initialData, onSave, onCancel }: WaybillFormProps)
     </Form>
   );
 }
-
-    

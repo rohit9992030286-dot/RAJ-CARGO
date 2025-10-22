@@ -10,6 +10,7 @@ export const companySchema = z.object({
   senderCity: z.string().min(2, 'Sender city is required.'),
   senderPincode: z.string().min(5, 'Pincode must be at least 5 digits.'),
   senderPhone: z.string().min(10, 'Please enter a valid sender phone number.'),
+  senderState: z.string().min(2, 'Sender state is required.')
 });
 
 export type Company = z.infer<typeof companySchema>;
