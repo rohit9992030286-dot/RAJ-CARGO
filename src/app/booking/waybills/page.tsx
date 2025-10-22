@@ -206,6 +206,7 @@ function WaybillsPageContent() {
                       shippingTime: String(row.shippingTime || '10:00'),
                       numberOfBoxes: Number(row.numberOfBoxes || 1),
                       packageWeight: Number(row.packageWeight || 0),
+                      chargeableWeight: Number(row.chargeableWeight || 0),
                       shipmentValue: Number(row.shipmentValue || 0),
                       partnerCode: user?.partnerCode,
                       companyCode: String(row.companyCode || ''),
@@ -461,5 +462,7 @@ function WaybillsPageContent() {
 export default function WaybillsPage() {
     return <WaybillsPageContent />;
 }
+
+    
 
     

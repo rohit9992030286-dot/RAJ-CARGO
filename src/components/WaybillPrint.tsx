@@ -93,29 +93,33 @@ function WaybillCopy({ waybill, copyType }: WaybillPrintProps) {
               <section className="mt-1">
                 <div className="space-y-1 text-xs">
                     {/* Row 1, 2, 3 combined */}
-                    <div className="grid grid-cols-4 gap-1">
+                    <div className="grid grid-cols-5 gap-1">
                         <div className="p-1 border-2 border-black text-center">
                             <p className="font-semibold text-black text-[9px]">Ship Date</p>
                             <p className="text-sm font-bold">{new Date(waybill.shippingDate).toLocaleDateString()}</p>
                         </div>
                          <div className="p-1 border-2 border-black text-center">
-                            <p className="font-semibold text-black text-[9px]">Payment Type</p>
+                            <p className="font-semibold text-black text-[9px]">Payment</p>
                             <p className="text-sm font-bold">{waybill.paymentType}</p>
                         </div>
                         <div className="p-1 border-2 border-black text-center">
-                            <p className="font-semibold text-black text-[9px]">Total Boxes</p>
+                            <p className="font-semibold text-black text-[9px]">Boxes</p>
                             <p className="text-sm font-bold">{waybill.numberOfBoxes}</p>
                         </div>
                         <div className="p-1 border-2 border-black text-center">
-                            <p className="font-semibold text-black text-[9px]">Weight</p>
+                            <p className="font-semibold text-black text-[9px]">Act. Wt.</p>
                             <p className="text-sm font-bold">{waybill.packageWeight} kg</p>
                         </div>
-                        <div className="p-1 border-2 border-black text-center col-span-2">
+                        <div className="p-1 border-2 border-black text-center">
+                            <p className="font-semibold text-black text-[9px]">Chg. Wt.</p>
+                            <p className="text-sm font-bold">{waybill.chargeableWeight || waybill.packageWeight} kg</p>
+                        </div>
+                        <div className="p-1 border-2 border-black text-center col-span-3">
                             <p className="font-semibold text-black text-[9px]">Invoice #</p>
                             <p className="text-[9px] truncate">{waybill.invoiceNumber}</p>
                         </div>
                         <div className="p-1 border-2 border-black text-center">
-                            <p className="font-semibold text-black text-[9px]">Declared Value</p>
+                            <p className="font-semibold text-black text-[9px]">Value</p>
                             <p className="text-sm font-bold">₹{waybill.shipmentValue.toFixed(2)}</p>
                         </div>
                         <div className="p-1 border-2 border-black text-center">
@@ -201,3 +205,5 @@ export function WaybillPrint({ waybill }: { waybill: Waybill }) {
     </div>
   );
 }
+
+    
