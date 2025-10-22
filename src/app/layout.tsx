@@ -43,9 +43,9 @@ export default function RootLayout({
       <body className="font-body antialiased bg-background">
           <div className="fixed inset-0 w-full h-full -z-10 overflow-hidden">
             <Image
-                src="https://firebasestorage.googleapis.com/v0/b/firebase-studio-demos.appspot.com/o/image-1.jpeg?alt=media&token=10d93214-41d6-4a5c-a1a7-ca631a868427"
-                alt="Raj Cargo Team"
-                data-ai-hint="delivery team loading truck"
+                src="https://images.unsplash.com/photo-1554189097-90d3aa583c26?q=80&w=2940&auto=format&fit=crop"
+                alt="Abstract background"
+                data-ai-hint="abstract background"
                 fill
                 className="object-cover opacity-10 dark:opacity-[0.03]"
                 quality={90}
