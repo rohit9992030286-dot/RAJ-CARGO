@@ -2,7 +2,7 @@
 'use client';
 import Link from 'next/link';
 import { Card, CardHeader, CardTitle, CardContent, CardDescription, CardFooter } from '@/components/ui/card';
-import { Users, ArrowRight, Handshake, DollarSign, Building } from 'lucide-react';
+import { Users, ArrowRight, Handshake, DollarSign, Building, Map } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 
@@ -30,6 +30,14 @@ const accountLinks = [
         icon: Building,
         iconBgColor: 'bg-purple-100 dark:bg-purple-900/50',
         iconColor: 'text-purple-600 dark:text-purple-300'
+    },
+    {
+        href: '/account/vehicle-mapping',
+        title: 'Vehicle Mapping',
+        description: 'View pending boxes for outbound dispatch.',
+        icon: Map,
+        iconBgColor: 'bg-orange-100 dark:bg-orange-900/50',
+        iconColor: 'text-orange-600 dark:text-orange-300'
     }
 ]
 
