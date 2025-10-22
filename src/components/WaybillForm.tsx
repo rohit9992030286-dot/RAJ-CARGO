@@ -39,6 +39,7 @@ const getInitialValues = (initialData?: Waybill): WaybillFormData => {
         receiverState: '',
         packageDescription: '',
         packageWeight: 0,
+        chargeableWeight: 0,
         numberOfBoxes: 1,
         shipmentValue: 0,
         shippingDate: new Date().toISOString().split('T')[0],
@@ -523,10 +524,26 @@ export function WaybillForm({ initialData, onSave, onCancel }: WaybillFormProps)
                 name="packageWeight"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Total Weight (kg)</FormLabel>
+                    <FormLabel>Actual Weight (kg)</FormLabel>
                     <div className="relative">
                       <FormControl>
                         <Input type="number" step="0.1" placeholder="e.g., 2.5" {...field} onChange={e => field.onChange(+e.target.value)} className="pl-10" />
+                      </FormControl>
+                      <IconWrapper><Weight /></IconWrapper>
+                    </div>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+                <FormField
+                control={form.control}
+                name="chargeableWeight"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Chargeable Weight (kg)</FormLabel>
+                    <div className="relative">
+                      <FormControl>
+                        <Input type="number" step="0.1" placeholder="e.g., 3.0" {...field} onChange={e => field.onChange(+e.target.value)} className="pl-10" />
                       </FormControl>
                       <IconWrapper><Weight /></IconWrapper>
                     </div>
@@ -550,7 +567,6 @@ export function WaybillForm({ initialData, onSave, onCancel }: WaybillFormProps)
                   </FormItem>
                 )}
               />
-              <div />
             </div>
              {shipmentValue >= 50000 && (
                 <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-4">
