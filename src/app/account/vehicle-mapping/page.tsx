@@ -6,12 +6,14 @@ import { useManifests } from '@/hooks/useManifests';
 import { useWaybills } from '@/hooks/useWaybills';
 import { Card, CardHeader, CardTitle, CardContent, CardDescription } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Loader2, Map as MapIcon, Package, Building } from 'lucide-react';
+import { Loader2, Map as MapIcon, Package, Weight } from 'lucide-react';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, Legend } from 'recharts';
 
 interface StateData {
     state: string;
     boxCount: number;
+    totalActualWeight: number;
+    totalChargeableWeight: number;
 }
 
 export default function VehicleMappingPage() {
@@ -21,34 +23,43 @@ export default function VehicleMappingPage() {
     const pendingDispatchData = useMemo((): StateData[] => {
         if (!manifestsLoaded || !waybillsLoaded) return [];
         
-        // Get all waybill IDs that have been dispatched from a hub
         const dispatchedFromHubWbIds = new Set(
             allManifests.filter(m => m.origin === 'hub').flatMap(m => m.waybillIds)
         );
 
-        // Get all box IDs that have been verified at a hub
         const verifiedBoxIds = new Set(
             allManifests.filter(m => ['Received', 'Short Received'].includes(m.status)).flatMap(m => m.verifiedBoxIds || [])
         );
-
-        const stateBoxCount: Record<string, number> = {};
+        
+        const stateData: Record<string, { boxCount: number; waybillIds: Set<string> }> = {};
 
         verifiedBoxIds.forEach(boxId => {
             const waybillNumber = boxId.substring(0, boxId.lastIndexOf('-'));
             const waybill = allWaybills.find(wb => wb.waybillNumber === waybillNumber);
 
-            // Count the box only if its waybill has NOT been dispatched from the hub yet
             if (waybill && !dispatchedFromHubWbIds.has(waybill.id)) {
                 const state = waybill.receiverState.toUpperCase();
-                if (!stateBoxCount[state]) {
-                    stateBoxCount[state] = 0;
+                if (!stateData[state]) {
+                    stateData[state] = { boxCount: 0, waybillIds: new Set() };
                 }
-                stateBoxCount[state]++;
+                stateData[state].boxCount++;
+                stateData[state].waybillIds.add(waybill.id);
             }
         });
 
-        return Object.entries(stateBoxCount)
-            .map(([state, boxCount]) => ({ state, boxCount }))
+        return Object.entries(stateData)
+            .map(([state, data]) => {
+                const waybillsForState = Array.from(data.waybillIds).map(id => allWaybills.find(wb => wb.id === id)).filter(wb => wb);
+                const totalActualWeight = waybillsForState.reduce((sum, wb) => sum + (wb?.packageWeight || 0), 0);
+                const totalChargeableWeight = waybillsForState.reduce((sum, wb) => sum + (wb?.chargeableWeight || 0), 0);
+                
+                return { 
+                    state, 
+                    boxCount: data.boxCount,
+                    totalActualWeight,
+                    totalChargeableWeight
+                };
+            })
             .sort((a,b) => b.boxCount - a.boxCount);
 
     }, [allManifests, allWaybills, manifestsLoaded, waybillsLoaded]);
@@ -68,7 +79,7 @@ export default function VehicleMappingPage() {
         <div className="space-y-8">
             <div className="p-6 rounded-xl bg-gradient-to-r from-orange-50 to-amber-50 dark:from-orange-900/50 dark:to-amber-900/80 border border-orange-200 dark:border-orange-800 shadow-md">
                 <h1 className="text-3xl font-bold text-orange-800 dark:text-orange-100">Hub Outbound Planning</h1>
-                <p className="text-orange-600 dark:text-orange-300 mt-1">A state-wise overview of boxes pending for outbound dispatch from the hub.</p>
+                <p className="text-orange-600 dark:text-orange-300 mt-1">A state-wise overview of boxes and weight pending for outbound dispatch from the hub.</p>
             </div>
             
             <Card>
@@ -79,27 +90,31 @@ export default function VehicleMappingPage() {
                     </CardDescription>
                 </CardHeader>
                 <CardContent>
-                    <div className="grid lg:grid-cols-2 gap-8">
+                    <div className="grid lg:grid-cols-5 gap-8">
                         {pendingDispatchData.length > 0 ? (
                             <>
-                                <div className="h-[400px]">
+                                <div className="h-[400px] lg:col-span-3">
                                     <ResponsiveContainer width="100%" height="100%">
                                         <BarChart data={pendingDispatchData} layout="vertical" margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
                                             <CartesianGrid strokeDasharray="3 3" />
                                             <XAxis type="number" />
                                             <YAxis dataKey="state" type="category" width={80} />
-                                            <Tooltip cursor={{ fill: 'hsl(var(--muted))' }}/>
+                                            <Tooltip cursor={{ fill: 'hsl(var(--muted))' }} formatter={(value: number) => value.toFixed(2)} />
                                             <Legend />
-                                            <Bar dataKey="boxCount" name="Pending Boxes" fill="hsl(var(--primary))" />
+                                            <Bar dataKey="boxCount" name="Boxes" fill="hsl(var(--primary))" />
+                                            <Bar dataKey="totalActualWeight" name="Actual Wt. (kg)" fill="hsl(var(--chart-2))" />
+                                            <Bar dataKey="totalChargeableWeight" name="Chargeable Wt. (kg)" fill="hsl(var(--chart-3))" />
                                         </BarChart>
                                     </ResponsiveContainer>
                                 </div>
-                                <div>
+                                <div className="lg:col-span-2">
                                     <Table>
                                         <TableHeader>
                                             <TableRow>
                                                 <TableHead>State</TableHead>
-                                                <TableHead className="text-right">Pending Boxes</TableHead>
+                                                <TableHead className="text-right">Boxes</TableHead>
+                                                <TableHead className="text-right">Act. Wt.</TableHead>
+                                                <TableHead className="text-right">Chg. Wt.</TableHead>
                                             </TableRow>
                                         </TableHeader>
                                         <TableBody>
@@ -107,6 +122,8 @@ export default function VehicleMappingPage() {
                                                 <TableRow key={data.state}>
                                                     <TableCell className="font-medium">{data.state}</TableCell>
                                                     <TableCell className="text-right font-bold text-primary">{data.boxCount}</TableCell>
+                                                    <TableCell className="text-right">{data.totalActualWeight.toFixed(2)} kg</TableCell>
+                                                    <TableCell className="text-right">{data.totalChargeableWeight.toFixed(2)} kg</TableCell>
                                                 </TableRow>
                                             ))}
                                         </TableBody>
@@ -114,7 +131,7 @@ export default function VehicleMappingPage() {
                                 </div>
                             </>
                         ) : (
-                            <div className="lg:col-span-2 text-center py-16 border-2 border-dashed rounded-lg">
+                            <div className="lg:col-span-5 text-center py-16 border-2 border-dashed rounded-lg">
                                 <Package className="mx-auto h-12 w-12 text-muted-foreground" />
                                 <h3 className="mt-4 text-lg font-semibold">No Pending Dispatches</h3>
                                 <p className="mt-1 text-sm text-muted-foreground">
@@ -128,3 +145,5 @@ export default function VehicleMappingPage() {
         </div>
     );
 }
+
+    
