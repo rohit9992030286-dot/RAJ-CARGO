@@ -5,6 +5,7 @@ export const companySchema = z.object({
   id: z.string().uuid(),
   companyCode: z.string().min(2, 'Company code is required.'),
   companyName: z.string().min(2, 'Company name is required.'),
+  paymentType: z.enum(['Credit', 'To Pay']).default('Credit'),
   senderName: z.string().min(2, 'Sender name is required.'),
   senderAddress: z.string().min(10, 'Please enter a valid sender address.'),
   senderCity: z.string().min(2, 'Sender city is required.'),

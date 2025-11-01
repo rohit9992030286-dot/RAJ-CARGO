@@ -10,9 +10,11 @@ import { Input } from '@/components/ui/input';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { useToast } from '@/hooks/use-toast';
-import { Loader2, PlusCircle, Trash2, Pencil, Building, User, MapPin, Phone, Hash, Save, XCircle } from 'lucide-react';
+import { Loader2, PlusCircle, Trash2, Pencil, Building, User, MapPin, Phone, Hash, Save, XCircle, CreditCard, Wallet } from 'lucide-react';
 import { Company, companySchema } from '@/types/company';
 import { useCompanies } from '@/hooks/useCompanies';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { Label } from '@/components/ui/label';
 
 type CompanyFormData = z.infer<typeof companySchema>;
 
@@ -29,6 +31,7 @@ export default function CompanyManagementPage() {
     defaultValues: {
       companyCode: '',
       companyName: '',
+      paymentType: 'Credit',
       senderName: '',
       senderAddress: '',
       senderCity: '',
@@ -103,11 +106,49 @@ export default function CompanyManagementPage() {
                     </FormItem>
                   )}
                 />
+                 <FormField
+                    control={form.control}
+                    name="paymentType"
+                    render={({ field }) => (
+                        <FormItem className="space-y-3">
+                            <FormLabel>Payment Type</FormLabel>
+                            <FormControl>
+                                <RadioGroup
+                                onValueChange={field.onChange}
+                                value={field.value}
+                                className="grid grid-cols-2 gap-4"
+                                >
+                                    <FormItem>
+                                        <FormControl>
+                                            <RadioGroupItem value="Credit" id="credit" className="sr-only" />
+                                        </FormControl>
+                                        <Label htmlFor="credit" className="flex flex-col items-center justify-between rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground [&:has([data-state=checked])]:border-primary">
+                                            <CreditCard className="mb-3 h-6 w-6" />
+                                            Credit
+                                        </Label>
+                                    </FormItem>
+                                    <FormItem>
+                                    <FormControl>
+                                        <RadioGroupItem value="To Pay" id="topay" className="sr-only" />
+                                    </FormControl>
+                                        <Label htmlFor="topay" className="flex flex-col items-center justify-between rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground [&:has([data-state=checked])]:border-primary">
+                                        <Wallet className="mb-3 h-6 w-6" />
+                                        To Pay
+                                        </Label>
+                                    </FormItem>
+                                </RadioGroup>
+                            </FormControl>
+                            <FormMessage />
+                        </FormItem>
+                    )}
+                />
+
                 <h4 className="text-sm font-medium pt-4 border-t">Default Sender Details</h4>
                  <FormField control={form.control} name="senderName" render={({ field }) => (<FormItem><FormLabel>Sender Name</FormLabel><FormControl><Input placeholder="Sender's full name" {...field} /></FormControl><FormMessage /></FormItem>)} />
                  <FormField control={form.control} name="senderAddress" render={({ field }) => (<FormItem><FormLabel>Sender Address</FormLabel><FormControl><Input placeholder="Sender's address" {...field} /></FormControl><FormMessage /></FormItem>)} />
                  <FormField control={form.control} name="senderPincode" render={({ field }) => (<FormItem><FormLabel>Sender Pincode</FormLabel><FormControl><Input placeholder="Sender's pincode" {...field} /></FormControl><FormMessage /></FormItem>)} />
                  <FormField control={form.control} name="senderCity" render={({ field }) => (<FormItem><FormLabel>Sender City</FormLabel><FormControl><Input placeholder="Sender's city" {...field} /></FormControl><FormMessage /></FormItem>)} />
+                  <FormField control={form.control} name="senderState" render={({ field }) => (<FormItem><FormLabel>Sender State</FormLabel><FormControl><Input placeholder="Sender's state" {...field} /></FormControl><FormMessage /></FormItem>)} />
                  <FormField control={form.control} name="senderPhone" render={({ field }) => (<FormItem><FormLabel>Sender Phone</FormLabel><FormControl><Input placeholder="Sender's phone number" {...field} /></FormControl><FormMessage /></FormItem>)} />
               </CardContent>
               <CardFooter className="flex-col gap-2">
@@ -136,6 +177,7 @@ export default function CompanyManagementPage() {
                 <TableRow>
                   <TableHead>Code</TableHead>
                   <TableHead>Company Name</TableHead>
+                  <TableHead>Payment Type</TableHead>
                   <TableHead>Sender City</TableHead>
                   <TableHead className="text-right">Actions</TableHead>
                 </TableRow>
@@ -145,6 +187,7 @@ export default function CompanyManagementPage() {
                   <TableRow key={c.id}>
                     <TableCell className="font-mono">{c.companyCode}</TableCell>
                     <TableCell className="font-medium">{c.companyName}</TableCell>
+                    <TableCell>{c.paymentType}</TableCell>
                     <TableCell>{c.senderCity}</TableCell>
                     <TableCell className="text-right">
                        <Button variant="ghost" size="icon" onClick={() => handleEdit(c)}>
@@ -157,7 +200,7 @@ export default function CompanyManagementPage() {
                   </TableRow>
                 )) : (
                   <TableRow>
-                    <TableCell colSpan={4} className="h-24 text-center">
+                    <TableCell colSpan={5} className="h-24 text-center">
                          <div className="text-center py-8">
                             <Building className="mx-auto h-12 w-12 text-muted-foreground" />
                             <h3 className="mt-4 text-lg font-semibold">No Companies Found</h3>
