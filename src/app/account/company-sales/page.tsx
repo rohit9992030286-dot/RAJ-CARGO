@@ -17,16 +17,19 @@ import * as XLSX from 'xlsx';
 import { saveAs } from 'file-saver';
 import { DateRange } from 'react-day-picker';
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@/components/ui/select';
+import { Waybill } from '@/types/waybill';
 
-const RATE_STORAGE_KEY = 'rajcargo-pincode-rates';
+const RATE_STORAGE_KEY = 'rajcargo-state-rates';
 
 interface Rate {
-  id: string;
-  partnerCode: string;
-  state: string;
-  baseCharge: number;
-  weightCharge: number;
-  freeWeightAllowance?: number;
+  fromState: string;
+  toState: string;
+  docketCharge: number;
+  fuelSurcharge: number;
+  greenTaxCharge: number;
+  cgst: number;
+  sgst: number;
+  volumeWeightCharge: number;
 }
 
 interface ReportRow {
@@ -41,6 +44,18 @@ interface ReportRow {
     packageWeight: number;
     partnerCode?: string;
     freightCharge: number;
+}
+
+function calculateFreightCharge(waybill: Waybill, rate: Rate): number {
+    if (!rate) return 0;
+
+    const baseFreight = (waybill.chargeableWeight * rate.volumeWeightCharge) + rate.docketCharge;
+    const fuelCharge = baseFreight * (rate.fuelSurcharge / 100);
+    const taxableAmount = baseFreight + fuelCharge;
+    const totalTax = taxableAmount * ((rate.cgst + rate.sgst) / 100);
+    const totalCharge = taxableAmount + totalTax + rate.greenTaxCharge;
+    
+    return totalCharge;
 }
 
 export default function CompanySalesReportPage() {
@@ -80,15 +95,9 @@ export default function CompanySalesReportPage() {
     }
 
     return filteredWaybills.map(wb => {
-        let freightCharge = 0;
-        if (wb.receiverState && wb.partnerCode) {
-            const rate = rates.find(r => r.partnerCode === wb.partnerCode && r.state.trim().toLowerCase() === wb.receiverState.trim().toLowerCase());
-            if (rate) {
-                const freeWeight = rate.freeWeightAllowance || 0;
-                const chargeableWeight = Math.max(0, wb.chargeableWeight - freeWeight);
-                freightCharge = rate.baseCharge + (rate.weightCharge * chargeableWeight);
-            }
-        }
+        const rate = rates.find(r => r.fromState.trim().toLowerCase() === wb.senderState.trim().toLowerCase() && r.toState.trim().toLowerCase() === wb.receiverState.trim().toLowerCase());
+        const freightCharge = rate ? calculateFreightCharge(wb, rate) : 0;
+        
         return { 
             id: wb.id,
             waybillNumber: wb.waybillNumber,

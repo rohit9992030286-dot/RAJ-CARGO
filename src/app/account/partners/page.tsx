@@ -20,15 +20,17 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { Waybill } from '@/types/waybill';
 
 
-const RATE_STORAGE_KEY = 'rajcargo-pincode-rates';
+const RATE_STORAGE_KEY = 'rajcargo-state-rates';
 
 interface Rate {
-  id: string;
-  partnerCode: string;
-  state: string;
-  baseCharge: number;
-  weightCharge: number;
-  freeWeightAllowance?: number;
+  fromState: string;
+  toState: string;
+  docketCharge: number;
+  fuelSurcharge: number;
+  greenTaxCharge: number;
+  cgst: number;
+  sgst: number;
+  volumeWeightCharge: number;
 }
 
 interface PaymentData {
@@ -40,6 +42,18 @@ interface PaymentData {
 
 const BOOKING_COMMISSION = 0.08; // 8%
 const DELIVERY_COMMISSION = 0.24; // 24%
+
+function calculateFreightCharge(waybill: Waybill, rate: Rate): number {
+    if (!rate) return 0;
+
+    const baseFreight = (waybill.chargeableWeight * rate.volumeWeightCharge) + rate.docketCharge;
+    const fuelCharge = baseFreight * (rate.fuelSurcharge / 100);
+    const taxableAmount = baseFreight + fuelCharge;
+    const totalTax = taxableAmount * ((rate.cgst + rate.sgst) / 100);
+    const totalCharge = taxableAmount + totalTax + rate.greenTaxCharge;
+    
+    return totalCharge;
+}
 
 function PaymentTable({ data, onExport }: { data: PaymentData[], onExport: () => void }) {
     const totalPayment = data.reduce((acc, p) => acc + p.totalPayment, 0);
@@ -129,17 +143,15 @@ export default function PartnerPaymentsPage() {
     const paymentMap = new Map<string, { count: number, totalPayment: number }>();
 
     filteredWaybills.forEach(wb => {
-      if (!wb.receiverState) return;
+      if (!wb.receiverState || !wb.senderState) return;
 
       const partner = bookingPartners.find(p => p.partnerCode === wb.partnerCode);
       if (!partner) return;
 
-      const rate = rates.find(r => r.partnerCode === wb.partnerCode && wb.receiverState && r.state.trim().toLowerCase() === wb.receiverState.trim().toLowerCase());
+      const rate = rates.find(r => r.fromState.trim().toLowerCase() === wb.senderState.trim().toLowerCase() && r.toState.trim().toLowerCase() === wb.receiverState.trim().toLowerCase());
       if (!rate) return;
       
-      const freeWeight = rate.freeWeightAllowance || 0;
-      const chargeableWeight = Math.max(0, wb.chargeableWeight - freeWeight);
-      const freightCharge = rate.baseCharge + (rate.weightCharge * chargeableWeight);
+      const freightCharge = calculateFreightCharge(wb, rate);
       const payment = freightCharge * BOOKING_COMMISSION;
 
       if (!paymentMap.has(partner.partnerCode!)) {
@@ -168,18 +180,16 @@ export default function PartnerPaymentsPage() {
     deliveryManifests.forEach(manifest => {
         manifest.waybillIds.forEach(wbId => {
             const wb = filteredWaybills.find(w => w.id === wbId);
-            if (!wb || !wb.receiverState) return;
+            if (!wb || !wb.receiverState || !wb.senderState) return;
 
             const partner = deliveryPartners.find(p => p.partnerCode === manifest.deliveryPartnerCode);
             if (!partner) return;
 
             // Find rate based on booking partner of the waybill
-            const rate = rates.find(r => r.partnerCode === wb.partnerCode && wb.receiverState && r.state.trim().toLowerCase() === wb.receiverState.trim().toLowerCase());
+            const rate = rates.find(r => r.fromState.trim().toLowerCase() === wb.senderState.trim().toLowerCase() && r.toState.trim().toLowerCase() === wb.receiverState.trim().toLowerCase());
             if (!rate) return;
 
-            const freeWeight = rate.freeWeightAllowance || 0;
-            const chargeableWeight = Math.max(0, wb.chargeableWeight - freeWeight);
-            const freightCharge = rate.baseCharge + (rate.weightCharge * chargeableWeight);
+            const freightCharge = calculateFreightCharge(wb, rate);
             const payment = freightCharge * DELIVERY_COMMISSION;
             
             if (!paymentMap.has(partner.partnerCode!)) {
