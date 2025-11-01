@@ -20,6 +20,7 @@ function NavLinks({ onLinkClick, onLogout, pathname }: { onLinkClick?: () => voi
         { href: '/account/employees', label: 'Employee Management', icon: Users },
         { href: '/account/partners', label: 'Partner Payments', icon: Handshake },
         { href: '/account/company-sales', label: 'Company Sales Report', icon: Building },
+        { href: '/account/vehicle-mapping', label: 'Vehicle Mapping', icon: Map },
     ];
     
     return (

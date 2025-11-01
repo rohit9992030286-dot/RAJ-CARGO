@@ -31,6 +31,14 @@ const accountLinks = [
         iconBgColor: 'bg-purple-100 dark:bg-purple-900/50',
         iconColor: 'text-purple-600 dark:text-purple-300'
     },
+    {
+        href: '/account/vehicle-mapping',
+        title: 'Vehicle Mapping',
+        description: 'Plan outbound dispatches from the hub.',
+        icon: Map,
+        iconBgColor: 'bg-orange-100 dark:bg-orange-900/50',
+        iconColor: 'text-orange-600 dark:text-orange-300'
+    },
 ]
 
 export default function AccountDashboardPage() {
