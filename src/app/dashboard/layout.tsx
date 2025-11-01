@@ -55,7 +55,7 @@ function DashboardLayoutContent({
                 <span>Logout</span>
             </Button>
         </header>
-        <main className="flex-1 p-4 md:p-8">
+        <main className="flex-1">
             {children}
         </main>
         <footer className="text-center p-4 text-sm text-muted-foreground border-t bg-card">
