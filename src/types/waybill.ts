@@ -25,7 +25,7 @@ const baseWaybillSchema = z.object({
 
   packageDescription: z.string().min(3, 'Description must be at least 3 characters.'),
   packageWeight: z.coerce.number().positive('Weight must be a positive number.'),
-  chargeableWeight: z.coerce.number().nonnegative('Chargeable weight must be a positive number.'),
+  chargeableWeight: z.coerce.number().nonnegative('Chargeable weight must be non-negative.').optional(),
   numberOfBoxes: z.coerce.number().int().min(1, 'Must have at least one box.'),
   shipmentValue: z.coerce.number().nonnegative('Value must be a positive number.'),
 

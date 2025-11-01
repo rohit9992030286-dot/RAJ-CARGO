@@ -48,8 +48,9 @@ interface ReportRow {
 
 function calculateFreightCharge(waybill: Waybill, rate: Rate): number {
     if (!rate) return 0;
+    const chargeableWeight = waybill.chargeableWeight || waybill.packageWeight;
 
-    const baseFreight = (waybill.chargeableWeight * rate.volumeWeightCharge) + rate.docketCharge;
+    const baseFreight = (chargeableWeight * rate.volumeWeightCharge) + rate.docketCharge;
     const fuelCharge = baseFreight * (rate.fuelSurcharge / 100);
     const taxableAmount = baseFreight + fuelCharge;
     const totalTax = taxableAmount * ((rate.cgst + rate.sgst) / 100);
@@ -98,9 +99,8 @@ export default function CompanySalesReportPage() {
         if (!wb.senderState || !wb.receiverState) return null;
 
         const rate = rates.find(r => 
-            r.fromState && wb.senderState && r.toState && wb.receiverState &&
-            r.fromState.trim().toLowerCase() === wb.senderState.trim().toLowerCase() && 
-            r.toState.trim().toLowerCase() === wb.receiverState.trim().toLowerCase()
+            r.fromState?.trim().toLowerCase() === wb.senderState?.trim().toLowerCase() && 
+            r.toState?.trim().toLowerCase() === wb.receiverState?.trim().toLowerCase()
         );
         const freightCharge = rate ? calculateFreightCharge(wb, rate) : 0;
         
