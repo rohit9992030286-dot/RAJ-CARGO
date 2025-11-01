@@ -138,7 +138,7 @@ export default function PartnerPaymentsPage() {
       if (!rate) return;
       
       const freeWeight = rate.freeWeightAllowance || 0;
-      const chargeableWeight = Math.max(0, wb.packageWeight - freeWeight);
+      const chargeableWeight = Math.max(0, wb.chargeableWeight - freeWeight);
       const freightCharge = rate.baseCharge + (rate.weightCharge * chargeableWeight);
       const payment = freightCharge * BOOKING_COMMISSION;
 
@@ -178,7 +178,7 @@ export default function PartnerPaymentsPage() {
             if (!rate) return;
 
             const freeWeight = rate.freeWeightAllowance || 0;
-            const chargeableWeight = Math.max(0, wb.packageWeight - freeWeight);
+            const chargeableWeight = Math.max(0, wb.chargeableWeight - freeWeight);
             const freightCharge = rate.baseCharge + (rate.weightCharge * chargeableWeight);
             const payment = freightCharge * DELIVERY_COMMISSION;
             

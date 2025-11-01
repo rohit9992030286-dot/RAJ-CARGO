@@ -11,22 +11,22 @@ import { Input } from '@/components/ui/input';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { useToast } from '@/hooks/use-toast';
-import { Loader2, PlusCircle, Trash2, Tags, IndianRupee, Globe, Pencil, Weight, Upload, Download } from 'lucide-react';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { useAuth } from '@/hooks/useAuth';
-import { Badge } from '@/components/ui/badge';
+import { Loader2, PlusCircle, Trash2, Tags, IndianRupee, Globe, Pencil, Weight, Upload, Download, Percent } from 'lucide-react';
 import * as XLSX from 'xlsx';
 import { saveAs } from 'file-saver';
 import { useRef } from 'react';
 
-const STORAGE_KEY = 'rajcargo-pincode-rates';
+const STORAGE_KEY = 'rajcargo-state-rates';
 
 const rateSchema = z.object({
-  baseCharge: z.coerce.number().min(0, 'Base charge must be a positive number.'),
-  weightCharge: z.coerce.number().min(0, 'Weight charge must be a positive number.'),
-  freeWeightAllowance: z.coerce.number().min(0, "Free weight must be a positive number.").default(0),
-  partnerCode: z.string().min(1, "Please select a partner."),
-  state: z.string().min(2, "State is required."),
+  fromState: z.string().min(2, "Origin state is required."),
+  toState: z.string().min(2, "Destination state is required."),
+  docketCharge: z.coerce.number().min(0, 'Docket charge must be a positive number.'),
+  fuelSurcharge: z.coerce.number().min(0, 'Fuel surcharge must be a positive number.'),
+  greenTaxCharge: z.coerce.number().min(0, 'Green tax must be a positive number.'),
+  cgst: z.coerce.number().min(0, 'CGST must be a positive number.'),
+  sgst: z.coerce.number().min(0, 'SGST must be a positive number.'),
+  volumeWeightCharge: z.coerce.number().min(0, 'Volume weight charge must be a positive number.'),
 });
 type RateFormData = z.infer<typeof rateSchema>;
 interface Rate extends RateFormData {
@@ -37,22 +37,20 @@ export default function RateManagementPage() {
   const [rates, setRates] = useState<Rate[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const { toast } = useToast();
-  const { users } = useAuth();
   const [editingRateId, setEditingRateId] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const bookingPartners = useMemo(() => {
-    return [...new Set(users.filter(u => u.roles.includes('booking') && u.partnerCode).map(u => u.partnerCode!))];
-  }, [users]);
-  
   const form = useForm<RateFormData>({
     resolver: zodResolver(rateSchema),
     defaultValues: {
-      baseCharge: 0,
-      weightCharge: 0,
-      freeWeightAllowance: 0,
-      partnerCode: '',
-      state: '',
+      fromState: '',
+      toState: '',
+      docketCharge: 0,
+      fuelSurcharge: 0,
+      greenTaxCharge: 0,
+      cgst: 0,
+      sgst: 0,
+      volumeWeightCharge: 0,
     },
   });
 
@@ -71,7 +69,7 @@ export default function RateManagementPage() {
   }, [toast]);
   
   const saveRates = (newRates: Rate[]) => {
-    const sortedRates = newRates.sort((a, b) => a.state.localeCompare(b.state) || a.partnerCode.localeCompare(b.partnerCode));
+    const sortedRates = newRates.sort((a, b) => a.fromState.localeCompare(b.fromState) || a.toState.localeCompare(b.toState));
     setRates(sortedRates);
     localStorage.setItem(STORAGE_KEY, JSON.stringify(sortedRates));
   };
@@ -80,17 +78,15 @@ export default function RateManagementPage() {
     let newRates = [...rates];
     
     if (editingRateId) {
-      // Update existing rate
       const index = newRates.findIndex(r => r.id === editingRateId);
       if (index > -1) {
         newRates[index] = { ...data, id: editingRateId };
         toast({ title: 'Rate Updated', description: `The rate has been updated successfully.` });
       }
     } else {
-      // Add new rate
-      const existingRate = newRates.find(r => r.partnerCode === data.partnerCode && r.state.trim().toLowerCase() === data.state.trim().toLowerCase());
+      const existingRate = newRates.find(r => r.fromState.trim().toLowerCase() === data.fromState.trim().toLowerCase() && r.toState.trim().toLowerCase() === data.toState.trim().toLowerCase());
       if (existingRate) {
-        toast({ title: 'Duplicate Rate', description: 'This exact rate combination already exists.', variant: 'destructive'});
+        toast({ title: 'Duplicate Rate', description: 'This exact state-to-state rate already exists.', variant: 'destructive'});
         return;
       }
       newRates.push({ ...data, id: crypto.randomUUID() });
@@ -98,7 +94,7 @@ export default function RateManagementPage() {
     }
 
     saveRates(newRates);
-    form.reset({ baseCharge: 0, weightCharge: 0, freeWeightAllowance: 0, partnerCode: '', state: '' });
+    form.reset({ fromState: '', toState: '', docketCharge: 0, fuelSurcharge: 0, greenTaxCharge: 0, cgst: 0, sgst: 0, volumeWeightCharge: 0 });
     setEditingRateId(null);
   };
 
@@ -115,11 +111,14 @@ export default function RateManagementPage() {
 
   const handleExport = () => {
     const dataToExport = rates.map(r => ({
-        partnerCode: r.partnerCode,
-        state: r.state,
-        baseCharge: r.baseCharge,
-        weightCharge: r.weightCharge,
-        freeWeightAllowance: r.freeWeightAllowance,
+        fromState: r.fromState,
+        toState: r.toState,
+        docketCharge: r.docketCharge,
+        fuelSurcharge: r.fuelSurcharge,
+        greenTaxCharge: r.greenTaxCharge,
+        cgst: r.cgst,
+        sgst: r.sgst,
+        volumeWeightCharge: r.volumeWeightCharge,
     }));
     const ws = XLSX.utils.json_to_sheet(dataToExport);
     const wb = XLSX.utils.book_new();
@@ -170,10 +169,10 @@ export default function RateManagementPage() {
   }
 
   return (
-    <div className="space-y-8 max-w-6xl mx-auto">
+    <div className="space-y-8 max-w-7xl mx-auto">
       <div>
-        <h1 className="text-3xl font-bold">Rate Management</h1>
-        <p className="text-muted-foreground">Set and manage shipping rates for different partners and states.</p>
+        <h1 className="text-3xl font-bold">State-to-State Rate Management</h1>
+        <p className="text-muted-foreground">Set and manage shipping rates based on origin and destination states.</p>
       </div>
 
       <Card>
@@ -181,96 +180,27 @@ export default function RateManagementPage() {
           <form onSubmit={form.handleSubmit(onSubmit)}>
             <CardHeader>
               <CardTitle>{editingRateId ? 'Update Rate' : 'Add New Rate'}</CardTitle>
-              <CardDescription>Enter a partner, state, and its corresponding shipping rate.</CardDescription>
             </CardHeader>
-            <CardContent className="grid sm:grid-cols-2 lg:grid-cols-5 gap-4 items-end">
-              <FormField
-                control={form.control}
-                name="partnerCode"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Partner</FormLabel>
-                    <Select onValueChange={field.onChange} value={field.value}>
-                       <FormControl>
-                        <SelectTrigger><SelectValue placeholder="Select Partner" /></SelectTrigger>
-                       </FormControl>
-                       <SelectContent>
-                         {bookingPartners.map(code => <SelectItem key={code} value={code}>{code}</SelectItem>)}
-                       </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-               <FormField
-                control={form.control}
-                name="state"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>State</FormLabel>
-                     <div className="relative">
-                        <FormControl><Input placeholder="e.g., California" {...field} className="pl-10" /></FormControl>
-                        <Globe className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
-                    </div>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="baseCharge"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Basic Charge (₹)</FormLabel>
-                     <div className="relative">
-                        <FormControl><Input type="number" step="0.01" placeholder="e.g., 100.00" {...field} className="pl-10" /></FormControl>
-                        <IndianRupee className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
-                    </div>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="weightCharge"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Weight Charge (₹/kg)</FormLabel>
-                     <div className="relative">
-                        <FormControl><Input type="number" step="0.01" placeholder="e.g., 20.00" {...field} className="pl-10" /></FormControl>
-                        <Weight className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
-                    </div>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-               <FormField
-                control={form.control}
-                name="freeWeightAllowance"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Free Weight (kg)</FormLabel>
-                     <div className="relative">
-                        <FormControl><Input type="number" step="0.01" placeholder="e.g., 15" {...field} className="pl-10" /></FormControl>
-                        <Weight className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
-                    </div>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-               <div className="flex items-end col-span-full lg:col-span-2">
-                <Button type="submit" className="w-full">
-                  <PlusCircle className="mr-2 h-4 w-4" /> {editingRateId ? 'Update Rate' : 'Save Rate'}
-                </Button>
-              </div>
+            <CardContent className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4 items-end">
+               <FormField control={form.control} name="fromState" render={({ field }) => (<FormItem><FormLabel>From State</FormLabel><div className="relative"><FormControl><Input placeholder="e.g., Delhi" {...field} className="pl-10" /></FormControl><Globe className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" /></div><FormMessage /></FormItem>)} />
+               <FormField control={form.control} name="toState" render={({ field }) => (<FormItem><FormLabel>To State</FormLabel><div className="relative"><FormControl><Input placeholder="e.g., Maharashtra" {...field} className="pl-10" /></FormControl><Globe className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" /></div><FormMessage /></FormItem>)} />
+               <FormField control={form.control} name="docketCharge" render={({ field }) => (<FormItem><FormLabel>Docket Charge (₹)</FormLabel><div className="relative"><FormControl><Input type="number" step="0.01" {...field} className="pl-10" /></FormControl><IndianRupee className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" /></div><FormMessage /></FormItem>)} />
+               <FormField control={form.control} name="fuelSurcharge" render={({ field }) => (<FormItem><FormLabel>Fuel Surcharge (%)</FormLabel><div className="relative"><FormControl><Input type="number" step="0.01" {...field} className="pl-10" /></FormControl><Percent className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" /></div><FormMessage /></FormItem>)} />
+               <FormField control={form.control} name="greenTaxCharge" render={({ field }) => (<FormItem><FormLabel>Green Tax (₹)</FormLabel><div className="relative"><FormControl><Input type="number" step="0.01" {...field} className="pl-10" /></FormControl><IndianRupee className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" /></div><FormMessage /></FormItem>)} />
+               <FormField control={form.control} name="cgst" render={({ field }) => (<FormItem><FormLabel>CGST (%)</FormLabel><div className="relative"><FormControl><Input type="number" step="0.01" {...field} className="pl-10" /></FormControl><Percent className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" /></div><FormMessage /></FormItem>)} />
+               <FormField control={form.control} name="sgst" render={({ field }) => (<FormItem><FormLabel>SGST (%)</FormLabel><div className="relative"><FormControl><Input type="number" step="0.01" {...field} className="pl-10" /></FormControl><Percent className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" /></div><FormMessage /></FormItem>)} />
+               <FormField control={form.control} name="volumeWeightCharge" render={({ field }) => (<FormItem><FormLabel>Volume Wt. Charge (₹/kg)</FormLabel><div className="relative"><FormControl><Input type="number" step="0.01" {...field} className="pl-10" /></FormControl><Weight className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" /></div><FormMessage /></FormItem>)} />
             </CardContent>
-            {editingRateId && (
-                <CardFooter>
-                    <Button variant="ghost" onClick={() => { setEditingRateId(null); form.reset({ baseCharge: 0, weightCharge: 0, freeWeightAllowance: 0, partnerCode: '', state: '' }); }}>
+            <CardFooter className="flex justify-end gap-2">
+                 {editingRateId && (
+                    <Button variant="ghost" onClick={() => { setEditingRateId(null); form.reset({ fromState: '', toState: '', docketCharge: 0, fuelSurcharge: 0, greenTaxCharge: 0, cgst: 0, sgst: 0, volumeWeightCharge: 0 }); }}>
                         Cancel Edit
                     </Button>
-                </CardFooter>
-            )}
+                )}
+                <Button type="submit" className="w-fit">
+                    <PlusCircle className="mr-2 h-4 w-4" /> {editingRateId ? 'Update Rate' : 'Save Rate'}
+                </Button>
+            </CardFooter>
           </form>
         </Form>
       </Card>
@@ -297,11 +227,14 @@ export default function RateManagementPage() {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Partner Code</TableHead>
-                <TableHead>State</TableHead>
-                <TableHead>Basic Charge (₹)</TableHead>
-                <TableHead>Weight Charge (₹/kg)</TableHead>
-                <TableHead>Free Weight (kg)</TableHead>
+                <TableHead>From</TableHead>
+                <TableHead>To</TableHead>
+                <TableHead>Docket (₹)</TableHead>
+                <TableHead>Fuel (%)</TableHead>
+                <TableHead>Green Tax (₹)</TableHead>
+                <TableHead>CGST (%)</TableHead>
+                <TableHead>SGST (%)</TableHead>
+                <TableHead>Vol. Wt. (₹/kg)</TableHead>
                 <TableHead className="text-right">Action</TableHead>
               </TableRow>
             </TableHeader>
@@ -309,11 +242,14 @@ export default function RateManagementPage() {
               {rates.length > 0 ? (
                 rates.map(rate => (
                   <TableRow key={rate.id}>
-                    <TableCell className="font-medium"><Badge variant="outline">{rate.partnerCode}</Badge></TableCell>
-                    <TableCell>{rate.state}</TableCell>
-                    <TableCell>{rate.baseCharge.toFixed(2)}</TableCell>
-                    <TableCell>{rate.weightCharge.toFixed(2)}</TableCell>
-                    <TableCell>{rate.freeWeightAllowance?.toFixed(2) || '0.00'}</TableCell>
+                    <TableCell>{rate.fromState}</TableCell>
+                    <TableCell>{rate.toState}</TableCell>
+                    <TableCell>{rate.docketCharge.toFixed(2)}</TableCell>
+                    <TableCell>{rate.fuelSurcharge.toFixed(2)}</TableCell>
+                    <TableCell>{rate.greenTaxCharge.toFixed(2)}</TableCell>
+                    <TableCell>{rate.cgst.toFixed(2)}</TableCell>
+                    <TableCell>{rate.sgst.toFixed(2)}</TableCell>
+                    <TableCell>{rate.volumeWeightCharge.toFixed(2)}</TableCell>
                     <TableCell className="text-right">
                        <Button variant="ghost" size="icon" onClick={() => handleEditRate(rate)}>
                           <Pencil className="h-4 w-4" />
@@ -328,7 +264,7 @@ export default function RateManagementPage() {
                 ))
               ) : (
                 <TableRow>
-                  <TableCell colSpan={6} className="h-24 text-center">
+                  <TableCell colSpan={9} className="h-24 text-center">
                     <div className="text-center py-8">
                         <Tags className="mx-auto h-12 w-12 text-muted-foreground" />
                         <h3 className="mt-4 text-lg font-semibold">No Rates Defined</h3>
@@ -341,7 +277,6 @@ export default function RateManagementPage() {
           </Table>
         </CardContent>
       </Card>
-
     </div>
   );
 }

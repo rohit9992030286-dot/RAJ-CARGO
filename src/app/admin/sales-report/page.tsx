@@ -79,7 +79,7 @@ export default function SalesReportPage() {
             const rate = rates.find(r => r.partnerCode === wb.partnerCode && r.state.trim().toLowerCase() === wb.receiverState.trim().toLowerCase());
             if (rate) {
                 const freeWeight = rate.freeWeightAllowance || 0;
-                const chargeableWeight = Math.max(0, wb.packageWeight - freeWeight);
+                const chargeableWeight = Math.max(0, wb.chargeableWeight - freeWeight);
                 freightCharge = rate.baseCharge + (rate.weightCharge * chargeableWeight);
             }
         }
