@@ -10,7 +10,7 @@ import { Input } from '@/components/ui/input';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { useToast } from '@/hooks/use-toast';
-import { Loader2, PlusCircle, Trash2, Pencil, Car, User, Map as MapIcon, IndianRupee, Save, XCircle, Download } from 'lucide-react';
+import { Loader2, PlusCircle, Trash2, Pencil, Car, User, Map as MapIcon, IndianRupee, Save, XCircle, Download, Building } from 'lucide-react';
 import { Vehicle, vehicleSchema } from '@/types/vehicle';
 import { useVehicles } from '@/hooks/useVehicles';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -19,12 +19,14 @@ import { format } from 'date-fns';
 import { Badge } from '@/components/ui/badge';
 import * as XLSX from 'xlsx';
 import { saveAs } from 'file-saver';
+import { useAuth } from '@/hooks/useAuth';
 
 type VehicleFormData = Omit<Vehicle, 'id'>;
 
 export default function VehicleManagementPage() {
   const { vehicles, addVehicle, updateVehicle, deleteVehicle, isLoaded } = useVehicles();
   const { allManifests, isLoaded: manifestsLoaded } = useManifests();
+  const { users, isLoading: usersLoading } = useAuth();
   const [editingVehicle, setEditingVehicle] = useState<Vehicle | null>(null);
   const { toast } = useToast();
 
@@ -68,29 +70,35 @@ export default function VehicleManagementPage() {
   
   const vehicleLastDispatch = useMemo(() => {
     if (!manifestsLoaded) return new Map();
-    const dispatchMap = new Map<string, { manifestNo: string, date: string }>();
+    const dispatchMap = new Map<string, { manifestNo: string, date: string, creatorPartnerCode: string }>();
 
     allManifests
         .filter(m => m.origin === 'hub' && m.vehicleNo)
         .sort((a,b) => new Date(b.date).getTime() - new Date(a.date).getTime())
         .forEach(m => {
             if (!dispatchMap.has(m.vehicleNo!)) {
-                dispatchMap.set(m.vehicleNo!, { manifestNo: m.manifestNo, date: m.date });
+                dispatchMap.set(m.vehicleNo!, { manifestNo: m.manifestNo, date: m.date, creatorPartnerCode: m.creatorPartnerCode });
             }
         });
     return dispatchMap;
   }, [allManifests, manifestsLoaded]);
 
   const handleExport = () => {
-    const dataToExport = vehicles.map(v => ({
-      'Vehicle Number': v.vehicleNumber,
-      'Driver Name': v.driverName,
-      'Route': v.route,
-      'Route Price': v.routePrice,
-      'Vehicle Type': v.vehicleType,
-      'Last Dispatch Date': vehicleLastDispatch.get(v.vehicleNumber) ? format(new Date(vehicleLastDispatch.get(v.vehicleNumber)!.date), 'PP') : 'N/A',
-      'Last Manifest No': vehicleLastDispatch.get(v.vehicleNumber)?.manifestNo || 'N/A',
-    }));
+    const dataToExport = vehicles.map(v => {
+      const lastDispatch = vehicleLastDispatch.get(v.vehicleNumber);
+      const lastHub = lastDispatch ? users.find(u => u.partnerCode === lastDispatch.creatorPartnerCode) : null;
+      return {
+        'Vehicle Number': v.vehicleNumber,
+        'Driver Name': v.driverName,
+        'Route': v.route,
+        'Route Price': v.routePrice,
+        'Vehicle Type': v.vehicleType,
+        'Last Dispatch Date': lastDispatch ? format(new Date(lastDispatch.date), 'PP') : 'N/A',
+        'Last Manifest No': lastDispatch?.manifestNo || 'N/A',
+        'Last Hub': lastHub?.partnerName || 'N/A',
+        'Hub City': lastHub?.city || 'N/A',
+      }
+    });
     
     const ws = XLSX.utils.json_to_sheet(dataToExport);
     const wb = XLSX.utils.book_new();
@@ -99,7 +107,7 @@ export default function VehicleManagementPage() {
     toast({ title: "Vehicles Exported" });
   };
 
-  if (!isLoaded || !manifestsLoaded) {
+  if (!isLoaded || !manifestsLoaded || usersLoading) {
     return <div className="flex justify-center items-center h-64"><Loader2 className="h-16 w-16 animate-spin text-primary" /></div>;
   }
 
@@ -191,7 +199,8 @@ export default function VehicleManagementPage() {
                 <TableRow>
                   <TableHead>Vehicle #</TableHead>
                   <TableHead>Driver</TableHead>
-                  <TableHead>Last Dispatch</TableHead>
+                  <TableHead>Last Hub</TableHead>
+                  <TableHead>Hub City</TableHead>
                   <TableHead>Last Manifest</TableHead>
                   <TableHead className="text-right">Actions</TableHead>
                 </TableRow>
@@ -199,11 +208,13 @@ export default function VehicleManagementPage() {
               <TableBody>
                 {vehicles.length > 0 ? vehicles.map((v) => {
                   const lastDispatch = vehicleLastDispatch.get(v.vehicleNumber);
+                  const lastHub = lastDispatch ? users.find(u => u.partnerCode === lastDispatch.creatorPartnerCode) : null;
                   return (
                     <TableRow key={v.id}>
                         <TableCell className="font-mono">{v.vehicleNumber}</TableCell>
                         <TableCell className="font-medium">{v.driverName}</TableCell>
-                        <TableCell>{lastDispatch ? format(new Date(lastDispatch.date), 'PP') : 'N/A'}</TableCell>
+                        <TableCell>{lastHub?.partnerName || 'N/A'}</TableCell>
+                        <TableCell>{lastHub?.city || 'N/A'}</TableCell>
                         <TableCell>{lastDispatch ? <Badge variant="secondary">{lastDispatch.manifestNo}</Badge> : 'N/A'}</TableCell>
                         <TableCell className="text-right">
                         <Button variant="ghost" size="icon" onClick={() => handleEdit(v)}>
@@ -217,7 +228,7 @@ export default function VehicleManagementPage() {
                   );
                 }) : (
                   <TableRow>
-                    <TableCell colSpan={5} className="h-24 text-center">
+                    <TableCell colSpan={6} className="h-24 text-center">
                          <div className="text-center py-8">
                             <Car className="mx-auto h-12 w-12 text-muted-foreground" />
                             <h3 className="mt-4 text-lg font-semibold">No Vehicles Found</h3>
