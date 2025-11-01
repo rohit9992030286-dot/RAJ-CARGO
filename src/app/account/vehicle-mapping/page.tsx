@@ -11,6 +11,7 @@ import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGri
 import { useAuth } from '@/hooks/useAuth';
 import { usePartnerAssociations } from '@/hooks/usePartnerAssociations';
 import { Badge } from '@/components/ui/badge';
+import { Manifest } from '@/types/manifest';
 
 interface StateData {
     state: string;
@@ -36,95 +37,82 @@ export default function VehicleMappingPage() {
     const pendingDispatchData = useMemo((): HubData[] => {
         if (!manifestsLoaded || !waybillsLoaded || !usersLoaded || !associationsLoaded) return [];
 
-        // 1. Get all boxes that have been verified across all manifests.
-        const allVerifiedBoxIds = new Set(
-            allManifests.flatMap(m => m.verifiedBoxIds || [])
-        );
-
-        // 2. Get all boxes that have been dispatched from a hub.
-        const dispatchedFromHubBoxIds = new Set(
-             allManifests
-                .filter(m => m.origin === 'hub')
-                .flatMap(m => m.verifiedBoxIds || []) // Use verified boxes from outbound manifests
-        );
-
-        // 3. Determine which boxes are pending by subtracting dispatched from verified.
-        const pendingBoxIds = new Set(
-            [...allVerifiedBoxIds].filter(boxId => !dispatchedFromHubBoxIds.has(boxId))
-        );
-
-        // 4. Group these pending boxes by the hub where they were last received.
-        const hubData: Record<string, { hubName: string; hubCity: string; states: Record<string, { boxCount: number; waybillIds: Set<string> }> }> = {};
-        
-        // Find which hub received each manifest
-        const manifestToHubMap = new Map<string, string>();
+        // 1. Get all boxes that have been dispatched from a hub.
+        const dispatchedFromHubBoxIds = new Set<string>();
         allManifests.forEach(m => {
-            if (m.origin === 'booking') {
-                const destHub = associations.bookingToHub[m.creatorPartnerCode];
-                if (destHub) manifestToHubMap.set(m.id, destHub);
+            if (m.origin === 'hub') {
+                (m.verifiedBoxIds || []).forEach(boxId => dispatchedFromHubBoxIds.add(boxId));
+            }
+        });
+
+        // 2. Group all verified boxes by the hub that received them.
+        const boxesByReceivingHub: Record<string, Set<string>> = {};
+        allManifests.forEach(m => {
+            let destinationHubCode: string | undefined = undefined;
+
+            if (m.origin === 'booking' && m.creatorPartnerCode) {
+                destinationHubCode = associations.bookingToHub[m.creatorPartnerCode];
             } else if (m.origin === 'hub' && m.destinationHubCode) {
-                 manifestToHubMap.set(m.id, m.destinationHubCode);
+                destinationHubCode = m.destinationHubCode;
+            }
+
+            if (destinationHubCode && m.verifiedBoxIds) {
+                if (!boxesByReceivingHub[destinationHubCode]) {
+                    boxesByReceivingHub[destinationHubCode] = new Set<string>();
+                }
+                m.verifiedBoxIds.forEach(boxId => {
+                    // Only add the box if it hasn't been dispatched onward from another hub
+                    if (!dispatchedFromHubBoxIds.has(boxId)) {
+                        boxesByReceivingHub[destinationHubCode].add(boxId);
+                    }
+                });
             }
         });
 
-        // Find which manifest each box belongs to
-        const boxToManifestMap = new Map<string, string>();
-        allManifests.forEach(m => {
-            m.verifiedBoxIds?.forEach(boxId => {
-                boxToManifestMap.set(boxId, m.id);
+        // 3. Process the grouped boxes to get state-wise data.
+        const hubData: HubData[] = Object.entries(boxesByReceivingHub).map(([hubCode, pendingBoxIds]) => {
+            const hubUser = users.find(u => u.partnerCode === hubCode);
+            const statesData: Record<string, { boxCount: number; waybillIds: Set<string> }> = {};
+
+            pendingBoxIds.forEach(boxId => {
+                const waybillNumber = boxId.substring(0, boxId.lastIndexOf('-'));
+                const waybill = allWaybills.find(wb => wb.waybillNumber === waybillNumber);
+
+                if (waybill) {
+                    const state = waybill.receiverState.toUpperCase();
+                    if (!statesData[state]) {
+                        statesData[state] = { boxCount: 0, waybillIds: new Set() };
+                    }
+                    statesData[state].boxCount++;
+                    statesData[state].waybillIds.add(waybill.id);
+                }
             });
-        });
 
-        pendingBoxIds.forEach(boxId => {
-            const manifestId = boxToManifestMap.get(boxId);
-            if (!manifestId) return;
-
-            const destinationHubCode = manifestToHubMap.get(manifestId);
-            if (!destinationHubCode) return;
-            
-            const waybillNumber = boxId.substring(0, boxId.lastIndexOf('-'));
-            const waybill = allWaybills.find(wb => wb.waybillNumber === waybillNumber);
-            if (!waybill) return;
-            
-            const hubUser = users.find(u => u.partnerCode === destinationHubCode);
-            if (!hubUser) return;
-            
-            if (!hubData[destinationHubCode]) {
-                hubData[destinationHubCode] = { 
-                    hubName: hubUser.partnerName || hubUser.username,
-                    hubCity: hubUser.city || 'N/A',
-                    states: {} 
-                };
-            }
-            
-            const state = waybill.receiverState.toUpperCase();
-            if (!hubData[destinationHubCode].states[state]) {
-                hubData[destinationHubCode].states[state] = { boxCount: 0, waybillIds: new Set() };
-            }
-            hubData[destinationHubCode].states[state].boxCount++;
-            hubData[destinationHubCode].states[state].waybillIds.add(waybill.id);
-        });
-
-        return Object.values(hubData).map(hub => {
-            const stateEntries = Object.entries(hub.states).map(([state, data]) => {
-                const waybillsForState = Array.from(data.waybillIds).map(id => allWaybills.find(wb => wb.id === id)).filter(wb => wb);
+            const stateEntries = Object.entries(statesData).map(([state, data]) => {
+                const waybillsForState = Array.from(data.waybillIds)
+                    .map(id => allWaybills.find(wb => wb.id === id))
+                    .filter(wb => wb);
+                
                 const totalActualWeight = waybillsForState.reduce((sum, wb) => sum + (wb?.packageWeight || 0), 0);
                 const totalChargeableWeight = waybillsForState.reduce((sum, wb) => sum + (wb?.chargeableWeight || 0), 0);
-                return { 
-                    state, 
+
+                return {
+                    state,
                     boxCount: data.boxCount,
                     totalActualWeight,
                     totalChargeableWeight
                 };
             });
-            const totalBoxes = stateEntries.reduce((sum, s) => sum + s.boxCount, 0);
+
             return {
-                hubName: hub.hubName,
-                hubCity: hub.hubCity,
-                states: stateEntries.sort((a,b) => b.boxCount - a.boxCount),
-                totalBoxes,
-            }
-        }).filter(h => h.totalBoxes > 0).sort((a,b) => b.totalBoxes - a.totalBoxes);
+                hubName: hubUser?.partnerName || hubCode,
+                hubCity: hubUser?.city || 'N/A',
+                states: stateEntries.sort((a, b) => b.boxCount - a.boxCount),
+                totalBoxes: pendingBoxIds.size,
+            };
+        });
+
+        return hubData.filter(h => h.totalBoxes > 0).sort((a, b) => b.totalBoxes - a.totalBoxes);
 
     }, [allManifests, allWaybills, users, associations, manifestsLoaded, waybillsLoaded, usersLoaded, associationsLoaded]);
 
@@ -219,3 +207,5 @@ export default function VehicleMappingPage() {
         </div>
     );
 }
+
+    
