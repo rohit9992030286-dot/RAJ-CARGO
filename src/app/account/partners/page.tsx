@@ -148,7 +148,11 @@ export default function PartnerPaymentsPage() {
       const partner = bookingPartners.find(p => p.partnerCode === wb.partnerCode);
       if (!partner) return;
 
-      const rate = rates.find(r => r.fromState.trim().toLowerCase() === wb.senderState.trim().toLowerCase() && r.toState.trim().toLowerCase() === wb.receiverState.trim().toLowerCase());
+      const rate = rates.find(r => 
+        r.fromState && wb.senderState && r.toState && wb.receiverState &&
+        r.fromState.trim().toLowerCase() === wb.senderState.trim().toLowerCase() && 
+        r.toState.trim().toLowerCase() === wb.receiverState.trim().toLowerCase()
+      );
       if (!rate) return;
       
       const freightCharge = calculateFreightCharge(wb, rate);
@@ -185,8 +189,11 @@ export default function PartnerPaymentsPage() {
             const partner = deliveryPartners.find(p => p.partnerCode === manifest.deliveryPartnerCode);
             if (!partner) return;
 
-            // Find rate based on booking partner of the waybill
-            const rate = rates.find(r => r.fromState.trim().toLowerCase() === wb.senderState.trim().toLowerCase() && r.toState.trim().toLowerCase() === wb.receiverState.trim().toLowerCase());
+            const rate = rates.find(r => 
+              r.fromState && wb.senderState && r.toState && wb.receiverState &&
+              r.fromState.trim().toLowerCase() === wb.senderState.trim().toLowerCase() && 
+              r.toState.trim().toLowerCase() === wb.receiverState.trim().toLowerCase()
+            );
             if (!rate) return;
 
             const freightCharge = calculateFreightCharge(wb, rate);
