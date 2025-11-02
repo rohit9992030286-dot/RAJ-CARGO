@@ -44,6 +44,50 @@ interface ReportRow {
     freightCharge: number;
 }
 
+// Function to calculate the Levenshtein distance between two strings
+function levenshtein(a: string, b: string): number {
+  if (a.length === 0) return b.length;
+  if (b.length === 0) return a.length;
+  const matrix = [];
+  for (let i = 0; i <= b.length; i++) {
+    matrix[i] = [i];
+  }
+  for (let j = 0; j <= a.length; j++) {
+    matrix[0][j] = j;
+  }
+  for (let i = 1; i <= b.length; i++) {
+    for (let j = 1; j <= a.length; j++) {
+      if (b.charAt(i - 1) === a.charAt(j - 1)) {
+        matrix[i][j] = matrix[i - 1][j - 1];
+      } else {
+        matrix[i][j] = Math.min(
+          matrix[i - 1][j - 1] + 1,
+          matrix[i][j - 1] + 1,
+          matrix[i - 1][j] + 1
+        );
+      }
+    }
+  }
+  return matrix[b.length][a.length];
+}
+
+function areStatesSimilar(s1: string, s2: string): boolean {
+    const term1 = s1.trim().toLowerCase();
+    const term2 = s2.trim().toLowerCase();
+    if (term1 === term2) return true;
+
+    // Abbreviation check (e.g., MP for Madhya Pradesh)
+    const abbreviationMatch = term1.length < 4 && term2.split(' ').some(word => word.charAt(0) === term1.charAt(0));
+    if (abbreviationMatch) return true;
+
+    // Levenshtein distance for fuzzy matching
+    const distance = levenshtein(term1, term2);
+    const maxLength = Math.max(term1.length, term2.length);
+    const similarity = 1 - distance / maxLength;
+    
+    return similarity > 0.8; // 80% similarity threshold
+}
+
 function calculateFreightCharge(waybill: Waybill, rate: Rate): number {
     if (!rate) return 0;
     const chargeableWeight = waybill.chargeableWeight || waybill.packageWeight;
@@ -106,13 +150,13 @@ export default function CompanySalesReportPage() {
     return filteredWaybills.map(wb => {
         if (!wb.senderState || !wb.receiverState) return null;
 
-        const senderState = wb.senderState.trim().toLowerCase();
-        const receiverState = wb.receiverState.trim().toLowerCase();
+        const senderState = wb.senderState;
+        const receiverState = wb.receiverState;
         
         const rate = rates.find(r => 
             r && r.fromState && r.toState &&
-            r.fromState.trim().toLowerCase() === senderState && 
-            r.toState.trim().toLowerCase() === receiverState
+            areStatesSimilar(r.fromState, senderState) && 
+            areStatesSimilar(r.toState, receiverState)
         );
         const freightCharge = rate ? calculateFreightCharge(wb, rate) : 0;
         
