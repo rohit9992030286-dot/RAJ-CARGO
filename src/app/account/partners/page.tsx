@@ -7,7 +7,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { useManifests } from '@/hooks/useManifests';
 import { Card, CardHeader, CardTitle, CardContent, CardDescription } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow, TableFooter } from '@/components/ui/table';
-import { Loader2, IndianRupee, Handshake, Users, Calendar as CalendarIcon, FileDown, BookCopy, Truck } from 'lucide-react';
+import { Loader2, IndianRupee, Handshake, Users, Calendar as CalendarIcon, FileDown, BookCopy, Truck, ChevronDown, ChevronRight } from 'lucide-react';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Button } from '@/components/ui/button';
 import { Calendar } from '@/components/ui/calendar';
@@ -31,11 +31,18 @@ interface Rate {
   volumeWeightCharge: number;
 }
 
-interface PaymentData {
+interface PaymentDetails {
+    waybill: Waybill;
+    payment: number;
+    rate?: Rate;
+}
+
+interface PartnerPaymentData {
     partnerCode: string;
     username: string;
-    count: number;
+    totalCount: number;
     totalPayment: number;
+    details: PaymentDetails[];
 }
 
 const BOOKING_COMMISSION = 0.08; // 8%
@@ -69,6 +76,7 @@ function levenshtein(a: string, b: string): number {
 }
 
 function areStatesSimilar(s1: string, s2: string): boolean {
+    if (!s1 || !s2) return false;
     const term1 = s1.trim().toLowerCase();
     const term2 = s2.trim().toLowerCase();
     if (term1 === term2) return true;
@@ -85,30 +93,29 @@ function areStatesSimilar(s1: string, s2: string): boolean {
     return similarity > 0.8; // 80% similarity threshold
 }
 
-function calculateFreightCharge(waybill: Waybill, rate: Rate): number {
-    if (!rate) return 0;
+function calculateFreightCharge(waybill: Waybill, rate: Rate) {
+    if (!rate) return { totalCharge: 0, base: 0, fuel: 0, taxable: 0, gst: 0, greenTax: 0 };
     const chargeableWeight = waybill.chargeableWeight || waybill.packageWeight;
-    
-    // 1. Initial Sum
-    const initialSum = (chargeableWeight * rate.volumeWeightCharge) + rate.docketCharge + rate.greenTaxCharge;
-    
-    // 2. Fuel Surcharge
-    const fuelCharge = initialSum * (rate.fuelSurcharge / 100);
 
-    // 3. Taxable Amount
-    const taxableAmount = initialSum + fuelCharge;
+    const baseFreight = (chargeableWeight * rate.volumeWeightCharge) + rate.docketCharge;
+    const fuelCharge = baseFreight * (rate.fuelSurcharge / 100);
+    const taxableAmount = baseFreight + fuelCharge;
+    const gstAmount = taxableAmount * 0.18;
+    const totalCharge = taxableAmount + gstAmount + rate.greenTaxCharge;
 
-    // 4. GST
-    const gstAmount = taxableAmount * 0.18; // 18% GST
-
-    // 5. Final Total
-    const totalCharge = taxableAmount + gstAmount;
-
-    return totalCharge;
+    return {
+        totalCharge,
+        base: baseFreight,
+        fuel: fuelCharge,
+        taxable: taxableAmount,
+        gst: gstAmount,
+        greenTax: rate.greenTaxCharge
+    };
 }
 
-function PaymentTable({ data, onExport }: { data: PaymentData[], onExport: () => void }) {
+function PaymentTable({ data, onExport }: { data: PartnerPaymentData[], onExport: () => void }) {
     const totalPayment = data.reduce((acc, p) => acc + p.totalPayment, 0);
+    const [openPartner, setOpenPartner] = useState<string | null>(null);
 
     return (
         <div className="space-y-4">
@@ -120,23 +127,58 @@ function PaymentTable({ data, onExport }: { data: PaymentData[], onExport: () =>
             <Table>
                 <TableHeader>
                 <TableRow>
-                    <TableHead>Partner Code</TableHead>
-                    <TableHead>Partner Name</TableHead>
+                    <TableHead>Partner</TableHead>
                     <TableHead>Waybill Count</TableHead>
                     <TableHead className="text-right">Total Payment</TableHead>
                 </TableRow>
                 </TableHeader>
                 <TableBody>
                 {data.length > 0 ? data.map(p => (
-                    <TableRow key={p.partnerCode}>
-                    <TableCell><Badge variant="outline">{p.partnerCode}</Badge></TableCell>
-                    <TableCell className="font-medium">{p.username}</TableCell>
-                    <TableCell>{p.count}</TableCell>
-                    <TableCell className="text-right font-mono font-semibold">₹{p.totalPayment.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</TableCell>
-                    </TableRow>
+                    <>
+                        <TableRow key={p.partnerCode} onClick={() => setOpenPartner(openPartner === p.partnerCode ? null : p.partnerCode)} className="cursor-pointer">
+                            <TableCell>
+                                <div className="flex items-center gap-2">
+                                    {openPartner === p.partnerCode ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
+                                    <Badge variant="outline">{p.partnerCode}</Badge>
+                                    <span className="font-medium">{p.username}</span>
+                                </div>
+                            </TableCell>
+                            <TableCell>{p.totalCount}</TableCell>
+                            <TableCell className="text-right font-mono font-semibold">₹{p.totalPayment.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</TableCell>
+                        </TableRow>
+                        {openPartner === p.partnerCode && (
+                            <TableRow>
+                                <TableCell colSpan={3}>
+                                    <div className="p-4 bg-muted/50 rounded-lg">
+                                        <h4 className="font-semibold mb-2">Details for {p.username}</h4>
+                                        <Table>
+                                            <TableHeader>
+                                                <TableRow>
+                                                    <TableHead>Waybill #</TableHead>
+                                                    <TableHead>Date</TableHead>
+                                                    <TableHead>Destination</TableHead>
+                                                    <TableHead className="text-right">Commission</TableHead>
+                                                </TableRow>
+                                            </TableHeader>
+                                            <TableBody>
+                                                {p.details.map(d => (
+                                                    <TableRow key={d.waybill.id}>
+                                                        <TableCell className="font-mono">{d.waybill.waybillNumber}</TableCell>
+                                                        <TableCell>{format(new Date(d.waybill.shippingDate), 'PP')}</TableCell>
+                                                        <TableCell>{d.waybill.receiverCity}</TableCell>
+                                                        <TableCell className="text-right font-mono">₹{d.payment.toFixed(2)}</TableCell>
+                                                    </TableRow>
+                                                ))}
+                                            </TableBody>
+                                        </Table>
+                                    </div>
+                                </TableCell>
+                            </TableRow>
+                        )}
+                    </>
                 )) : (
                     <TableRow>
-                    <TableCell colSpan={4} className="h-24 text-center">
+                    <TableCell colSpan={3} className="h-24 text-center">
                         No payment data for the selected period.
                     </TableCell>
                     </TableRow>
@@ -144,7 +186,7 @@ function PaymentTable({ data, onExport }: { data: PaymentData[], onExport: () =>
                 </TableBody>
                 <TableFooter>
                     <TableRow className="font-bold">
-                        <TableCell colSpan={3}>Total</TableCell>
+                        <TableCell colSpan={2}>Total</TableCell>
                         <TableCell className="text-right font-mono">
                             ₹{totalPayment.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                         </TableCell>
@@ -192,7 +234,7 @@ export default function PartnerPaymentsPage() {
   const bookingPaymentData = useMemo(() => {
     if (!waybillsLoaded || !ratesLoaded || usersLoading) return [];
     
-    const paymentMap = new Map<string, { count: number, totalPayment: number }>();
+    const paymentMap = new Map<string, PaymentDetails[]>();
 
     filteredWaybills.forEach(wb => {
       if (!wb.senderState || !wb.receiverState) return;
@@ -210,21 +252,21 @@ export default function PartnerPaymentsPage() {
       );
       if (!rate) return;
       
-      const freightCharge = calculateFreightCharge(wb, rate);
+      const freightCharge = calculateFreightCharge(wb, rate).totalCharge;
       const payment = freightCharge * BOOKING_COMMISSION;
 
       if (!paymentMap.has(partner.partnerCode!)) {
-        paymentMap.set(partner.partnerCode!, { count: 0, totalPayment: 0 });
+        paymentMap.set(partner.partnerCode!, []);
       }
-      const current = paymentMap.get(partner.partnerCode!)!;
-      current.count += 1;
-      current.totalPayment += payment;
+      paymentMap.get(partner.partnerCode!)!.push({ waybill: wb, payment, rate });
     });
 
-    return Array.from(paymentMap.entries()).map(([partnerCode, data]) => ({
+    return Array.from(paymentMap.entries()).map(([partnerCode, details]) => ({
       partnerCode,
       username: bookingPartners.find(p => p.partnerCode === partnerCode)?.username || 'N/A',
-      ...data
+      totalCount: details.length,
+      totalPayment: details.reduce((sum, d) => sum + d.payment, 0),
+      details,
     }));
 
   }, [filteredWaybills, bookingPartners, rates, waybillsLoaded, ratesLoaded, usersLoading]);
@@ -232,7 +274,7 @@ export default function PartnerPaymentsPage() {
   const deliveryPaymentData = useMemo(() => {
     if (!manifestsLoaded || !waybillsLoaded || !ratesLoaded || usersLoading) return [];
 
-    const paymentMap = new Map<string, { count: number, totalPayment: number }>();
+    const paymentMap = new Map<string, PaymentDetails[]>();
 
     const deliveryManifests = allManifests.filter(m => m.origin === 'hub' && m.deliveryPartnerCode);
 
@@ -254,22 +296,22 @@ export default function PartnerPaymentsPage() {
             );
             if (!rate) return;
 
-            const freightCharge = calculateFreightCharge(wb, rate);
+            const freightCharge = calculateFreightCharge(wb, rate).totalCharge;
             const payment = freightCharge * DELIVERY_COMMISSION;
             
             if (!paymentMap.has(partner.partnerCode!)) {
-                paymentMap.set(partner.partnerCode!, { count: 0, totalPayment: 0 });
+                paymentMap.set(partner.partnerCode!, []);
             }
-            const current = paymentMap.get(partner.partnerCode!)!;
-            current.count += 1;
-            current.totalPayment += payment;
+            paymentMap.get(partner.partnerCode!)!.push({ waybill: wb, payment, rate });
         });
     });
 
-    return Array.from(paymentMap.entries()).map(([partnerCode, data]) => ({
+    return Array.from(paymentMap.entries()).map(([partnerCode, details]) => ({
         partnerCode,
         username: deliveryPartners.find(p => p.partnerCode === partnerCode)?.username || 'N/A',
-        ...data
+        totalCount: details.length,
+        totalPayment: details.reduce((sum, d) => sum + d.payment, 0),
+        details,
     }));
   }, [filteredWaybills, deliveryPartners, allManifests, rates, waybillsLoaded, ratesLoaded, usersLoading, manifestsLoaded]);
 
@@ -279,7 +321,7 @@ export default function PartnerPaymentsPage() {
     const dataToExport = data.map(p => ({
       'Partner Code': p.partnerCode,
       'Partner Name': p.username,
-      'Waybill Count': p.count,
+      'Waybill Count': p.totalCount,
       'Total Payment (INR)': p.totalPayment.toFixed(2),
     }));
     

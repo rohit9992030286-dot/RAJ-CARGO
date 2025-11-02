@@ -6,13 +6,12 @@ import { useWaybills } from '@/hooks/useWaybills';
 import { useCompanies } from '@/hooks/useCompanies';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow, TableFooter } from '@/components/ui/table';
-import { IndianRupee, Loader2, Calendar as CalendarIcon, FileDown, Building } from 'lucide-react';
+import { IndianRupee, Loader2, Calendar as CalendarIcon, FileDown, Building, ChevronDown, ChevronRight } from 'lucide-react';
 import { format } from 'date-fns';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Calendar } from '@/components/ui/calendar';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
-import { Badge } from '@/components/ui/badge';
 import * as XLSX from 'xlsx';
 import { saveAs } from 'file-saver';
 import { DateRange } from 'react-day-picker';
@@ -31,16 +30,7 @@ interface Rate {
 }
 
 interface ReportRow {
-    waybillNumber: string;
-    id: string;
-    shippingDate: string;
-    tripNo?: string;
-    invoiceNumber: string;
-    senderName: string;
-    receiverName: string;
-    receiverState: string;
-    packageWeight: number;
-    partnerCode?: string;
+    waybill: Waybill;
     freightCharge: number;
 }
 
@@ -72,6 +62,7 @@ function levenshtein(a: string, b: string): number {
 }
 
 function areStatesSimilar(s1: string, s2: string): boolean {
+    if (!s1 || !s2) return false;
     const term1 = s1.trim().toLowerCase();
     const term2 = s2.trim().toLowerCase();
     if (term1 === term2) return true;
@@ -88,26 +79,85 @@ function areStatesSimilar(s1: string, s2: string): boolean {
     return similarity > 0.8; // 80% similarity threshold
 }
 
-function calculateFreightCharge(waybill: Waybill, rate: Rate): number {
-    if (!rate) return 0;
+function calculateFreightCharge(waybill: Waybill, rate: Rate) {
+    if (!rate) return { totalCharge: 0, base: 0, fuel: 0, taxable: 0, gst: 0, greenTax: 0 };
     const chargeableWeight = waybill.chargeableWeight || waybill.packageWeight;
 
-    // 1. Initial Sum
-    const initialSum = (chargeableWeight * rate.volumeWeightCharge) + rate.docketCharge + rate.greenTaxCharge;
-    
-    // 2. Fuel Surcharge
-    const fuelCharge = initialSum * (rate.fuelSurcharge / 100);
+    const baseFreight = (chargeableWeight * rate.volumeWeightCharge) + rate.docketCharge;
+    const fuelCharge = baseFreight * (rate.fuelSurcharge / 100);
+    const taxableAmount = baseFreight + fuelCharge;
+    const gstAmount = taxableAmount * 0.18;
+    const totalCharge = taxableAmount + gstAmount + rate.greenTaxCharge;
 
-    // 3. Taxable Amount
-    const taxableAmount = initialSum + fuelCharge;
+    return {
+        totalCharge,
+        base: baseFreight,
+        fuel: fuelCharge,
+        taxable: taxableAmount,
+        gst: gstAmount,
+        greenTax: rate.greenTaxCharge
+    };
+}
 
-    // 4. GST
-    const gstAmount = taxableAmount * 0.18; // 18% GST
 
-    // 5. Final Total
-    const totalCharge = taxableAmount + gstAmount;
+function ReportRowComponent({ row, rate }: { row: ReportRow; rate: Rate | undefined }) {
+  const [isOpen, setIsOpen] = useState(false);
+  const breakdown = calculateFreightCharge(row.waybill, rate!);
 
-    return totalCharge;
+  return (
+    <>
+      <TableRow onClick={() => setIsOpen(!isOpen)} className="cursor-pointer">
+        <TableCell>
+            <div className="flex items-center gap-2">
+                {isOpen ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
+                <span className="font-mono">{row.waybill.waybillNumber}</span>
+            </div>
+        </TableCell>
+        <TableCell>{row.waybill.invoiceNumber}</TableCell>
+        <TableCell>{row.waybill.tripNo || 'N/A'}</TableCell>
+        <TableCell>{format(new Date(row.waybill.shippingDate), 'PP')}</TableCell>
+        <TableCell>{row.waybill.senderName}</TableCell>
+        <TableCell>{row.waybill.receiverName}</TableCell>
+        <TableCell>{row.waybill.receiverState}</TableCell>
+        <TableCell className="text-right font-mono">{row.freightCharge.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</TableCell>
+      </TableRow>
+      {isOpen && (
+        <TableRow>
+          <TableCell colSpan={8}>
+            <div className="p-4 bg-muted/50 rounded-lg">
+                <h4 className="font-semibold mb-2">Freight Charge Breakdown for {row.waybill.waybillNumber}</h4>
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+                    <div className="space-y-1">
+                        <p className="text-muted-foreground">Base Freight</p>
+                        <p className="font-mono">₹{breakdown.base.toFixed(2)}</p>
+                    </div>
+                     <div className="space-y-1">
+                        <p className="text-muted-foreground">Fuel Surcharge ({rate?.fuelSurcharge}%)</p>
+                        <p className="font-mono">₹{breakdown.fuel.toFixed(2)}</p>
+                    </div>
+                    <div className="space-y-1">
+                        <p className="text-muted-foreground">Taxable Amount</p>
+                        <p className="font-mono">₹{breakdown.taxable.toFixed(2)}</p>
+                    </div>
+                    <div className="space-y-1">
+                        <p className="text-muted-foreground">GST (18%)</p>
+                        <p className="font-mono">₹{breakdown.gst.toFixed(2)}</p>
+                    </div>
+                    <div className="space-y-1">
+                        <p className="text-muted-foreground">Green Tax</p>
+                        <p className="font-mono">₹{breakdown.greenTax.toFixed(2)}</p>
+                    </div>
+                    <div className="space-y-1 font-bold">
+                        <p className="text-muted-foreground">Total</p>
+                        <p className="font-mono">₹{breakdown.totalCharge.toFixed(2)}</p>
+                    </div>
+                </div>
+            </div>
+          </TableCell>
+        </TableRow>
+      )}
+    </>
+  );
 }
 
 export default function CompanySalesReportPage() {
@@ -158,21 +208,9 @@ export default function CompanySalesReportPage() {
             areStatesSimilar(r.fromState, senderState) && 
             areStatesSimilar(r.toState, receiverState)
         );
-        const freightCharge = rate ? calculateFreightCharge(wb, rate) : 0;
+        const freightCharge = rate ? calculateFreightCharge(wb, rate).totalCharge : 0;
         
-        return { 
-            id: wb.id,
-            waybillNumber: wb.waybillNumber,
-            shippingDate: wb.shippingDate,
-            tripNo: wb.tripNo,
-            invoiceNumber: wb.invoiceNumber,
-            senderName: wb.senderName,
-            receiverName: wb.receiverName,
-            receiverState: wb.receiverState,
-            packageWeight: wb.packageWeight,
-            partnerCode: wb.partnerCode,
-            freightCharge 
-        };
+        return { waybill: wb, freightCharge };
     }).filter((r): r is ReportRow => r !== null);
   }, [allWaybills, dateRange, rates, isLoaded, ratesLoaded, companiesLoaded, selectedCompany]);
 
@@ -189,14 +227,14 @@ export default function CompanySalesReportPage() {
     if (reportData.length === 0) return;
 
     const dataToExport = reportData.map(row => ({
-        'Waybill #': row.waybillNumber,
-        'Invoice #': row.invoiceNumber,
-        'Trip #': row.tripNo,
-        'Date': format(new Date(row.shippingDate), 'PP'),
-        'Sender Name': row.senderName,
-        'Receiver Name': row.receiverName,
-        'Receiver State': row.receiverState,
-        'Weight (Kg)': row.packageWeight,
+        'Waybill #': row.waybill.waybillNumber,
+        'Invoice #': row.waybill.invoiceNumber,
+        'Trip #': row.waybill.tripNo,
+        'Date': format(new Date(row.waybill.shippingDate), 'PP'),
+        'Sender Name': row.waybill.senderName,
+        'Receiver Name': row.waybill.receiverName,
+        'Receiver State': row.waybill.receiverState,
+        'Weight (Kg)': row.waybill.packageWeight,
         'Freight Charge (₹)': row.freightCharge.toFixed(2),
     }));
 
@@ -283,18 +321,11 @@ export default function CompanySalesReportPage() {
             <TableBody>
               {selectedCompany ? (
                 reportData.length > 0 ? (
-                  reportData.map((row) => (
-                    <TableRow key={row.id}>
-                      <TableCell className="font-mono">{row.waybillNumber}</TableCell>
-                      <TableCell>{row.invoiceNumber}</TableCell>
-                      <TableCell>{row.tripNo || 'N/A'}</TableCell>
-                      <TableCell>{format(new Date(row.shippingDate), 'PP')}</TableCell>
-                      <TableCell>{row.senderName}</TableCell>
-                      <TableCell>{row.receiverName}</TableCell>
-                      <TableCell>{row.receiverState}</TableCell>
-                      <TableCell className="text-right font-mono">{row.freightCharge.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</TableCell>
-                    </TableRow>
-                  ))
+                  reportData.map((row) => {
+                    if (!row.waybill.senderState || !row.waybill.receiverState) return null;
+                    const rate = rates.find(r => r && r.fromState && r.toState && areStatesSimilar(r.fromState, row.waybill.senderState!) && areStatesSimilar(r.toState, row.waybill.receiverState!));
+                    return <ReportRowComponent key={row.waybill.id} row={row} rate={rate} />;
+                  })
                 ) : (
                   <TableRow>
                     <TableCell colSpan={8} className="h-24 text-center">
