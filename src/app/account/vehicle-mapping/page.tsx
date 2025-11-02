@@ -6,12 +6,9 @@ import { useManifests } from '@/hooks/useManifests';
 import { useWaybills } from '@/hooks/useWaybills';
 import { Card, CardHeader, CardTitle, CardContent, CardDescription } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Loader2, Map as MapIcon, Package, Weight, Cpu, Building } from 'lucide-react';
+import { Loader2, Map as MapIcon, Package, Weight, Globe } from 'lucide-react';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, Legend } from 'recharts';
-import { useAuth } from '@/hooks/useAuth';
-import { usePartnerAssociations } from '@/hooks/usePartnerAssociations';
 import { Badge } from '@/components/ui/badge';
-import { Manifest } from '@/types/manifest';
 
 interface CityData {
     city: string;
@@ -20,9 +17,8 @@ interface CityData {
     totalChargeableWeight: number;
 }
 
-interface HubData {
-    hubName: string;
-    hubCity: string;
+interface StateData {
+    state: string;
     destinations: CityData[];
     totalBoxes: number;
 }
@@ -31,70 +27,83 @@ interface HubData {
 export default function VehicleMappingPage() {
     const { allManifests, isLoaded: manifestsLoaded } = useManifests();
     const { allWaybills, isLoaded: waybillsLoaded } = useWaybills();
-    const { users, isLoading: usersLoaded } = useAuth();
-    const { associations, isLoaded: associationsLoaded } = usePartnerAssociations();
 
-    const pendingDispatchData = useMemo((): HubData[] => {
-        if (!manifestsLoaded || !waybillsLoaded || !usersLoaded || !associationsLoaded) return [];
+    const pendingDispatchData = useMemo((): StateData[] => {
+        if (!manifestsLoaded || !waybillsLoaded) return [];
 
-        // 1. Get all boxes that have been dispatched from a hub.
+        // 1. Find all box IDs that have already been dispatched from a hub.
         const dispatchedFromHubBoxIds = new Set<string>();
         allManifests.forEach(m => {
             if (m.origin === 'hub') {
-                (m.verifiedBoxIds || []).forEach(boxId => dispatchedFromHubBoxIds.add(boxId));
-            }
-        });
-
-        // 2. Group all verified boxes by the hub that received them.
-        const boxesByReceivingHub: Record<string, Set<string>> = {};
-        allManifests.forEach(m => {
-            let destinationHubCode: string | undefined = undefined;
-
-            if (m.origin === 'booking' && m.creatorPartnerCode) {
-                destinationHubCode = associations.bookingToHub[m.creatorPartnerCode];
-            } else if (m.origin === 'hub' && m.destinationHubCode) {
-                destinationHubCode = m.destinationHubCode;
-            }
-
-            if (destinationHubCode && m.verifiedBoxIds) {
-                if (!boxesByReceivingHub[destinationHubCode]) {
-                    boxesByReceivingHub[destinationHubCode] = new Set<string>();
-                }
-                m.verifiedBoxIds.forEach(boxId => {
-                    // Only add the box if it hasn't been dispatched onward from another hub
-                    if (!dispatchedFromHubBoxIds.has(boxId)) {
-                        boxesByReceivingHub[destinationHubCode].add(boxId);
+                (m.waybillIds || []).forEach(wbId => {
+                    const wb = allWaybills.find(waybill => waybill.id === wbId);
+                    if (wb) {
+                        for (let i = 1; i <= wb.numberOfBoxes; i++) {
+                            dispatchedFromHubBoxIds.add(`${wb.waybillNumber}-${i}`);
+                        }
                     }
                 });
             }
         });
 
-        // 3. Process the grouped boxes to get city-wise data.
-        const hubData: HubData[] = Object.entries(boxesByReceivingHub).map(([hubCode, pendingBoxIds]) => {
-            const hubUser = users.find(u => u.partnerCode === hubCode);
-            const cityData: Record<string, { boxCount: number; waybillIds: Set<string> }> = {};
-
-            pendingBoxIds.forEach(boxId => {
-                const waybillNumber = boxId.substring(0, boxId.lastIndexOf('-'));
-                const waybill = allWaybills.find(wb => wb.waybillNumber === waybillNumber);
-
-                if (waybill) {
-                    const city = waybill.receiverCity.toUpperCase();
-                    if (!cityData[city]) {
-                        cityData[city] = { boxCount: 0, waybillIds: new Set() };
+        // 2. Get all boxes that have been verified at any hub and are not yet dispatched onward.
+        const pendingBoxes: { boxId: string, waybill: import('@/types/waybill').Waybill }[] = [];
+        allManifests.forEach(m => {
+            if (['Received', 'Short Received'].includes(m.status)) {
+                m.verifiedBoxIds?.forEach(boxId => {
+                    if (!dispatchedFromHubBoxIds.has(boxId)) {
+                        const waybillNumber = boxId.substring(0, boxId.lastIndexOf('-'));
+                        const waybill = allWaybills.find(wb => wb.waybillNumber === waybillNumber);
+                        if (waybill && !pendingBoxes.some(p => p.boxId === boxId)) {
+                            pendingBoxes.push({ boxId, waybill });
+                        }
                     }
-                    cityData[city].boxCount++;
-                    cityData[city].waybillIds.add(waybill.id);
-                }
-            });
+                });
+            }
+        });
 
-            const cityEntries = Object.entries(cityData).map(([city, data]) => {
+        // 3. Group these pending boxes by destination state, then by city.
+        const boxesByState: Record<string, Record<string, { waybillIds: Set<string>, boxCount: number }>> = {};
+
+        pendingBoxes.forEach(({ waybill }) => {
+            if (!waybill.receiverState || !waybill.receiverCity) return;
+            
+            const state = waybill.receiverState.toUpperCase();
+            const city = waybill.receiverCity.toUpperCase();
+
+            if (!boxesByState[state]) {
+                boxesByState[state] = {};
+            }
+            if (!boxesByState[state][city]) {
+                boxesByState[state][city] = { waybillIds: new Set(), boxCount: 0 };
+            }
+            boxesByState[state][city].waybillIds.add(waybill.id);
+        });
+
+        // Calculate box count for each city based on waybills
+         Object.values(boxesByState).forEach(cities => {
+            Object.values(cities).forEach(cityData => {
+                 cityData.boxCount = Array.from(cityData.waybillIds)
+                    .reduce((sum, wbId) => {
+                        const wb = allWaybills.find(w => w.id === wbId);
+                        return sum + (wb?.numberOfBoxes || 0);
+                    }, 0);
+            })
+        });
+
+
+        // 4. Format the data for rendering.
+        const stateData: StateData[] = Object.entries(boxesByState).map(([state, cities]) => {
+            let totalBoxesForState = 0;
+            const cityEntries = Object.entries(cities).map(([city, data]) => {
                 const waybillsForCity = Array.from(data.waybillIds)
                     .map(id => allWaybills.find(wb => wb.id === id))
-                    .filter(wb => wb);
+                    .filter((wb): wb is import('@/types/waybill').Waybill => !!wb);
                 
-                const totalActualWeight = waybillsForCity.reduce((sum, wb) => sum + (wb?.packageWeight || 0), 0);
-                const totalChargeableWeight = waybillsForCity.reduce((sum, wb) => sum + (wb?.chargeableWeight || 0), 0);
+                const totalActualWeight = waybillsForCity.reduce((sum, wb) => sum + (wb.packageWeight || 0), 0);
+                const totalChargeableWeight = waybillsForCity.reduce((sum, wb) => sum + (wb.chargeableWeight || wb.packageWeight || 0), 0);
+                
+                totalBoxesForState += data.boxCount;
 
                 return {
                     city,
@@ -105,19 +114,18 @@ export default function VehicleMappingPage() {
             });
 
             return {
-                hubName: hubUser?.partnerName || hubCode,
-                hubCity: hubUser?.city || 'N/A',
+                state,
                 destinations: cityEntries.sort((a, b) => b.boxCount - a.boxCount),
-                totalBoxes: pendingBoxIds.size,
+                totalBoxes: totalBoxesForState,
             };
         });
 
-        return hubData.filter(h => h.totalBoxes > 0).sort((a, b) => b.totalBoxes - a.totalBoxes);
+        return stateData.filter(s => s.totalBoxes > 0).sort((a, b) => b.totalBoxes - a.totalBoxes);
 
-    }, [allManifests, allWaybills, users, associations, manifestsLoaded, waybillsLoaded, usersLoaded, associationsLoaded]);
+    }, [allManifests, allWaybills, manifestsLoaded, waybillsLoaded]);
 
 
-    if (!manifestsLoaded || !waybillsLoaded || !usersLoaded || !associationsLoaded) {
+    if (!manifestsLoaded || !waybillsLoaded) {
         return (
             <div className="flex justify-center items-center h-64">
                 <Loader2 className="h-16 w-16 animate-spin text-primary" />
@@ -125,41 +133,38 @@ export default function VehicleMappingPage() {
         );
     }
     
-    const totalPendingBoxes = pendingDispatchData.reduce((acc, hub) => acc + hub.totalBoxes, 0);
+    const totalPendingBoxes = pendingDispatchData.reduce((acc, state) => acc + state.totalBoxes, 0);
 
     return (
         <div className="space-y-8">
             <div className="p-6 rounded-xl bg-gradient-to-r from-orange-50 to-amber-50 dark:from-orange-900/50 dark:to-amber-900/80 border border-orange-200 dark:border-orange-800 shadow-md">
                 <h1 className="text-3xl font-bold text-orange-800 dark:text-orange-100">Hub Outbound Planning</h1>
-                <p className="text-orange-600 dark:text-orange-300 mt-1">A hub and city-wise overview of boxes and weight pending for outbound dispatch.</p>
+                <p className="text-orange-600 dark:text-orange-300 mt-1">A state-wise overview of all boxes pending for outbound dispatch from all hubs.</p>
             </div>
             
             <Card>
                 <CardHeader>
-                    <CardTitle>Pending Boxes by Hub and Destination City</CardTitle>
+                    <CardTitle>Pending Boxes by Destination State</CardTitle>
                     <CardDescription>
-                        There are a total of <span className="font-bold text-primary">{totalPendingBoxes}</span> boxes across {pendingDispatchData.length} hub(s) waiting to be dispatched.
+                        There are a total of <span className="font-bold text-primary">{totalPendingBoxes}</span> boxes across {pendingDispatchData.length} state(s) waiting to be dispatched.
                     </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-8">
                     {pendingDispatchData.length > 0 ? (
-                        pendingDispatchData.map(hub => (
-                            <div key={hub.hubName} className="border p-4 rounded-lg">
+                        pendingDispatchData.map(state => (
+                            <div key={state.state} className="border p-4 rounded-lg">
                                 <h3 className="text-xl font-bold mb-4 flex items-center gap-4">
                                     <div className="flex items-center gap-2">
-                                       <Cpu className="h-6 w-6 text-primary"/> Hub: <Badge variant="default" className="text-lg">{hub.hubName}</Badge>
-                                    </div>
-                                     <div className="flex items-center gap-2">
-                                       <Building className="h-5 w-5 text-muted-foreground"/> City: <Badge variant="secondary" className="text-md">{hub.hubCity}</Badge>
+                                       <Globe className="h-6 w-6 text-primary"/> State: <Badge variant="default" className="text-lg">{state.state}</Badge>
                                     </div>
                                 </h3>
                                 <div className="grid lg:grid-cols-5 gap-8">
                                     <div className="h-[400px] lg:col-span-3">
                                         <ResponsiveContainer width="100%" height="100%">
-                                            <BarChart data={hub.destinations} layout="vertical" margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
+                                            <BarChart data={state.destinations} layout="vertical" margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
                                                 <CartesianGrid strokeDasharray="3 3" />
                                                 <XAxis type="number" />
-                                                <YAxis dataKey="city" type="category" width={80} />
+                                                <YAxis dataKey="city" type="category" width={80} tick={{fontSize: 12}} />
                                                 <Tooltip cursor={{ fill: 'hsl(var(--muted))' }} formatter={(value: number) => value.toFixed(2)} />
                                                 <Legend />
                                                 <Bar dataKey="boxCount" name="Boxes" fill="hsl(var(--primary))" />
@@ -179,7 +184,7 @@ export default function VehicleMappingPage() {
                                                 </TableRow>
                                             </TableHeader>
                                             <TableBody>
-                                                {hub.destinations.map(data => (
+                                                {state.destinations.map(data => (
                                                     <TableRow key={data.city}>
                                                         <TableCell className="font-medium">{data.city}</TableCell>
                                                         <TableCell className="text-right font-bold text-primary">{data.boxCount}</TableCell>
