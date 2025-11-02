@@ -25,8 +25,6 @@ interface Rate {
   docketCharge: number;
   fuelSurcharge: number;
   greenTaxCharge: number;
-  cgst: number;
-  sgst: number;
   volumeWeightCharge: number;
 }
 
@@ -47,9 +45,7 @@ function calculateFreightCharge(waybill: Waybill, rate: Rate): number {
 
     const baseFreight = (chargeableWeight * rate.volumeWeightCharge) + rate.docketCharge;
     const fuelCharge = baseFreight * (rate.fuelSurcharge / 100);
-    const taxableAmount = baseFreight + fuelCharge;
-    const totalTax = taxableAmount * ((rate.cgst + rate.sgst) / 100);
-    const totalCharge = taxableAmount + totalTax + rate.greenTaxCharge;
+    const totalCharge = baseFreight + fuelCharge + rate.greenTaxCharge;
     
     return totalCharge;
 }
@@ -257,3 +253,5 @@ export default function SalesReportPage() {
     </div>
   );
 }
+
+    

@@ -24,8 +24,6 @@ const rateSchema = z.object({
   docketCharge: z.coerce.number().min(0, 'Docket charge must be a positive number.'),
   fuelSurcharge: z.coerce.number().min(0, 'Fuel surcharge must be a positive number.'),
   greenTaxCharge: z.coerce.number().min(0, 'Green tax must be a positive number.'),
-  cgst: z.coerce.number().min(0, 'CGST must be a positive number.'),
-  sgst: z.coerce.number().min(0, 'SGST must be a positive number.'),
   volumeWeightCharge: z.coerce.number().min(0, 'Volume weight charge must be a positive number.'),
 });
 type RateFormData = z.infer<typeof rateSchema>;
@@ -48,8 +46,6 @@ export default function RateManagementPage() {
       docketCharge: 0,
       fuelSurcharge: 0,
       greenTaxCharge: 0,
-      cgst: 0,
-      sgst: 0,
       volumeWeightCharge: 0,
     },
   });
@@ -94,7 +90,7 @@ export default function RateManagementPage() {
     }
 
     saveRates(newRates);
-    form.reset({ fromState: '', toState: '', docketCharge: 0, fuelSurcharge: 0, greenTaxCharge: 0, cgst: 0, sgst: 0, volumeWeightCharge: 0 });
+    form.reset({ fromState: '', toState: '', docketCharge: 0, fuelSurcharge: 0, greenTaxCharge: 0, volumeWeightCharge: 0 });
     setEditingRateId(null);
   };
 
@@ -116,8 +112,6 @@ export default function RateManagementPage() {
         docketCharge: r.docketCharge,
         fuelSurcharge: r.fuelSurcharge,
         greenTaxCharge: r.greenTaxCharge,
-        cgst: r.cgst,
-        sgst: r.sgst,
         volumeWeightCharge: r.volumeWeightCharge,
     }));
     const ws = XLSX.utils.json_to_sheet(dataToExport);
@@ -181,19 +175,17 @@ export default function RateManagementPage() {
             <CardHeader>
               <CardTitle>{editingRateId ? 'Update Rate' : 'Add New Rate'}</CardTitle>
             </CardHeader>
-            <CardContent className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4 items-end">
+            <CardContent className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4 items-end">
                <FormField control={form.control} name="fromState" render={({ field }) => (<FormItem><FormLabel>From State</FormLabel><div className="relative"><FormControl><Input placeholder="e.g., Delhi" {...field} className="pl-10" /></FormControl><Globe className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" /></div><FormMessage /></FormItem>)} />
                <FormField control={form.control} name="toState" render={({ field }) => (<FormItem><FormLabel>To State</FormLabel><div className="relative"><FormControl><Input placeholder="e.g., Maharashtra" {...field} className="pl-10" /></FormControl><Globe className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" /></div><FormMessage /></FormItem>)} />
                <FormField control={form.control} name="docketCharge" render={({ field }) => (<FormItem><FormLabel>Docket Charge (₹)</FormLabel><div className="relative"><FormControl><Input type="number" step="0.01" {...field} className="pl-10" /></FormControl><IndianRupee className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" /></div><FormMessage /></FormItem>)} />
                <FormField control={form.control} name="fuelSurcharge" render={({ field }) => (<FormItem><FormLabel>Fuel Surcharge (%)</FormLabel><div className="relative"><FormControl><Input type="number" step="0.01" {...field} className="pl-10" /></FormControl><Percent className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" /></div><FormMessage /></FormItem>)} />
                <FormField control={form.control} name="greenTaxCharge" render={({ field }) => (<FormItem><FormLabel>Green Tax (₹)</FormLabel><div className="relative"><FormControl><Input type="number" step="0.01" {...field} className="pl-10" /></FormControl><IndianRupee className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" /></div><FormMessage /></FormItem>)} />
-               <FormField control={form.control} name="cgst" render={({ field }) => (<FormItem><FormLabel>CGST (%)</FormLabel><div className="relative"><FormControl><Input type="number" step="0.01" {...field} className="pl-10" /></FormControl><Percent className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" /></div><FormMessage /></FormItem>)} />
-               <FormField control={form.control} name="sgst" render={({ field }) => (<FormItem><FormLabel>SGST (%)</FormLabel><div className="relative"><FormControl><Input type="number" step="0.01" {...field} className="pl-10" /></FormControl><Percent className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" /></div><FormMessage /></FormItem>)} />
                <FormField control={form.control} name="volumeWeightCharge" render={({ field }) => (<FormItem><FormLabel>Volume Wt. Charge (₹/kg)</FormLabel><div className="relative"><FormControl><Input type="number" step="0.01" {...field} className="pl-10" /></FormControl><Weight className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" /></div><FormMessage /></FormItem>)} />
             </CardContent>
             <CardFooter className="flex justify-end gap-2">
                  {editingRateId && (
-                    <Button variant="ghost" onClick={() => { setEditingRateId(null); form.reset({ fromState: '', toState: '', docketCharge: 0, fuelSurcharge: 0, greenTaxCharge: 0, cgst: 0, sgst: 0, volumeWeightCharge: 0 }); }}>
+                    <Button variant="ghost" onClick={() => { setEditingRateId(null); form.reset({ fromState: '', toState: '', docketCharge: 0, fuelSurcharge: 0, greenTaxCharge: 0, volumeWeightCharge: 0 }); }}>
                         Cancel Edit
                     </Button>
                 )}
@@ -232,8 +224,6 @@ export default function RateManagementPage() {
                 <TableHead>Docket (₹)</TableHead>
                 <TableHead>Fuel (%)</TableHead>
                 <TableHead>Green Tax (₹)</TableHead>
-                <TableHead>CGST (%)</TableHead>
-                <TableHead>SGST (%)</TableHead>
                 <TableHead>Vol. Wt. (₹/kg)</TableHead>
                 <TableHead className="text-right">Action</TableHead>
               </TableRow>
@@ -247,8 +237,6 @@ export default function RateManagementPage() {
                     <TableCell>{rate.docketCharge.toFixed(2)}</TableCell>
                     <TableCell>{rate.fuelSurcharge.toFixed(2)}</TableCell>
                     <TableCell>{rate.greenTaxCharge.toFixed(2)}</TableCell>
-                    <TableCell>{rate.cgst.toFixed(2)}</TableCell>
-                    <TableCell>{rate.sgst.toFixed(2)}</TableCell>
                     <TableCell>{rate.volumeWeightCharge.toFixed(2)}</TableCell>
                     <TableCell className="text-right">
                        <Button variant="ghost" size="icon" onClick={() => handleEditRate(rate)}>
@@ -264,7 +252,7 @@ export default function RateManagementPage() {
                 ))
               ) : (
                 <TableRow>
-                  <TableCell colSpan={9} className="h-24 text-center">
+                  <TableCell colSpan={7} className="h-24 text-center">
                     <div className="text-center py-8">
                         <Tags className="mx-auto h-12 w-12 text-muted-foreground" />
                         <h3 className="mt-4 text-lg font-semibold">No Rates Defined</h3>
@@ -280,3 +268,5 @@ export default function RateManagementPage() {
     </div>
   );
 }
+
+    
