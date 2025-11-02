@@ -45,10 +45,19 @@ function calculateFreightCharge(waybill: Waybill, rate: Rate): number {
     if (!rate) return 0;
     const chargeableWeight = waybill.chargeableWeight || waybill.packageWeight;
     
-    const baseAmount = (chargeableWeight * rate.volumeWeightCharge) + rate.docketCharge + rate.greenTaxCharge;
-    const fuelCharge = baseAmount * (rate.fuelSurcharge / 100);
-    const taxableAmount = baseAmount + fuelCharge;
+    // 1. Initial Sum
+    const initialSum = (chargeableWeight * rate.volumeWeightCharge) + rate.docketCharge + rate.greenTaxCharge;
+    
+    // 2. Fuel Surcharge
+    const fuelCharge = initialSum * (rate.fuelSurcharge / 100);
+
+    // 3. Taxable Amount
+    const taxableAmount = initialSum + fuelCharge;
+
+    // 4. GST
     const gstAmount = taxableAmount * 0.18; // 18% GST
+
+    // 5. Final Total
     const totalCharge = taxableAmount + gstAmount;
 
     return totalCharge;
@@ -142,14 +151,18 @@ export default function PartnerPaymentsPage() {
     const paymentMap = new Map<string, { count: number, totalPayment: number }>();
 
     filteredWaybills.forEach(wb => {
-      if (!wb.receiverState || !wb.senderState) return;
+      if (!wb.senderState || !wb.receiverState) return;
 
       const partner = bookingPartners.find(p => p.partnerCode === wb.partnerCode);
       if (!partner) return;
 
+      const senderState = wb.senderState.trim().toLowerCase();
+      const receiverState = wb.receiverState.trim().toLowerCase();
+
       const rate = rates.find(r => 
-          r.fromState?.trim().toLowerCase() === wb.senderState?.trim().toLowerCase() && 
-          r.toState?.trim().toLowerCase() === wb.receiverState?.trim().toLowerCase()
+          r && r.fromState && r.toState &&
+          r.fromState.trim().toLowerCase() === senderState && 
+          r.toState.trim().toLowerCase() === receiverState
       );
       if (!rate) return;
       
@@ -182,14 +195,18 @@ export default function PartnerPaymentsPage() {
     deliveryManifests.forEach(manifest => {
         manifest.waybillIds.forEach(wbId => {
             const wb = filteredWaybills.find(w => w.id === wbId);
-            if (!wb || !wb.receiverState || !wb.senderState) return;
+            if (!wb || !wb.senderState || !wb.receiverState) return;
 
             const partner = deliveryPartners.find(p => p.partnerCode === manifest.deliveryPartnerCode);
             if (!partner) return;
 
+            const senderState = wb.senderState.trim().toLowerCase();
+            const receiverState = wb.receiverState.trim().toLowerCase();
+
             const rate = rates.find(r => 
-                r.fromState?.trim().toLowerCase() === wb.senderState?.trim().toLowerCase() && 
-                r.toState?.trim().toLowerCase() === wb.receiverState?.trim().toLowerCase()
+                r && r.fromState && r.toState &&
+                r.fromState.trim().toLowerCase() === senderState && 
+                r.toState.trim().toLowerCase() === receiverState
             );
             if (!rate) return;
 
@@ -314,7 +331,5 @@ export default function PartnerPaymentsPage() {
     </div>
   );
 }
-
-    
 
     
