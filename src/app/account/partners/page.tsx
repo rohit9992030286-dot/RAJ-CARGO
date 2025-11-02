@@ -44,11 +44,13 @@ const DELIVERY_COMMISSION = 0.24; // 24%
 function calculateFreightCharge(waybill: Waybill, rate: Rate): number {
     if (!rate) return 0;
     const chargeableWeight = waybill.chargeableWeight || waybill.packageWeight;
-
-    const baseFreight = (chargeableWeight * rate.volumeWeightCharge) + rate.docketCharge;
-    const fuelCharge = baseFreight * (rate.fuelSurcharge / 100);
-    const totalCharge = baseFreight + fuelCharge + rate.greenTaxCharge;
     
+    const baseAmount = (chargeableWeight * rate.volumeWeightCharge) + rate.docketCharge + rate.greenTaxCharge;
+    const fuelCharge = baseAmount * (rate.fuelSurcharge / 100);
+    const taxableAmount = baseAmount + fuelCharge;
+    const gstAmount = taxableAmount * 0.18; // 18% GST
+    const totalCharge = taxableAmount + gstAmount;
+
     return totalCharge;
 }
 
@@ -312,5 +314,7 @@ export default function PartnerPaymentsPage() {
     </div>
   );
 }
+
+    
 
     

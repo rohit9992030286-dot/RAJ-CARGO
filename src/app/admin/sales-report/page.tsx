@@ -43,10 +43,12 @@ function calculateFreightCharge(waybill: Waybill, rate: Rate): number {
     if (!rate) return 0;
     const chargeableWeight = waybill.chargeableWeight || waybill.packageWeight;
 
-    const baseFreight = (chargeableWeight * rate.volumeWeightCharge) + rate.docketCharge;
-    const fuelCharge = baseFreight * (rate.fuelSurcharge / 100);
-    const totalCharge = baseFreight + fuelCharge + rate.greenTaxCharge;
-    
+    const baseAmount = (chargeableWeight * rate.volumeWeightCharge) + rate.docketCharge + rate.greenTaxCharge;
+    const fuelCharge = baseAmount * (rate.fuelSurcharge / 100);
+    const taxableAmount = baseAmount + fuelCharge;
+    const gstAmount = taxableAmount * 0.18; // 18% GST
+    const totalCharge = taxableAmount + gstAmount;
+
     return totalCharge;
 }
 
@@ -78,6 +80,7 @@ export default function SalesReportPage() {
       const toDate = dateRange.to || dateRange.from;
 
       filteredWaybills = allWaybills.filter(w => {
+          if (!w.shippingDate) return false;
           const waybillDate = new Date(w.shippingDate);
           const toDateInclusive = new Date(toDate);
           toDateInclusive.setDate(toDateInclusive.getDate() + 1);
@@ -143,7 +146,7 @@ export default function SalesReportPage() {
     const excelBuffer = XLSX.write(workbook, { bookType: 'xlsx', type: 'array' });
     const data = new Blob([excelBuffer], {type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;charset=UTF-8'});
     
-    const dateString = dateRange?.from ? `${format(dateRange.from, 'yyyy-MM-dd')}_to_${format(dateRange.to || dateRange.from, 'yyyy-MM-dd')}` : 'all_time';
+    const dateString = dateRange?.from && dateRange.to ? `${format(dateRange.from, 'yyyy-MM-dd')}_to_${format(dateRange.to, 'yyyy-MM-dd')}` : 'all_time';
     saveAs(data, `sales_report_${dateString}.xlsx`);
   };
 
@@ -253,5 +256,7 @@ export default function SalesReportPage() {
     </div>
   );
 }
+
+    
 
     
