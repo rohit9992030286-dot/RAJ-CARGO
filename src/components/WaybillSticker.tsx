@@ -4,7 +4,6 @@
 import { Waybill } from '@/types/waybill';
 import { cn } from '@/lib/utils';
 import Barcode from 'react-barcode';
-import { Logo } from './Logo';
 
 interface WaybillStickerProps {
   waybill: Waybill;
@@ -13,6 +12,31 @@ interface WaybillStickerProps {
   totalBoxes?: number;
   storeCode?: string;
 }
+
+const PrintLogo = () => (
+    <div className="flex items-center gap-2">
+        <div className="relative h-10 w-10 flex items-center justify-center">
+            <svg 
+                width="40" 
+                height="40" 
+                viewBox="0 0 200 200" 
+                fill="none" 
+                xmlns="http://www.w3.org/2000/svg"
+                className="absolute"
+            >
+                {/* Bottom Wing */}
+                <path d="M 50,150 Q 90,110 150,130 L 110,180 Q 80,170 50,150 Z" fill="black" />
+                
+                {/* Top Wing */}
+                <path d="M 30,100 Q 100,20 180,80 L 130,140 Q 80,110 30,100 Z" fill="black" />
+            </svg>
+        </div>
+        <span className="text-2xl font-extrabold tracking-tight text-black">
+            RAJ CARGO
+        </span>
+    </div>
+);
+
 
 const CityName = ({ city, className }: { city: string, className?: string }) => {
     const cityName = (city || '').toUpperCase();
@@ -26,7 +50,6 @@ const CityName = ({ city, className }: { city: string, className?: string }) => 
         </p>
     )
 }
-
 
 export function WaybillSticker({ waybill, boxId, boxNumber, totalBoxes, storeCode }: WaybillStickerProps) {
   
@@ -45,7 +68,7 @@ export function WaybillSticker({ waybill, boxId, boxNumber, totalBoxes, storeCod
                 {/* Top Section: Branding, Date, Waybill */}
                 <div className="grid grid-cols-2 text-center border-b-2 border-black">
                      <div className="p-1 border-r border-black flex items-center justify-center">
-                        <Logo className="scale-75" />
+                        <PrintLogo />
                     </div>
                     <div className="p-1">
                         <p className="text-xs font-bold">DATE: {new Date(waybill.shippingDate).toLocaleDateString()}</p>
@@ -61,7 +84,7 @@ export function WaybillSticker({ waybill, boxId, boxNumber, totalBoxes, storeCod
                         <p className="text-sm font-semibold truncate text-center">{waybill.receiverName}</p>
                     </div>
                      <div className="w-full mt-1 pt-1 border-t border-black text-center">
-                        <p className="text-xs font-bold">FROM: <span className="font-medium">{waybill.senderName}</span></p>
+                        <p className="text-xs font-bold">FROM: <span className="font-medium">{waybill.senderCity.toUpperCase()}</span></p>
                     </div>
                 </div>
                 
