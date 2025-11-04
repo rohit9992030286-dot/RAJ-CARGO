@@ -18,20 +18,41 @@ function WaybillCopy({ waybill, copyType }: WaybillPrintProps) {
   const { users, isLoading: usersLoaded } = useAuth();
   
   const getPartnerInfo = () => {
-    if (!associationsLoaded || !usersLoaded) return { bookingPartner: 'N/A', deliveryPartner: 'N/A' };
+    if (!associationsLoaded || !usersLoaded || !waybill.partnerCode) {
+      return { bookingPartner: 'N/A', deliveryPartner: 'N/A' };
+    }
 
-    // 1. Get Booking Partner Name
+    // 1. Get Booking Partner Name from waybill's partnerCode
     const bookingUser = users.find(u => u.partnerCode === waybill.partnerCode);
-    const bookingPartner = bookingUser?.partnerName || waybill.partnerCode || 'N/A';
+    const bookingPartner = bookingUser?.partnerName || waybill.partnerCode;
 
-    // 2. Get Delivery Partner Name
-    const deliveryUser = users.find(u => 
-        (u.roles.includes('delivery') || u.roles.includes('hub')) &&
-        u.state?.trim().toLowerCase() === waybill.receiverState.trim().toLowerCase()
-    );
-    const deliveryPartner = deliveryUser?.partnerName || deliveryUser?.partnerCode || 'N/A';
+    // 2. Determine Delivery Partner through hub associations
+    let deliveryPartnerName = 'N/A';
+    // First, find the hub this booking partner sends to
+    const destinationHubCode = associations.bookingToHub[waybill.partnerCode];
+    if (destinationHubCode) {
+      // Then, find the delivery partner associated with that hub for the waybill's destination city/state.
+      // This is a simplification. A real system might have more complex routing rules.
+      // For now, let's find the primary delivery partner for that hub.
+      const deliveryPartnerCode = associations.hubToDelivery[destinationHubCode];
+      if (deliveryPartnerCode) {
+        const deliveryUser = users.find(u => u.partnerCode === deliveryPartnerCode);
+        deliveryPartnerName = deliveryUser?.partnerName || deliveryPartnerCode;
+      } else {
+        // Fallback if no specific delivery partner is set for the hub
+        const hubUser = users.find(u => u.partnerCode === destinationHubCode);
+        deliveryPartnerName = hubUser?.partnerName || destinationHubCode;
+      }
+    } else {
+        // Fallback for older data or direct delivery models
+        const deliveryUser = users.find(u => 
+            (u.roles.includes('delivery') || u.roles.includes('hub')) &&
+            u.state?.trim().toLowerCase() === waybill.receiverState.trim().toLowerCase()
+        );
+        deliveryPartnerName = deliveryUser?.partnerName || deliveryUser?.partnerCode || 'N/A';
+    }
     
-    return { bookingPartner, deliveryPartner };
+    return { bookingPartner, deliveryPartner: deliveryPartnerName };
   };
 
   const isDelivered = waybill.status === 'Delivered';
