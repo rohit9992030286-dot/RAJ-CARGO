@@ -4,6 +4,7 @@
 import { Waybill } from '@/types/waybill';
 import { cn } from '@/lib/utils';
 import Barcode from 'react-barcode';
+import { Logo } from './Logo';
 
 interface WaybillStickerProps {
   waybill: Waybill;
@@ -41,23 +42,27 @@ export function WaybillSticker({ waybill, boxId, boxNumber, totalBoxes, storeCod
         <div className="grid grid-cols-5 w-full h-full">
             {/* Left 4 columns */}
             <div className="col-span-4 border-r-2 border-black flex flex-col">
-                {/* Top Section: Sender / Date / Waybill */}
+                {/* Top Section: Branding, Date, Waybill */}
                 <div className="grid grid-cols-2 text-center border-b-2 border-black">
-                    <div className="p-1 border-r border-black">
-                        <p className="text-xs font-bold truncate">{waybill.senderName}</p>
+                     <div className="p-1 border-r border-black flex items-center justify-center">
+                        <Logo className="scale-75" />
                     </div>
                     <div className="p-1">
-                        <p className="text-xs font-bold">{new Date(waybill.shippingDate).toLocaleDateString()}</p>
+                        <p className="text-xs font-bold">DATE: {new Date(waybill.shippingDate).toLocaleDateString()}</p>
+                        <p className="font-bold text-sm">{waybill.waybillNumber}</p>
                     </div>
                 </div>
-                <div className="text-center border-b-2 border-black p-1">
-                    <p className="font-bold text-sm">{waybill.waybillNumber}</p>
-                </div>
                 
-                {/* Middle Section: Destination City */}
-                <div className="flex-grow flex flex-col items-center justify-center border-b-2 border-black">
-                    <CityName city={waybill.receiverCity} className="text-5xl"/>
-                    <p className="text-sm font-semibold truncate">{waybill.receiverName}</p>
+                {/* Middle Section: Destination City & Sender */}
+                <div className="flex-grow flex flex-col items-center justify-center border-b-2 border-black p-1">
+                    <div className="w-full">
+                        <p className="text-xs font-bold text-center">TO:</p>
+                        <CityName city={waybill.receiverCity} className="text-5xl"/>
+                        <p className="text-sm font-semibold truncate text-center">{waybill.receiverName}</p>
+                    </div>
+                     <div className="w-full mt-1 pt-1 border-t border-black text-center">
+                        <p className="text-xs font-bold">FROM: <span className="font-medium">{waybill.senderName}</span></p>
+                    </div>
                 </div>
                 
                 {/* Bottom Section: Barcode */}
