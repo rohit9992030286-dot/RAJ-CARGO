@@ -205,5 +205,3 @@ export function WaybillPrint({ waybill }: { waybill: Waybill }) {
     </div>
   );
 }
-
-    
