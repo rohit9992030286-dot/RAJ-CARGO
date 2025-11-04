@@ -2,7 +2,7 @@
 'use client';
 
 import { Waybill } from '@/types/waybill';
-import { Truck, User, MapPin, Phone, Calendar, Hash, Box, Weight, IndianRupee, Package, FileText, Globe, Cpu, CheckCircle, Wallet } from 'lucide-react';
+import { Truck, User, MapPin, Phone, Calendar, Hash, Box, Weight, IndianRupee, Package, FileText, Globe, Cpu, CheckCircle, Wallet, Briefcase } from 'lucide-react';
 import Barcode from 'react-barcode';
 import { usePartnerAssociations } from '@/hooks/usePartnerAssociations';
 import { useAuth } from '@/hooks/useAuth';
@@ -17,29 +17,25 @@ function WaybillCopy({ waybill, copyType }: WaybillPrintProps) {
   const { associations, isLoaded: associationsLoaded } = usePartnerAssociations();
   const { users, isLoading: usersLoaded } = useAuth();
   
-  const getHubName = () => {
-    if (!associationsLoaded || !usersLoaded) return 'N/A';
+  const getPartnerInfo = () => {
+    if (!associationsLoaded || !usersLoaded) return { bookingPartner: 'N/A', deliveryPartner: 'N/A' };
 
-    // Find a hub or delivery partner by matching receiver's state
-    const locationBasedPartner = users.find(u => 
-        (u.roles.includes('hub') || u.roles.includes('delivery')) &&
+    // 1. Get Booking Partner Name
+    const bookingUser = users.find(u => u.partnerCode === waybill.partnerCode);
+    const bookingPartner = bookingUser?.partnerName || waybill.partnerCode || 'N/A';
+
+    // 2. Get Delivery Partner Name
+    const deliveryUser = users.find(u => 
+        (u.roles.includes('delivery') || u.roles.includes('hub')) &&
         u.state?.trim().toLowerCase() === waybill.receiverState.trim().toLowerCase()
     );
-
-    if (locationBasedPartner) {
-        return locationBasedPartner.partnerName || locationBasedPartner.partnerCode;
-    }
+    const deliveryPartner = deliveryUser?.partnerName || deliveryUser?.partnerCode || 'N/A';
     
-    // Fallback to the direct booking-to-hub association if no location match is found
-    if (!waybill.partnerCode) return 'N/A';
-    const hubPartnerCode = associations.bookingToHub[waybill.partnerCode];
-    if (!hubPartnerCode) return 'N/A';
-    
-    const hubUser = users.find(u => u.partnerCode === hubPartnerCode);
-    return hubUser?.partnerName || hubPartnerCode;
+    return { bookingPartner, deliveryPartner };
   };
 
   const isDelivered = waybill.status === 'Delivered';
+  const { bookingPartner, deliveryPartner } = getPartnerInfo();
 
   return (
     <div className="bg-white text-black font-sans mx-auto print:shadow-none" style={{ fontSize: '10px', height: '12.5cm', width: '100%', display: 'flex', flexDirection: 'column' }}>
@@ -127,11 +123,15 @@ function WaybillCopy({ waybill, copyType }: WaybillPrintProps) {
                             <p className="text-[9px] truncate">{waybill.eWayBillNo || 'N/A'}</p>
                         </div>
                     </div>
-                     {/* Row 4 */}
-                    <div className="grid grid-cols-1 gap-1">
+                     {/* Row 4 - Partner Info */}
+                    <div className="grid grid-cols-2 gap-1">
                         <div className="p-1 border-2 border-black text-center">
-                            <p className="font-semibold text-black text-[9px]">Destination Hub</p>
-                            <p className="text-sm font-bold uppercase">{getHubName()}</p>
+                            <p className="font-semibold text-black text-[9px] flex items-center justify-center gap-1"><Briefcase className="h-2 w-2"/> Booking Partner</p>
+                            <p className="text-xs font-bold uppercase truncate">{bookingPartner}</p>
+                        </div>
+                        <div className="p-1 border-2 border-black text-center">
+                            <p className="font-semibold text-black text-[9px] flex items-center justify-center gap-1"><Truck className="h-2 w-2"/> Delivery Partner</p>
+                            <p className="text-xs font-bold uppercase truncate">{deliveryPartner}</p>
                         </div>
                     </div>
                 </div>
