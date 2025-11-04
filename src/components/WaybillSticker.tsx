@@ -14,27 +14,16 @@ interface WaybillStickerProps {
 }
 
 const CityName = ({ city }: { city: string }) => {
+    const cityName = (city || '').toUpperCase();
+    const isLong = cityName.length > 10;
     return (
-        <div className="w-full text-center">
-            <svg
-                viewBox="0 0 200 20"
-                preserveAspectRatio="xMidYMid meet"
-                className="w-full h-[36px]"
-            >
-                <text
-                    x="100"
-                    y="15"
-                    fill="black"
-                    fontSize="20"
-                    fontWeight="bolder"
-                    textAnchor="middle"
-                    dominantBaseline="middle"
-                    lengthAdjust="spacingAndGlyphs"
-                    textLength={city.length > 10 ? "190" : undefined}
-                >
-                    {(city || '').toUpperCase()}
-                </text>
-            </svg>
+        <div className="w-full text-center h-[36px] flex items-center justify-center overflow-hidden">
+            <p className={cn(
+                "font-black tracking-tighter leading-none",
+                isLong ? "text-2xl" : "text-4xl"
+            )}>
+                {cityName}
+            </p>
         </div>
     )
 }
