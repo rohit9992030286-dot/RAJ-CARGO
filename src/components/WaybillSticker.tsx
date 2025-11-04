@@ -14,11 +14,11 @@ interface WaybillStickerProps {
 }
 
 const PrintLogo = () => (
-    <div className="flex items-center gap-2">
-        <div className="relative h-10 w-10 flex items-center justify-center">
+    <div className="flex items-center gap-1">
+        <div className="relative h-8 w-8 flex items-center justify-center">
             <svg 
-                width="40" 
-                height="40" 
+                width="32" 
+                height="32" 
                 viewBox="0 0 200 200" 
                 fill="none" 
                 xmlns="http://www.w3.org/2000/svg"
@@ -31,7 +31,7 @@ const PrintLogo = () => (
                 <path d="M 30,100 Q 100,20 180,80 L 130,140 Q 80,110 30,100 Z" fill="black" />
             </svg>
         </div>
-        <span className="text-xl font-extrabold tracking-tight text-black">
+        <span className="text-lg font-extrabold tracking-tight text-black">
             RAJ CARGO
         </span>
     </div>
@@ -53,7 +53,7 @@ const CityName = ({ city, className }: { city: string, className?: string }) => 
 
 export function WaybillSticker({ waybill, boxId, boxNumber, totalBoxes, storeCode }: WaybillStickerProps) {
   
-  const sizeClasses = 'w-[73mm] h-[73mm] p-1';
+  const sizeClasses = 'w-[75mm] h-[75mm] p-1';
   const baseClasses = "bg-white text-black font-sans flex flex-col border-2 border-black print:border-2 print:shadow-none";
 
   const barcodeValue = boxId || `${waybill.waybillNumber}-${boxNumber || 1}`;

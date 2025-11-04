@@ -12,21 +12,14 @@ import { cn } from '@/lib/utils';
 
 
 type Theme = 'light' | 'dark' | 'system';
-type StickerSize = '75mm' | 'custom';
 
 function SettingsPageContent() {
   const { toast } = useToast();
   const [theme, setTheme] = useState<Theme>('system');
-  const [stickerSize, setStickerSize] = useState<StickerSize>('75mm');
 
   useEffect(() => {
     const storedTheme = localStorage.getItem('rajcargo-theme') as Theme | null;
     if (storedTheme) setTheme(storedTheme);
-
-    const storedStickerSize = localStorage.getItem('rajcargo-stickerSize') as StickerSize | null;
-    if (storedStickerSize) setStickerSize(storedStickerSize);
-
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const handleThemeChange = (newTheme: Theme) => {
@@ -44,14 +37,6 @@ function SettingsPageContent() {
     });
   };
   
-   const handleStickerSizeChange = (newSize: StickerSize) => {
-    setStickerSize(newSize);
-    localStorage.setItem('rajcargo-stickerSize', newSize);
-    toast({
-      title: 'Sticker Size Updated',
-      description: `Default sticker size set to ${newSize === 'custom' ? 'Custom (9cm x 7.3cm)' : '75mm x 75mm'}.`,
-    });
-  };
 
   return (
     <div className="space-y-8 max-w-4xl mx-auto">
@@ -85,36 +70,6 @@ function SettingsPageContent() {
                         <span>System</span>
                     </Label>
                 </RadioGroup>
-              </div>
-               <div>
-                  <Label className="font-medium">Sticker Print Size</Label>
-                  <p className="text-sm text-muted-foreground">Choose the default paper size for printing stickers.</p>
-                  <RadioGroup value={stickerSize} onValueChange={(value: StickerSize) => handleStickerSizeChange(value)} className="grid grid-cols-2 gap-4 mt-2">
-                      <Label
-                          htmlFor="size-75mm"
-                          className={cn(
-                              "flex flex-col items-center justify-center rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground",
-                              stickerSize === '75mm' && "border-primary"
-                          )}
-                      >
-                          <RadioGroupItem value="75mm" id="size-75mm" className="sr-only" />
-                          <Printer className="h-6 w-6 mb-2" />
-                          <span>75mm x 75mm</span>
-                          <span className="text-xs text-muted-foreground">Square</span>
-                      </Label>
-                      <Label
-                          htmlFor="size-custom"
-                          className={cn(
-                              "flex flex-col items-center justify-center rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground",
-                              stickerSize === 'custom' && "border-primary"
-                          )}
-                      >
-                          <RadioGroupItem value="custom" id="size-custom" className="sr-only" />
-                          <Printer className="h-6 w-6 mb-2" />
-                          <span>9cm x 7.3cm</span>
-                          <span className="text-xs text-muted-foreground">Custom</span>
-                      </Label>
-                  </RadioGroup>
               </div>
           </CardContent>
       </Card>
