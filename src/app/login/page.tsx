@@ -49,7 +49,19 @@ function LoginPageContent() {
     if (loggedInUser) {
       toast({ title: 'Login Successful', description: 'Welcome back!' });
       
-      router.push('/dashboard');
+      if (loggedInUser.role === 'admin') {
+        router.push('/dashboard');
+      } else if (loggedInUser.roles?.includes('booking')) {
+        router.push('/booking');
+      } else if (loggedInUser.roles?.includes('hub')) {
+        router.push('/hub');
+      } else if (loggedInUser.roles?.includes('delivery')) {
+        router.push('/delivery');
+      } else if (loggedInUser.roles?.includes('account')) {
+        router.push('/account');
+      } else {
+        router.push('/dashboard');
+      }
 
     } else {
       toast({ title: 'Login Failed', description: 'Invalid username or password.', variant: 'destructive' });
