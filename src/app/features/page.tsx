@@ -1,14 +1,15 @@
+
 'use client';
 
 import { PublicPageLayout } from "@/components/PublicPageLayout";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
-import { Track, Search, BookCopy, Truck, Cpu, ScanLine, DollarSign, Users, Shield, ArrowRight, Package, List, History, Handshake, Building, Map } from "lucide-react";
+import { Search, BookCopy, Truck, Cpu, ScanLine, DollarSign, Users, Shield, ArrowRight, Package, List, History, Handshake, Building, Map } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const features = [
     {
         category: "For Customers",
-        icon: Track,
+        icon: Search,
         iconBg: "bg-blue-100 dark:bg-blue-900/50",
         iconColor: "text-blue-600 dark:text-blue-300",
         items: [
