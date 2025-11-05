@@ -1,10 +1,10 @@
+
 'use client';
 
 import { useEffect, useRef, useState, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { useWaybills } from '@/hooks/useWaybills';
 import { WaybillSticker } from '@/components/WaybillSticker';
-import { WaybillStickerCustom } from '@/components/WaybillStickerCustom';
 import { Waybill } from '@/types/waybill';
 import { DataProvider } from '@/components/DataContext';
 import { Loader2 } from 'lucide-react';
@@ -13,15 +13,10 @@ function PrintStickersContent() {
   const searchParams = useSearchParams();
   const { getWaybillById, isLoaded } = useWaybills();
   const [waybillsToPrint, setWaybillsToPrint] = useState<Waybill[]>([]);
-  const [stickerSize, setStickerSize] = useState('75mm');
   const printTriggered = useRef(false);
 
   useEffect(() => {
     const source = searchParams.get('source');
-    const storedSize = localStorage.getItem('rajcargo-stickerSize');
-    if (storedSize) {
-      setStickerSize(storedSize);
-    }
 
     if (source === 'excel') {
         const stickerData = sessionStorage.getItem('rajcargo-excel-sticker');
@@ -76,12 +71,10 @@ function PrintStickersContent() {
     }
   });
 
-  const StickerComponent = stickerSize === 'custom' ? WaybillStickerCustom : WaybillSticker;
-
   const printStyles = `
     @media print {
       @page {
-        size: ${stickerSize === '75mm' ? '75mm 75mm' : '9cm 7.3cm'};
+        size: 75mm 75mm;
         margin: 0;
       }
       html, body {
@@ -110,7 +103,7 @@ function PrintStickersContent() {
       <div className="bg-white">
         {allStickers.map(({ waybill, boxNumber, totalBoxes }, index) => (
           <div key={`${waybill.id}-${boxNumber}`} className="sticker-container">
-              <StickerComponent
+              <WaybillSticker
                 waybill={waybill}
                 boxNumber={boxNumber}
                 totalBoxes={totalBoxes}
