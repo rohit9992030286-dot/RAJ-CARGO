@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useEffect, useRef, useState, Suspense } from 'react';
@@ -14,10 +13,15 @@ function PrintStickersContent() {
   const searchParams = useSearchParams();
   const { getWaybillById, isLoaded } = useWaybills();
   const [waybillsToPrint, setWaybillsToPrint] = useState<Waybill[]>([]);
+  const [stickerSize, setStickerSize] = useState('75mm');
   const printTriggered = useRef(false);
 
   useEffect(() => {
     const source = searchParams.get('source');
+    const storedSize = localStorage.getItem('rajcargo-stickerSize');
+    if (storedSize) {
+      setStickerSize(storedSize);
+    }
 
     if (source === 'excel') {
         const stickerData = sessionStorage.getItem('rajcargo-excel-sticker');
@@ -72,15 +76,17 @@ function PrintStickersContent() {
     }
   });
 
+  const StickerComponent = stickerSize === 'custom' ? WaybillStickerCustom : WaybillSticker;
+
   const printStyles = `
     @media print {
       @page {
-        size: 75mm 75mm;
+        size: ${stickerSize === '75mm' ? '75mm 75mm' : '9cm 7.3cm'};
         margin: 0;
       }
       html, body {
-        width: 75mm;
-        height: 75mm;
+        width: 100%;
+        height: 100%;
         margin: 0;
         padding: 0;
         -webkit-print-color-adjust: exact;
@@ -104,7 +110,7 @@ function PrintStickersContent() {
       <div className="bg-white">
         {allStickers.map(({ waybill, boxNumber, totalBoxes }, index) => (
           <div key={`${waybill.id}-${boxNumber}`} className="sticker-container">
-              <WaybillSticker 
+              <StickerComponent
                 waybill={waybill}
                 boxNumber={boxNumber}
                 totalBoxes={totalBoxes}

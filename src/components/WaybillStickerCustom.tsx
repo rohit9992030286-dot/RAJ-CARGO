@@ -1,4 +1,3 @@
-
 'use client';
 
 import { Waybill } from '@/types/waybill';
