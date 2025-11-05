@@ -42,17 +42,6 @@ export default function RootLayout({
         />
       </head>
       <body className="font-body antialiased bg-background">
-          <div className="fixed inset-0 w-full h-full -z-10 overflow-hidden">
-            <Image
-                src="https://images.unsplash.com/photo-1554189097-90d3aa583c26?q=80&w=2940&auto=format&fit=crop"
-                alt="Abstract background"
-                data-ai-hint="abstract background"
-                fill
-                className="object-cover opacity-10 dark:opacity-[0.03]"
-                quality={90}
-                priority
-            />
-          </div>
           <AuthProvider>
             <GlobalKeyboardShortcuts />
             {children}

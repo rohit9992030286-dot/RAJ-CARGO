@@ -31,7 +31,7 @@ const PrintLogo = () => (
                 <path d="M 30,100 Q 100,20 180,80 L 130,140 Q 80,110 30,100 Z" fill="black" />
             </svg>
         </div>
-        <span className="text-lg font-extrabold tracking-tight text-black">
+        <span className="text-[10px] font-extrabold tracking-tight text-black">
             RAJ CARGO
         </span>
     </div>

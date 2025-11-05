@@ -462,7 +462,3 @@ function WaybillsPageContent() {
 export default function WaybillsPage() {
     return <WaybillsPageContent />;
 }
-
-    
-
-    

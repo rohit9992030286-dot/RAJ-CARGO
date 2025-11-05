@@ -1,0 +1,133 @@
+
+'use client';
+
+import { useEffect, useRef, useState, Suspense } from 'react';
+import { useSearchParams } from 'next/navigation';
+import { useWaybills } from '@/hooks/useWaybills';
+import { WaybillSticker } from '@/components/WaybillSticker';
+import { WaybillStickerCustom } from '@/components/WaybillStickerCustom';
+import { Waybill } from '@/types/waybill';
+import { DataProvider } from '@/components/DataContext';
+import { Loader2 } from 'lucide-react';
+
+function PrintStickersContent() {
+  const searchParams = useSearchParams();
+  const { getWaybillById, isLoaded } = useWaybills();
+  const [waybillsToPrint, setWaybillsToPrint] = useState<Waybill[]>([]);
+  const printTriggered = useRef(false);
+
+  useEffect(() => {
+    const source = searchParams.get('source');
+
+    if (source === 'excel') {
+        const stickerData = sessionStorage.getItem('rajcargo-excel-sticker');
+        if (stickerData) {
+            const parsedData = JSON.parse(stickerData);
+            // The data is a partial waybill, so we cast it.
+            // The sticker component only needs a few fields.
+            setWaybillsToPrint([parsedData as Waybill]);
+        }
+    } else if (isLoaded) {
+      const ids = searchParams.get('ids')?.split(',') || [];
+      const waybills = ids.map(id => getWaybillById(id)).filter((w): w is Waybill => !!w);
+      
+      // Sort by receiver city
+      waybills.sort((a, b) => {
+        const cityA = (a.receiverCity || '').toUpperCase();
+        const cityB = (b.receiverCity || '').toUpperCase();
+        if (cityA < cityB) return -1;
+        if (cityA > cityB) return 1;
+        // Then by waybill number
+        return a.waybillNumber.localeCompare(b.waybillNumber, undefined, { numeric: true });
+      });
+
+      setWaybillsToPrint(waybills);
+    }
+    
+  }, [isLoaded, searchParams, getWaybillById]);
+
+  useEffect(() => {
+    if (waybillsToPrint.length > 0 && !printTriggered.current) {
+      printTriggered.current = true;
+      const timer = setTimeout(() => {
+        window.print();
+      }, 500);
+      return () => clearTimeout(timer);
+    }
+  }, [waybillsToPrint]);
+
+  if ((!isLoaded && !searchParams.get('source')) || waybillsToPrint.length === 0) {
+    return (
+      <div className="flex justify-center items-center h-screen bg-white">
+        <Loader2 className="h-16 w-16 animate-spin text-primary" />
+      </div>
+    );
+  }
+
+  const allStickers: { waybill: Waybill; boxNumber: number; totalBoxes: number }[] = [];
+  waybillsToPrint.forEach(waybill => {
+    const totalBoxes = waybill.numberOfBoxes || 1;
+    for (let i = 1; i <= totalBoxes; i++) {
+        allStickers.push({ waybill, boxNumber: i, totalBoxes });
+    }
+  });
+
+  const printStyles = `
+    @media print {
+      @page {
+        size: 75mm 75mm;
+        margin: 0;
+      }
+      html, body {
+        width: 75mm;
+        height: 75mm;
+        margin: 0;
+        padding: 0;
+        -webkit-print-color-adjust: exact;
+      }
+      .sticker-container {
+        page-break-after: always;
+        width: 100%;
+        height: 100%;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        box-sizing: border-box;
+      }
+    }
+  `;
+
+
+  return (
+    <>
+      <style>{printStyles}</style>
+      <div className="bg-white">
+        {allStickers.map(({ waybill, boxNumber, totalBoxes }, index) => (
+          <div key={`${waybill.id}-${boxNumber}`} className="sticker-container">
+              <WaybillSticker 
+                waybill={waybill}
+                boxNumber={boxNumber}
+                totalBoxes={totalBoxes}
+              />
+          </div>
+        ))}
+      </div>
+    </>
+  );
+}
+
+function PrintStickersPageWrapper() {
+    return (
+        <Suspense fallback={<div className="flex justify-center items-center h-screen bg-white"><Loader2 className="h-16 w-16 animate-spin text-primary" /></div>}>
+            <PrintStickersContent />
+        </Suspense>
+    )
+}
+
+export default function PrintStickersPage() {
+    return (
+        <DataProvider>
+           <PrintStickersPageWrapper />
+        </DataProvider>
+    )
+}
