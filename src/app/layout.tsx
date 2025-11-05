@@ -5,6 +5,7 @@ import Image from 'next/image';
 import './globals.css';
 import { Toaster } from "@/components/ui/toaster"
 import { AuthProvider } from '@/hooks/useAuth.tsx';
+import { GlobalKeyboardShortcuts } from '@/components/GlobalKeyboardShortcuts';
 
 export const metadata: Metadata = {
   title: 'RAJ CARGO',
@@ -53,6 +54,7 @@ export default function RootLayout({
             />
           </div>
           <AuthProvider>
+            <GlobalKeyboardShortcuts />
             {children}
           </AuthProvider>
           <Toaster />
