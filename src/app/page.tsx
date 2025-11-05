@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState } from 'react';
@@ -9,7 +8,7 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { useWaybills } from '@/hooks/useWaybills';
 import { Waybill } from '@/types/waybill';
-import { Search, Package, CheckCircle, Truck, XCircle, Loader2, ArrowRight, LogIn, Info, FileText } from 'lucide-react';
+import { Search, Package, CheckCircle, Truck, XCircle, Loader2, ArrowRight, LogIn, Info, FileText, Star } from 'lucide-react';
 import { DataProvider } from '@/components/DataContext';
 import { format } from 'date-fns';
 import { Logo } from '@/components/Logo';
@@ -149,6 +148,12 @@ export default function Home() {
                         <Logo />
                     </div>
                     <div className="flex items-center gap-2">
+                         <Link href="/features">
+                            <Button variant="ghost">
+                                <Star className="mr-2 h-5 w-5" />
+                                Features
+                            </Button>
+                        </Link>
                          <Link href="/about">
                             <Button variant="ghost">
                                 <Info className="mr-2 h-5 w-5" />
