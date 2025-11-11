@@ -45,18 +45,18 @@ const CityName = ({ city }: { city: string }) => {
     const cityName = (city || '').toUpperCase();
     
     return (
-        <p className="w-full text-center font-black tracking-tighter leading-none p-1 text-[2.75rem] flex items-center justify-center h-16">
-           <span className="truncate">{cityName}</span>
-        </p>
+        <div className="w-full text-center font-black tracking-tighter leading-none p-1 text-[2.75rem] flex items-center justify-center h-16">
+           <span className="whitespace-nowrap overflow-hidden text-ellipsis min-w-0">{cityName}</span>
+        </div>
     )
 }
 
 const PartnerName = ({ name }: { name?: string }) => {
     if (!name) return null;
     return (
-        <p className="text-center font-semibold text-xs leading-tight break-words h-6 flex items-center justify-center">
+        <div className="text-center font-semibold text-xs leading-tight break-words h-6 flex items-center justify-center">
             <span className="truncate">{name.toUpperCase()}</span>
-        </p>
+        </div>
     )
 }
 
@@ -64,7 +64,7 @@ const PartnerName = ({ name }: { name?: string }) => {
 export function WaybillSticker({ waybill, boxId, boxNumber, totalBoxes, storeCode, bookingPartnerName, deliveryPartnerName }: WaybillStickerProps) {
   
   const sizeClasses = 'w-[75mm] h-[75mm]';
-  const baseClasses = "bg-black text-black font-sans print:shadow-none flex items-center justify-center";
+  const baseClasses = "bg-black text-black font-sans print:shadow-none flex items-center justify-center p-[2mm]";
 
   const barcodeValue = boxId || `${waybill.waybillNumber}-${boxNumber || 1}`;
   const finalTotalBoxes = totalBoxes || waybill.numberOfBoxes;
@@ -72,7 +72,7 @@ export function WaybillSticker({ waybill, boxId, boxNumber, totalBoxes, storeCod
 
   return (
     <div className={cn(baseClasses, sizeClasses)}>
-        <div className="w-[70mm] h-[70mm] bg-white p-[1mm]">
+        <div className="w-full h-full bg-white p-[1mm]">
             <div className="grid grid-cols-5 w-full h-full">
                 {/* Left 4 columns */}
                 <div className="col-span-4 border-r-2 border-black flex flex-col">
@@ -92,23 +92,28 @@ export function WaybillSticker({ waybill, boxId, boxNumber, totalBoxes, storeCod
                         <div className="w-full text-center">
                             <p className="text-xs font-bold">TO:</p>
                             <CityName city={waybill.receiverCity} />
-                            <p className="text-sm font-semibold truncate h-5 flex items-center justify-center">{waybill.receiverName}</p>
+                            <div className="text-sm font-semibold truncate h-5 flex items-center justify-center">{waybill.receiverName}</div>
                         </div>
                         <div className="w-full mt-1 pt-1 border-t border-black text-center">
-                            <p className="text-xs font-bold">FROM: <span className="font-medium">{waybill.senderCity.toUpperCase()}</span></p>
+                            <p className="text-xs font-bold">FROM:</p>
+                            <div className="text-sm font-semibold truncate h-5 flex items-center justify-center">
+                                {waybill.senderCity.toUpperCase()}
+                            </div>
                         </div>
                     </div>
                     
                     {/* Bottom Section: Barcode */}
                     <div className="flex flex-col items-center justify-center p-1 h-[40px]">
                         <div className="h-[28px] w-full flex items-center justify-center">
-                            <Barcode 
-                                value={barcodeValue} 
-                                height={28} 
-                                displayValue={false} 
-                                width={1.5} 
-                                margin={0}
-                            />
+                           <div className="w-full h-full flex items-center justify-center">
+                                <Barcode 
+                                    value={barcodeValue} 
+                                    height={28} 
+                                    displayValue={false} 
+                                    width={1.5} 
+                                    margin={0}
+                                />
+                            </div>
                         </div>
                         <p className="text-[10px] tracking-widest font-mono">{barcodeValue}</p>
                     </div>
