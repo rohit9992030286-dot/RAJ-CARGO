@@ -4,6 +4,7 @@
 import { Waybill } from '@/types/waybill';
 import { cn } from '@/lib/utils';
 import Barcode from 'react-barcode';
+import { ArrowRight } from 'lucide-react';
 
 interface WaybillStickerProps {
   waybill: Waybill;
@@ -55,7 +56,7 @@ const CityName = ({ city, className }: { city: string, className?: string }) => 
 
 export function WaybillSticker({ waybill, boxId, boxNumber, totalBoxes, storeCode, bookingPartnerName, deliveryPartnerName }: WaybillStickerProps) {
   
-  const sizeClasses = 'w-[75mm] h-[75mm] p-[4mm]';
+  const sizeClasses = 'w-[75mm] h-[75mm] p-[2mm]';
   const baseClasses = "bg-black text-black font-sans print:shadow-none";
 
   const barcodeValue = boxId || `${waybill.waybillNumber}-${boxNumber || 1}`;
@@ -84,7 +85,6 @@ export function WaybillSticker({ waybill, boxId, boxNumber, totalBoxes, storeCod
                         <p className="text-xs font-bold text-center">TO:</p>
                         <div className='flex justify-center items-baseline gap-2'>
                           <CityName city={waybill.receiverCity} className="text-5xl"/>
-                          {deliveryPartnerName && <span className="font-bold text-lg">{deliveryPartnerName}</span>}
                         </div>
                         <p className="text-sm font-semibold truncate text-center">{waybill.receiverName}</p>
                     </div>
@@ -95,6 +95,7 @@ export function WaybillSticker({ waybill, boxId, boxNumber, totalBoxes, storeCod
                 
                 {/* Bottom Section: Barcode */}
                 <div className="flex flex-col items-center justify-center p-1">
+                     <p className="text-sm font-bold">Box {finalBoxNumber} of {finalTotalBoxes}</p>
                     <Barcode 
                       value={barcodeValue} 
                       height={25} 
@@ -106,23 +107,11 @@ export function WaybillSticker({ waybill, boxId, boxNumber, totalBoxes, storeCod
                 </div>
             </div>
 
-            {/* Right 1 column for Box Count */}
-            <div className="col-span-1 flex flex-col items-center justify-center text-center">
-                {bookingPartnerName && (
-                    <div className="mb-2 pb-1 border-b border-black w-full">
-                        <p className="text-xs font-bold leading-tight">{bookingPartnerName}</p>
-                    </div>
-                )}
-                <p className="text-xs uppercase font-bold">Box</p>
-                <p className="font-black text-4xl leading-none">{finalBoxNumber}</p>
-                <p className="text-sm font-bold">of</p>
-                <p className="font-black text-4xl leading-none">{finalTotalBoxes}</p>
-                 {storeCode && (
-                    <div className="mt-2 pt-1 border-t border-black w-full">
-                        <p className="text-xs uppercase font-bold">Store</p>
-                        <p className="text-lg font-bold">{storeCode}</p>
-                    </div>
-                 )}
+            {/* Right 1 column for Partner Route */}
+            <div className="col-span-1 flex flex-col items-center justify-center text-center p-1">
+                <p className="text-xl font-bold leading-tight">{bookingPartnerName}</p>
+                <ArrowRight className="h-6 w-6 my-2"/>
+                <p className="text-xl font-bold leading-tight">{deliveryPartnerName}</p>
             </div>
         </div>
     </div>
