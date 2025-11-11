@@ -43,9 +43,15 @@ const PrintLogo = () => (
 
 const CityName = ({ city }: { city: string }) => {
     const cityName = (city || '').toUpperCase();
+    const isLong = cityName.length > 10;
     
     return (
-        <p className="w-full text-center font-black tracking-tighter leading-none p-1 text-5xl">
+        <p 
+          className={cn(
+            "w-full text-center font-black tracking-tighter leading-none p-1",
+            isLong ? "text-4xl" : "text-5xl"
+          )}
+        >
             {cityName}
         </p>
     )
@@ -53,8 +59,8 @@ const CityName = ({ city }: { city: string }) => {
 
 export function WaybillSticker({ waybill, boxId, boxNumber, totalBoxes, storeCode, bookingPartnerName, deliveryPartnerName }: WaybillStickerProps) {
   
-  const sizeClasses = 'w-[75mm] h-[75mm] p-[4mm]'; // Increased padding for a thicker border
-  const baseClasses = "bg-black text-black font-sans print:shadow-none";
+  const sizeClasses = 'w-[75mm] h-[75mm] p-[6mm]';
+  const baseClasses = "bg-black text-black font-sans print:shadow-none flex items-center justify-center";
 
   const barcodeValue = boxId || `${waybill.waybillNumber}-${boxNumber || 1}`;
   const finalTotalBoxes = totalBoxes || waybill.numberOfBoxes;
@@ -72,18 +78,16 @@ export function WaybillSticker({ waybill, boxId, boxNumber, totalBoxes, storeCod
                     </div>
                     <div className="p-1">
                         <p className="text-xs font-bold">DATE: {new Date(waybill.shippingDate).toLocaleDateString()}</p>
-                        <p className="font-bold text-sm">{waybill.waybillNumber}</p>
+                        <p className="font-bold text-xs">{waybill.waybillNumber} ({finalBoxNumber}/{finalTotalBoxes})</p>
                     </div>
                 </div>
                 
                 {/* Middle Section: Destination City & Sender */}
                 <div className="flex-grow flex flex-col items-center justify-center border-b-2 border-black p-1">
-                    <div className="w-full">
-                        <p className="text-xs font-bold text-center">TO:</p>
-                        <div className='flex justify-center items-baseline gap-2'>
-                          <CityName city={waybill.receiverCity} />
-                        </div>
-                        <p className="text-sm font-semibold truncate text-center">{waybill.receiverName}</p>
+                    <div className="w-full text-center">
+                        <p className="text-xs font-bold">TO:</p>
+                        <CityName city={waybill.receiverCity} />
+                        <p className="text-sm font-semibold truncate">{waybill.receiverName}</p>
                     </div>
                      <div className="w-full mt-1 pt-1 border-t border-black text-center">
                         <p className="text-xs font-bold">FROM: <span className="font-medium">{waybill.senderCity.toUpperCase()}</span></p>
@@ -105,16 +109,14 @@ export function WaybillSticker({ waybill, boxId, boxNumber, totalBoxes, storeCod
 
             {/* Right 1 column for Partner Route */}
             <div className="col-span-1 flex flex-col items-center justify-center text-center p-1 space-y-1">
-                <p className="text-xs font-bold">BOX</p>
-                <p className="text-2xl font-black leading-none">{finalBoxNumber}/{finalTotalBoxes}</p>
-                <div className="w-full border-b border-black my-1"></div>
-                <div className="flex flex-col items-center justify-center" style={{lineHeight: '1.1'}}>
-                    <p className="text-xs font-bold break-all">{bookingPartnerName}</p>
-                    <ArrowRight className="h-4 w-4 my-0.5"/>
-                    <p className="text-xs font-bold break-all">{deliveryPartnerName}</p>
+                <div className="flex flex-col items-center justify-center" style={{lineHeight: '1.2'}}>
+                    <p className="text-xs font-bold break-words">{bookingPartnerName}</p>
+                    <ArrowRight className="h-4 w-4 my-1"/>
+                    <p className="text-xs font-bold break-words">{deliveryPartnerName}</p>
                 </div>
             </div>
         </div>
     </div>
   );
 }
+
