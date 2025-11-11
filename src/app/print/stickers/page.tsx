@@ -8,10 +8,15 @@ import { WaybillSticker } from '@/components/WaybillSticker';
 import { Waybill } from '@/types/waybill';
 import { DataProvider } from '@/components/DataContext';
 import { Loader2 } from 'lucide-react';
+import { useAuth } from '@/hooks/useAuth';
+import { usePartnerAssociations } from '@/hooks/usePartnerAssociations';
 
 function PrintStickersContent() {
   const searchParams = useSearchParams();
   const { getWaybillById, isLoaded } = useWaybills();
+  const { users, isLoading: usersLoading } = useAuth();
+  const { associations, isLoaded: associationsLoaded } = usePartnerAssociations();
+
   const [waybillsToPrint, setWaybillsToPrint] = useState<Waybill[]>([]);
   const printTriggered = useRef(false);
 
@@ -22,21 +27,17 @@ function PrintStickersContent() {
         const stickerData = sessionStorage.getItem('rajcargo-excel-sticker');
         if (stickerData) {
             const parsedData = JSON.parse(stickerData);
-            // The data is a partial waybill, so we cast it.
-            // The sticker component only needs a few fields.
             setWaybillsToPrint([parsedData as Waybill]);
         }
     } else if (isLoaded) {
       const ids = searchParams.get('ids')?.split(',') || [];
       const waybills = ids.map(id => getWaybillById(id)).filter((w): w is Waybill => !!w);
       
-      // Sort by receiver city
       waybills.sort((a, b) => {
         const cityA = (a.receiverCity || '').toUpperCase();
         const cityB = (b.receiverCity || '').toUpperCase();
         if (cityA < cityB) return -1;
         if (cityA > cityB) return 1;
-        // Then by waybill number
         return a.waybillNumber.localeCompare(b.waybillNumber, undefined, { numeric: true });
       });
 
@@ -46,16 +47,16 @@ function PrintStickersContent() {
   }, [isLoaded, searchParams, getWaybillById]);
 
   useEffect(() => {
-    if (waybillsToPrint.length > 0 && !printTriggered.current) {
+    if (waybillsToPrint.length > 0 && !printTriggered.current && !usersLoading && associationsLoaded) {
       printTriggered.current = true;
       const timer = setTimeout(() => {
         window.print();
       }, 500);
       return () => clearTimeout(timer);
     }
-  }, [waybillsToPrint]);
+  }, [waybillsToPrint, usersLoading, associationsLoaded]);
 
-  if ((!isLoaded && !searchParams.get('source')) || waybillsToPrint.length === 0) {
+  if ((!isLoaded && !searchParams.get('source')) || waybillsToPrint.length === 0 || usersLoading || !associationsLoaded) {
     return (
       <div className="flex justify-center items-center h-screen bg-white">
         <Loader2 className="h-16 w-16 animate-spin text-primary" />
@@ -71,6 +72,31 @@ function PrintStickersContent() {
     }
   });
 
+  const getPartnerInfo = (waybill: Waybill) => {
+    if (!waybill.partnerCode) {
+      return { bookingPartnerName: 'N/A', deliveryPartnerName: 'N/A' };
+    }
+
+    const bookingUser = users.find(u => u.partnerCode === waybill.partnerCode);
+    const bookingPartnerName = bookingUser?.username || waybill.partnerCode;
+
+    let deliveryPartnerName = 'N/A';
+    const destinationHubCode = associations.bookingToHub[waybill.partnerCode];
+    
+    if (destinationHubCode) {
+      const deliveryPartnerCode = associations.hubToDelivery[destinationHubCode];
+      if (deliveryPartnerCode) {
+        const deliveryUser = users.find(u => u.partnerCode === deliveryPartnerCode);
+        deliveryPartnerName = deliveryUser?.username || deliveryPartnerCode;
+      } else {
+        const hubUser = users.find(u => u.partnerCode === destinationHubCode);
+        deliveryPartnerName = hubUser?.username || destinationHubCode;
+      }
+    }
+    
+    return { bookingPartnerName, deliveryPartnerName };
+  };
+
   const printStyles = `
     @media print {
       @page {
@@ -78,8 +104,8 @@ function PrintStickersContent() {
         margin: 0;
       }
       html, body {
-        width: 100%;
-        height: 100%;
+        width: 75mm;
+        height: 75mm;
         margin: 0;
         padding: 0;
         -webkit-print-color-adjust: exact;
@@ -101,15 +127,20 @@ function PrintStickersContent() {
     <>
       <style>{printStyles}</style>
       <div className="bg-white">
-        {allStickers.map(({ waybill, boxNumber, totalBoxes }, index) => (
-          <div key={`${waybill.id}-${boxNumber}`} className="sticker-container">
-              <WaybillSticker
-                waybill={waybill}
-                boxNumber={boxNumber}
-                totalBoxes={totalBoxes}
-              />
-          </div>
-        ))}
+        {allStickers.map(({ waybill, boxNumber, totalBoxes }, index) => {
+          const { bookingPartnerName, deliveryPartnerName } = getPartnerInfo(waybill);
+          return (
+            <div key={`${waybill.id}-${boxNumber}`} className="sticker-container">
+                <WaybillSticker
+                  waybill={waybill}
+                  boxNumber={boxNumber}
+                  totalBoxes={totalBoxes}
+                  bookingPartnerName={bookingPartnerName}
+                  deliveryPartnerName={deliveryPartnerName}
+                />
+            </div>
+          )
+        })}
       </div>
     </>
   );

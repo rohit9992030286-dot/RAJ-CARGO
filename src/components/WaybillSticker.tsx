@@ -1,4 +1,3 @@
-
 'use client';
 
 import { Waybill } from '@/types/waybill';
@@ -11,6 +10,8 @@ interface WaybillStickerProps {
   boxNumber?: number;
   totalBoxes?: number;
   storeCode?: string;
+  bookingPartnerName?: string;
+  deliveryPartnerName?: string;
 }
 
 const PrintLogo = () => (
@@ -51,9 +52,9 @@ const CityName = ({ city, className }: { city: string, className?: string }) => 
     )
 }
 
-export function WaybillSticker({ waybill, boxId, boxNumber, totalBoxes, storeCode }: WaybillStickerProps) {
+export function WaybillSticker({ waybill, boxId, boxNumber, totalBoxes, storeCode, bookingPartnerName, deliveryPartnerName }: WaybillStickerProps) {
   
-  const sizeClasses = 'w-[75mm] h-[75mm] p-[4mm]'; // Increased padding for a thicker border
+  const sizeClasses = 'w-[75mm] h-[75mm] p-[4mm]';
   const baseClasses = "bg-black text-black font-sans print:shadow-none";
 
   const barcodeValue = boxId || `${waybill.waybillNumber}-${boxNumber || 1}`;
@@ -80,7 +81,10 @@ export function WaybillSticker({ waybill, boxId, boxNumber, totalBoxes, storeCod
                 <div className="flex-grow flex flex-col items-center justify-center border-b-2 border-black p-1">
                     <div className="w-full">
                         <p className="text-xs font-bold text-center">TO:</p>
-                        <CityName city={waybill.receiverCity} className="text-5xl"/>
+                        <div className='flex justify-center items-baseline gap-2'>
+                          <CityName city={waybill.receiverCity} className="text-5xl"/>
+                          {deliveryPartnerName && <span className="font-bold text-lg">({deliveryPartnerName})</span>}
+                        </div>
                         <p className="text-sm font-semibold truncate text-center">{waybill.receiverName}</p>
                     </div>
                      <div className="w-full mt-1 pt-1 border-t border-black text-center">
@@ -103,6 +107,12 @@ export function WaybillSticker({ waybill, boxId, boxNumber, totalBoxes, storeCod
 
             {/* Right 1 column for Box Count */}
             <div className="col-span-1 flex flex-col items-center justify-center text-center">
+                {bookingPartnerName && (
+                    <div className="mb-2 pb-1 border-b border-black w-full">
+                        <p className="text-[9px] uppercase font-bold">Booking</p>
+                        <p className="text-xs font-bold leading-tight">{bookingPartnerName}</p>
+                    </div>
+                )}
                 <p className="text-xs uppercase font-bold">Box</p>
                 <p className="font-black text-4xl leading-none">{finalBoxNumber}</p>
                 <p className="text-sm font-bold">of</p>
