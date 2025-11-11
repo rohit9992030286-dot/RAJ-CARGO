@@ -10,8 +10,8 @@ import { Button } from '@/components/ui/button';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Loader2, Package, Send, Truck, User, Phone, Briefcase, Building, Layers, ScanLine, AlertCircle, CheckCircle, Circle, XCircle, Cpu } from 'lucide-react';
-import { format } from 'date-fns';
+import { Loader2, Package, Send, Truck, User, Phone, Briefcase, Building, Layers, ScanLine, AlertCircle, CheckCircle, Circle, XCircle, Cpu, Clock } from 'lucide-react';
+import { format, differenceInHours } from 'date-fns';
 import { useToast } from '@/hooks/use-toast';
 import { useRouter } from 'next/navigation';
 import { useAuth, User as AuthUser } from '@/hooks/useAuth.tsx';
@@ -21,6 +21,8 @@ import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { useVehicles } from '@/hooks/useVehicles';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { BarcodeScanner } from '@/components/BarcodeScanner';
+import { cn } from '@/lib/utils';
+import { Manifest } from '@/types/manifest';
 
 interface ExpectedBox {
     waybillId: string;
@@ -31,6 +33,7 @@ interface ExpectedBox {
     destination: string;
     receiverName: string;
     pallet?: number;
+    verifiedDate?: string;
 }
 
 type DispatchType = 'delivery' | 'hub';
@@ -90,29 +93,25 @@ export default function HubDispatchPage() {
     const expectedBoxesForDispatch = useMemo((): ExpectedBox[] => {
         if (!manifestsLoaded || !waybillsLoaded) return [];
 
-        const hubReceivedManifests = allManifests.filter(m => ['Received', 'Short Received'].includes(m.status));
-        const dispatchedFromHubWbIds = new Set(allManifests.filter(m => m.origin === 'hub').flatMap(m => m.waybillIds));
-        
-        const palletAssignments = new Map<string, number>();
-        hubReceivedManifests.forEach(m => {
-            if(m.palletAssignments){
-                Object.entries(m.palletAssignments).forEach(([city, pallet]) => {
-                    palletAssignments.set(city.toUpperCase(), pallet);
-                })
-            }
-        });
-        
-        const expectedBoxes: ExpectedBox[] = [];
+        const dispatchedFromHubWbIds = new Set<string>();
+        allManifests
+            .filter(m => m.origin === 'hub')
+            .flatMap(m => m.waybillIds)
+            .forEach(id => dispatchedFromHubWbIds.add(id));
 
-        hubReceivedManifests.forEach(manifest => {
-            manifest.verifiedBoxIds?.forEach(boxId => {
-                const waybillNumber = boxId.substring(0, boxId.lastIndexOf('-'));
-                const waybill = allWaybills.find(wb => wb.waybillNumber === waybillNumber);
-                if (waybill && !dispatchedFromHubWbIds.has(waybill.id)) {
-                    const boxNumber = parseInt(boxId.substring(boxId.lastIndexOf('-') + 1), 10);
-                    const city = waybill.receiverCity.toUpperCase();
-                    if (!expectedBoxes.some(b => b.boxId === boxId)) {
-                         expectedBoxes.push({
+        const expectedBoxes: ExpectedBox[] = [];
+        
+        allManifests.forEach(manifest => {
+            if (['Received', 'Short Received'].includes(manifest.status) && manifest.verifiedBoxIds) {
+                manifest.verifiedBoxIds.forEach(boxId => {
+                    const waybillNumber = boxId.substring(0, boxId.lastIndexOf('-'));
+                    const waybill = allWaybills.find(wb => wb.waybillNumber === waybillNumber);
+                    
+                    if (waybill && !dispatchedFromHubWbIds.has(waybill.id) && !expectedBoxes.some(b => b.boxId === boxId)) {
+                        const boxNumber = parseInt(boxId.substring(boxId.lastIndexOf('-') + 1), 10);
+                        const city = waybill.receiverCity.toUpperCase();
+                        
+                        expectedBoxes.push({
                             waybillId: waybill.id,
                             waybillNumber: waybill.waybillNumber,
                             boxId: boxId,
@@ -120,13 +119,14 @@ export default function HubDispatchPage() {
                             totalBoxes: waybill.numberOfBoxes,
                             destination: city,
                             receiverName: waybill.receiverName,
-                            pallet: palletAssignments.get(city)
+                            pallet: manifest.palletAssignments?.[city],
+                            verifiedDate: manifest.verifiedDate
                         });
                     }
-                }
-            });
+                });
+            }
         });
-        
+
         return expectedBoxes;
 
     }, [allManifests, allWaybills, manifestsLoaded, waybillsLoaded]);
@@ -135,11 +135,14 @@ export default function HubDispatchPage() {
         return expectedBoxesForDispatch.reduce((acc, box) => {
             const city = box.destination;
             if (!acc[city]) {
-                acc[city] = { boxes: [], pallet: box.pallet };
+                acc[city] = { boxes: [], pallet: box.pallet, oldestVerifiedDate: box.verifiedDate };
             }
             acc[city].boxes.push(box);
+            if (box.verifiedDate && (!acc[city].oldestVerifiedDate || new Date(box.verifiedDate) < new Date(acc[city].oldestVerifiedDate!))) {
+                acc[city].oldestVerifiedDate = box.verifiedDate;
+            }
             return acc;
-        }, {} as Record<string, { boxes: ExpectedBox[], pallet?: number }>);
+        }, {} as Record<string, { boxes: ExpectedBox[], pallet?: number, oldestVerifiedDate?: string }>);
     }, [expectedBoxesForDispatch]);
 
     const handleScanBox = (scannedId: string) => {
@@ -272,9 +275,11 @@ export default function HubDispatchPage() {
                              const loadedInCity = data.boxes.filter(b => scannedBoxIds.includes(b.boxId)).length;
                              const totalInCity = data.boxes.length;
                              const allInCityLoaded = loadedInCity === totalInCity;
+                             const hoursPending = data.oldestVerifiedDate ? differenceInHours(new Date(), new Date(data.oldestVerifiedDate)) : 0;
+                             const isDelayed = hoursPending > 48;
 
                             return (
-                                <Card key={city} className={allInCityLoaded ? 'border-green-500' : ''}>
+                                <Card key={city} className={cn(allInCityLoaded && 'border-green-500', isDelayed && 'border-destructive')}>
                                     <CardHeader>
                                         <div className="flex items-center justify-between gap-4">
                                             <div className="flex items-center gap-4">
@@ -283,6 +288,11 @@ export default function HubDispatchPage() {
                                                     Destination: {city}
                                                 </h3>
                                                 <Badge variant="secondary">{loadedInCity} / {totalInCity} Loaded</Badge>
+                                                {isDelayed && (
+                                                    <Badge variant="destructive" className="items-center gap-1">
+                                                        <Clock className="h-3 w-3"/> {Math.floor(hoursPending / 24)} days pending
+                                                    </Badge>
+                                                )}
                                             </div>
                                             {data.pallet && (
                                                 <Badge variant="outline" className="text-base font-bold py-1 px-3">

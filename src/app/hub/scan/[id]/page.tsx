@@ -195,6 +195,7 @@ function ScanManifestPage() {
           ...manifest,
           status: newStatus,
           verifiedBoxIds: Array.from(scannedBoxIds),
+          verifiedDate: new Date().toISOString(),
           palletAssignments: palletAssignments
       });
 

@@ -13,6 +13,7 @@ export const manifestSchema = z.object({
   origin: z.enum(['booking', 'hub']).default('booking'),
   creatorPartnerCode: z.string(),
   verifiedBoxIds: z.array(z.string()).optional(),
+  verifiedDate: z.string().optional(), // Date when manifest was marked as Received/Short Received
   palletAssignments: z.record(z.number()).optional(),
   deliveryPartnerCode: z.string().optional(),
   deliveryPartnerName: z.string().optional(),
