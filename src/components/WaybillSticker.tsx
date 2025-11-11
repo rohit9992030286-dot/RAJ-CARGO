@@ -53,8 +53,8 @@ const CityName = ({ city, className }: { city: string, className?: string }) => 
 
 export function WaybillSticker({ waybill, boxId, boxNumber, totalBoxes, storeCode }: WaybillStickerProps) {
   
-  const sizeClasses = 'w-[75mm] h-[75mm] p-1';
-  const baseClasses = "bg-white text-black font-sans flex flex-col border-2 border-black print:border-2 print:shadow-none";
+  const sizeClasses = 'w-[75mm] h-[75mm] p-[2mm]'; // Added padding to create the black border
+  const baseClasses = "bg-black text-black font-sans print:shadow-none";
 
   const barcodeValue = boxId || `${waybill.waybillNumber}-${boxNumber || 1}`;
   const finalTotalBoxes = totalBoxes || waybill.numberOfBoxes;
@@ -62,7 +62,7 @@ export function WaybillSticker({ waybill, boxId, boxNumber, totalBoxes, storeCod
 
   return (
     <div className={cn(baseClasses, sizeClasses)}>
-        <div className="grid grid-cols-5 w-full h-full">
+        <div className="grid grid-cols-5 w-full h-full bg-white">
             {/* Left 4 columns */}
             <div className="col-span-4 border-r-2 border-black flex flex-col">
                 {/* Top Section: Branding, Date, Waybill */}
