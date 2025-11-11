@@ -43,23 +43,27 @@ const PrintLogo = () => (
 
 const CityName = ({ city }: { city: string }) => {
     const cityName = (city || '').toUpperCase();
-    const isLong = cityName.length > 10;
     
     return (
-        <p 
-          className={cn(
-            "w-full text-center font-black tracking-tighter leading-none p-1",
-            isLong ? "text-4xl" : "text-5xl"
-          )}
-        >
-            {cityName}
+        <p className="w-full text-center font-black tracking-tighter leading-none p-1 text-[2.75rem] flex items-center justify-center h-16">
+           <span className="truncate">{cityName}</span>
         </p>
     )
 }
 
+const PartnerName = ({ name }: { name?: string }) => {
+    if (!name) return null;
+    return (
+        <p className="text-center font-semibold text-xs leading-tight break-words h-6 flex items-center justify-center">
+            <span className="truncate">{name.toUpperCase()}</span>
+        </p>
+    )
+}
+
+
 export function WaybillSticker({ waybill, boxId, boxNumber, totalBoxes, storeCode, bookingPartnerName, deliveryPartnerName }: WaybillStickerProps) {
   
-  const sizeClasses = 'w-[75mm] h-[75mm] p-[6mm]';
+  const sizeClasses = 'w-[75mm] h-[75mm]';
   const baseClasses = "bg-black text-black font-sans print:shadow-none flex items-center justify-center";
 
   const barcodeValue = boxId || `${waybill.waybillNumber}-${boxNumber || 1}`;
@@ -68,55 +72,58 @@ export function WaybillSticker({ waybill, boxId, boxNumber, totalBoxes, storeCod
 
   return (
     <div className={cn(baseClasses, sizeClasses)}>
-        <div className="grid grid-cols-5 w-full h-full bg-white">
-            {/* Left 4 columns */}
-            <div className="col-span-4 border-r-2 border-black flex flex-col">
-                {/* Top Section: Branding, Date, Waybill */}
-                <div className="grid grid-cols-2 text-center border-b-2 border-black">
-                     <div className="p-1 border-r border-black flex items-center justify-center">
-                        <PrintLogo />
+        <div className="w-[70mm] h-[70mm] bg-white p-[1mm]">
+            <div className="grid grid-cols-5 w-full h-full">
+                {/* Left 4 columns */}
+                <div className="col-span-4 border-r-2 border-black flex flex-col">
+                    {/* Top Section: Branding, Date, Waybill */}
+                    <div className="grid grid-cols-2 text-center border-b-2 border-black">
+                        <div className="p-1 border-r border-black flex items-center justify-center">
+                            <PrintLogo />
+                        </div>
+                        <div className="p-1">
+                            <p className="text-xs font-bold">DATE: {new Date(waybill.shippingDate).toLocaleDateString()}</p>
+                            <p className="font-bold text-xs">{waybill.waybillNumber} ({finalBoxNumber}/{finalTotalBoxes})</p>
+                        </div>
                     </div>
-                    <div className="p-1">
-                        <p className="text-xs font-bold">DATE: {new Date(waybill.shippingDate).toLocaleDateString()}</p>
-                        <p className="font-bold text-xs">{waybill.waybillNumber} ({finalBoxNumber}/{finalTotalBoxes})</p>
+                    
+                    {/* Middle Section: Destination City & Sender */}
+                    <div className="flex-grow flex flex-col items-center justify-center border-b-2 border-black p-1">
+                        <div className="w-full text-center">
+                            <p className="text-xs font-bold">TO:</p>
+                            <CityName city={waybill.receiverCity} />
+                            <p className="text-sm font-semibold truncate h-5 flex items-center justify-center">{waybill.receiverName}</p>
+                        </div>
+                        <div className="w-full mt-1 pt-1 border-t border-black text-center">
+                            <p className="text-xs font-bold">FROM: <span className="font-medium">{waybill.senderCity.toUpperCase()}</span></p>
+                        </div>
+                    </div>
+                    
+                    {/* Bottom Section: Barcode */}
+                    <div className="flex flex-col items-center justify-center p-1 h-[40px]">
+                        <div className="h-[28px] w-full flex items-center justify-center">
+                            <Barcode 
+                                value={barcodeValue} 
+                                height={28} 
+                                displayValue={false} 
+                                width={1.5} 
+                                margin={0}
+                            />
+                        </div>
+                        <p className="text-[10px] tracking-widest font-mono">{barcodeValue}</p>
                     </div>
                 </div>
-                
-                {/* Middle Section: Destination City & Sender */}
-                <div className="flex-grow flex flex-col items-center justify-center border-b-2 border-black p-1">
-                    <div className="w-full text-center">
-                        <p className="text-xs font-bold">TO:</p>
-                        <CityName city={waybill.receiverCity} />
-                        <p className="text-sm font-semibold truncate">{waybill.receiverName}</p>
-                    </div>
-                     <div className="w-full mt-1 pt-1 border-t border-black text-center">
-                        <p className="text-xs font-bold">FROM: <span className="font-medium">{waybill.senderCity.toUpperCase()}</span></p>
-                    </div>
-                </div>
-                
-                {/* Bottom Section: Barcode */}
-                <div className="flex flex-col items-center justify-center p-1">
-                    <Barcode 
-                      value={barcodeValue} 
-                      height={25} 
-                      displayValue={false} 
-                      width={1.5} 
-                      margin={0}
-                    />
-                    <p className="text-xs tracking-widest">{barcodeValue}</p>
-                </div>
-            </div>
 
-            {/* Right 1 column for Partner Route */}
-            <div className="col-span-1 flex flex-col items-center justify-center text-center p-1 space-y-1">
-                <div className="flex flex-col items-center justify-center" style={{lineHeight: '1.2'}}>
-                    <p className="text-xs font-bold break-words">{bookingPartnerName}</p>
-                    <ArrowRight className="h-4 w-4 my-1"/>
-                    <p className="text-xs font-bold break-words">{deliveryPartnerName}</p>
+                {/* Right 1 column for Partner Route */}
+                <div className="col-span-1 flex flex-col items-center justify-center text-center p-1 space-y-1">
+                    <div className="flex flex-col items-center justify-center" style={{lineHeight: '1.2'}}>
+                        <PartnerName name={bookingPartnerName} />
+                        <ArrowRight className="h-4 w-4 my-1"/>
+                        <PartnerName name={deliveryPartnerName} />
+                    </div>
                 </div>
             </div>
         </div>
     </div>
   );
 }
-
