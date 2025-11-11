@@ -1,3 +1,4 @@
+
 'use client';
 
 import { Waybill } from '@/types/waybill';
@@ -83,7 +84,7 @@ export function WaybillSticker({ waybill, boxId, boxNumber, totalBoxes, storeCod
                         <p className="text-xs font-bold text-center">TO:</p>
                         <div className='flex justify-center items-baseline gap-2'>
                           <CityName city={waybill.receiverCity} className="text-5xl"/>
-                          {deliveryPartnerName && <span className="font-bold text-lg">({deliveryPartnerName})</span>}
+                          {deliveryPartnerName && <span className="font-bold text-lg">{deliveryPartnerName}</span>}
                         </div>
                         <p className="text-sm font-semibold truncate text-center">{waybill.receiverName}</p>
                     </div>
@@ -109,7 +110,6 @@ export function WaybillSticker({ waybill, boxId, boxNumber, totalBoxes, storeCod
             <div className="col-span-1 flex flex-col items-center justify-center text-center">
                 {bookingPartnerName && (
                     <div className="mb-2 pb-1 border-b border-black w-full">
-                        <p className="text-[9px] uppercase font-bold">Booking</p>
                         <p className="text-xs font-bold leading-tight">{bookingPartnerName}</p>
                     </div>
                 )}
