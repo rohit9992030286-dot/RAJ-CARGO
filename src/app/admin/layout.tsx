@@ -1,25 +1,20 @@
-
 'use client';
-import { useState, useEffect, ReactNode } from 'react';
+import { useState, useEffect, ReactNode, Suspense } from 'react';
 import Link from 'next/link';
-import Image from 'next/image';
 import { Menu, Settings, Cpu, LayoutDashboard, Shield, Users, LogOut, Loader2, KeyRound, Activity, Link2, IndianRupee, Tags, List, AlertTriangle, Building } from 'lucide-react';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/hooks/useAuth.tsx';
-import { useRouter } from 'next/navigation';
+import { useRouter, usePathname } from 'next/navigation';
 import { DataProvider } from '@/components/DataContext';
 import { Logo } from '@/components/Logo';
 
-function AdminLayoutContent({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+function AdminLayoutContent({ children }: { children: React.ReactNode }) {
   const [year, setYear] = useState<number | null>(null);
   const [isSheetOpen, setIsSheetOpen] = useState(false);
-  const { user, isLoading, logout } = useAuth();
+  const { user, isLoading, logout, isAdminPinVerified } = useAuth();
   const router = useRouter();
+  const pathname = usePathname();
   
   useEffect(() => {
     setYear(new Date().getFullYear());
@@ -31,21 +26,28 @@ function AdminLayoutContent({
             router.replace('/login');
         } else if (user.role !== 'admin') {
             router.replace('/dashboard');
+        } else if (!isAdminPinVerified && pathname !== '/admin/verify') {
+            router.replace('/admin/verify');
         }
     }
-  }, [user, isLoading, router]);
+  }, [user, isLoading, router, isAdminPinVerified, pathname]);
   
   const handleLogout = () => {
     logout();
     router.push('/login');
   };
 
-  if (isLoading || !user || user.role !== 'admin') {
+  if (isLoading || !user || user.role !== 'admin' || (!isAdminPinVerified && pathname !== '/admin/verify')) {
       return (
            <div className="flex justify-center items-center h-screen">
                 <Loader2 className="h-16 w-16 animate-spin text-primary" />
             </div>
       )
+  }
+  
+  // Don't render the full layout for the verification page
+  if (pathname === '/admin/verify') {
+    return <main className="flex-1 p-4 md:p-8 bg-background">{children}</main>;
   }
   
   const handleLinkClick = () => {
@@ -182,7 +184,9 @@ function AdminLayoutContent({
 export default function AdminLayout({ children }: { children: React.ReactNode; }) {
     return (
         <DataProvider>
+          <Suspense fallback={<div className="flex justify-center items-center h-screen"><Loader2 className="h-16 w-16 animate-spin text-primary" /></div>}>
             <AdminLayoutContent>{children}</AdminLayoutContent>
+          </Suspense>
         </DataProvider>
     );
 }

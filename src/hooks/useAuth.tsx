@@ -5,6 +5,8 @@ import { createContext, useContext, useState, useEffect, ReactNode, useCallback 
 
 export const AUTH_STORAGE_KEY = 'rajcargo-auth';
 export const USERS_STORAGE_KEY = 'rajcargo-users';
+const ADMIN_PIN_VERIFIED_KEY = 'rajcargo-admin-pin-verified';
+const ADMIN_PIN = '1234'; // The secret PIN for admin access
 
 export interface User {
   username: string;
@@ -26,11 +28,13 @@ export interface AuthContextType {
   users: NewUser[];
   isAuthenticated: boolean;
   isLoading: boolean;
+  isAdminPinVerified: boolean;
   login: (username: string, password: string) => User | null;
   logout: () => void;
   addUser: (newUser: NewUser) => boolean;
   deleteUser: (username: string) => void;
   updateUser: (updatedUser: NewUser) => boolean;
+  verifyAdminPin: (pin: string) => boolean;
 }
 
 export const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -48,6 +52,7 @@ export function useProvideAuth() {
   const [user, setUser] = useState<User | null>(null);
   const [users, setUsers] = useState<NewUser[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [isAdminPinVerified, setIsAdminPinVerified] = useState(false);
 
   useEffect(() => {
     try {
@@ -57,7 +62,6 @@ export function useProvideAuth() {
         setUsers([DEFAULT_ADMIN_USER]);
       } else {
         const parsedUsers = JSON.parse(storedUsers);
-        // Ensure all users have a roles array for backward compatibility
         const migratedUsers = parsedUsers.map((u: NewUser) => ({
           ...u,
           partnerName: u.partnerName || u.username,
@@ -72,10 +76,17 @@ export function useProvideAuth() {
         parsedUser.roles = parsedUser.roles?.filter((r: string) => ['booking', 'hub', 'delivery', 'account'].includes(r));
         setUser(parsedUser);
       }
+      
+      const pinVerified = sessionStorage.getItem(ADMIN_PIN_VERIFIED_KEY);
+      if (pinVerified === 'true') {
+        setIsAdminPinVerified(true);
+      }
+
     } catch (error) {
       console.error("Failed to initialize auth from local storage", error);
       localStorage.removeItem(AUTH_STORAGE_KEY);
       localStorage.removeItem(USERS_STORAGE_KEY);
+      sessionStorage.removeItem(ADMIN_PIN_VERIFIED_KEY);
     } finally {
       setIsLoading(false);
     }
@@ -110,8 +121,9 @@ export function useProvideAuth() {
 
   const logout = useCallback(() => {
     localStorage.removeItem(AUTH_STORAGE_KEY);
+    sessionStorage.removeItem(ADMIN_PIN_VERIFIED_KEY);
     setUser(null);
-    // Redirection will be handled by the component that calls logout
+    setIsAdminPinVerified(false);
   }, []);
   
   const addUser = useCallback((newUser: NewUser): boolean => {
@@ -141,16 +153,27 @@ export function useProvideAuth() {
     syncUsersToStorage(updatedUsers);
   }, []);
 
+  const verifyAdminPin = useCallback((pin: string): boolean => {
+    if (user?.role === 'admin' && pin === ADMIN_PIN) {
+        sessionStorage.setItem(ADMIN_PIN_VERIFIED_KEY, 'true');
+        setIsAdminPinVerified(true);
+        return true;
+    }
+    return false;
+  }, [user]);
+
   return {
     user,
     users: users,
     isAuthenticated: !!user,
     isLoading,
+    isAdminPinVerified,
     login,
     logout,
     addUser,
     deleteUser,
     updateUser,
+    verifyAdminPin,
   };
 }
 
@@ -162,7 +185,7 @@ export const useAuth = () => {
   return context;
 };
 
-export function AuthProvider({ children }: { children: React.Node }) {
+export function AuthProvider({ children }: { children: ReactNode }) {
     const auth = useProvideAuth();
     return (
         <AuthContext.Provider value={auth}>

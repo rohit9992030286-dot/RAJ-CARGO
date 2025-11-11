@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useForm } from 'react-hook-form';
@@ -40,9 +39,13 @@ function LoginPageContent() {
 
   useEffect(() => {
     if (isAuthenticated) {
-        router.replace('/dashboard');
+        if(user?.role === 'admin') {
+            router.replace('/admin/verify');
+        } else {
+            router.replace('/dashboard');
+        }
     }
-  }, [isAuthenticated, router]);
+  }, [isAuthenticated, router, user]);
 
 
   const onSubmit = (data: LoginFormValues) => {
@@ -51,7 +54,7 @@ function LoginPageContent() {
       toast({ title: 'Login Successful', description: 'Welcome back!' });
       
       if (loggedInUser.role === 'admin') {
-        router.push('/dashboard');
+        router.push('/admin/verify');
       } else if (loggedInUser.roles?.includes('booking')) {
         router.push('/booking');
       } else if (loggedInUser.roles?.includes('hub')) {
