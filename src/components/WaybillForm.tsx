@@ -82,9 +82,9 @@ export function WaybillForm({ initialData, onSave, onCancel }: WaybillFormProps)
   
   const watchedFields = useWatch({
       control: form.control,
-      name: ['shipmentValue', 'companyCode', 'length', 'breadth', 'height', 'numberOfBoxes']
+      name: ['shipmentValue', 'companyCode', 'length', 'breadth', 'height']
   });
-  const [shipmentValue, selectedCompanyCode, length, breadth, height, numberOfBoxes] = watchedFields;
+  const [shipmentValue, selectedCompanyCode, length, breadth, height] = watchedFields;
 
   const selectedCompany = useMemo(() => {
     if (!selectedCompanyCode) return null;
@@ -137,11 +137,11 @@ export function WaybillForm({ initialData, onSave, onCancel }: WaybillFormProps)
   }, [initialData, user, companiesLoaded]);
   
   const calculateChargeableWeight = useCallback(() => {
-    if (length > 0 && breadth > 0 && height > 0 && numberOfBoxes > 0) {
-        const volume = (length * breadth * height * numberOfBoxes) / 27000;
+    if (length > 0 && breadth > 0 && height > 0) {
+        const volume = (length * breadth * height * 6) / 27000;
         form.setValue('chargeableWeight', parseFloat(volume.toFixed(2)));
     }
-  }, [length, breadth, height, numberOfBoxes, form]);
+  }, [length, breadth, height, form]);
   
   useEffect(() => {
     calculateChargeableWeight();
@@ -488,3 +488,5 @@ export function WaybillForm({ initialData, onSave, onCancel }: WaybillFormProps)
     </Form>
   );
 }
+
+    
