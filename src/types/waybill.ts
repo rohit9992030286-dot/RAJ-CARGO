@@ -28,6 +28,9 @@ const baseWaybillSchema = z.object({
   chargeableWeight: z.coerce.number().nonnegative('Chargeable weight must be non-negative.').optional(),
   numberOfBoxes: z.coerce.number().int().min(1, 'Must have at least one box.'),
   shipmentValue: z.coerce.number().nonnegative('Value must be a positive number.'),
+  length: z.coerce.number().nonnegative('Length must be a positive number.').optional(),
+  breadth: z.coerce.number().nonnegative('Breadth must be a positive number.').optional(),
+  height: z.coerce.number().nonnegative('Height must be a positive number.').optional(),
 
   shippingDate: z.string().min(1, 'Shipping date is required'),
   shippingTime: z.string().min(1, 'Shipping time is required'),

@@ -35,7 +35,7 @@ import {
     DropdownMenuSeparator,
     DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import { Pencil, Trash2, Truck, PlusCircle, Printer, MoreHorizontal, Lock, Check, X, AlertTriangle, Copy } from 'lucide-react';
+import { Pencil, Trash2, Truck, PlusCircle, Printer, MoreHorizontal, Lock, Check, X, AlertTriangle, Copy, Move3d } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { format, differenceInHours, isBefore } from 'date-fns';
 
@@ -44,7 +44,7 @@ interface WaybillListProps {
   waybills: Waybill[];
   selectedWaybillIds: string[];
   onSelectionChange: (id: string, isSelected: boolean) => void;
-  onSelectAllChange: (selectAll: boolean) => void;
+  onSelectAllOnPage: (selectAll: boolean) => void;
   onEdit: (id: string) => void;
   onDelete: (id: string) => void;
   onUpdateStatus: (id: string, status: Waybill['status']) => void;
@@ -66,7 +66,7 @@ export function WaybillList({
     waybills, 
     selectedWaybillIds, 
     onSelectionChange, 
-    onSelectAllChange,
+    onSelectAllOnPage,
     onEdit, 
     onDelete, 
     onUpdateStatus,
@@ -123,7 +123,7 @@ export function WaybillList({
                     <TableHead className="w-[50px]">
                        <Checkbox 
                          checked={allOnPageSelected}
-                         onCheckedChange={(checked) => onSelectAllChange(!!checked)}
+                         onCheckedChange={(checked) => onSelectAllOnPage(!!checked)}
                          aria-label="Select all on this page"
                        />
                     </TableHead>
@@ -132,6 +132,7 @@ export function WaybillList({
                     <TableHead>Sender</TableHead>
                     <TableHead>Receiver</TableHead>
                     <TableHead>Destination</TableHead>
+                    <TableHead>Dimensions</TableHead>
                     <TableHead>Status</TableHead>
                     <TableHead className="text-right">Actions</TableHead>
                 </TableRow>
@@ -166,6 +167,20 @@ export function WaybillList({
                             <TableCell>{waybill.senderName}</TableCell>
                             <TableCell>{waybill.receiverName}</TableCell>
                             <TableCell>{waybill.receiverCity}</TableCell>
+                             <TableCell>
+                                {(waybill.length && waybill.breadth && waybill.height) ? (
+                                    <Tooltip>
+                                        <TooltipTrigger>
+                                            <Move3d className="h-5 w-5 text-muted-foreground" />
+                                        </TooltipTrigger>
+                                        <TooltipContent>
+                                            <p>{waybill.length} x {waybill.breadth} x {waybill.height} cm</p>
+                                        </TooltipContent>
+                                    </Tooltip>
+                                ) : (
+                                    'N/A'
+                                )}
+                             </TableCell>
                             <TableCell>
                                 <Badge variant={statusVariantMap[waybill.status] || 'default'} className="p-1">
                                     {waybill.status}

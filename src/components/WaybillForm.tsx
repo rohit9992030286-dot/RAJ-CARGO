@@ -10,9 +10,9 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
 import { Waybill, waybillFormSchema, WaybillFormData } from '@/types/waybill';
-import { User, Phone, Package, Weight, Calendar, ListChecks, Save, XCircle, MapPin, Hash, Box, IndianRupee, Clock, Building, Globe, Loader2, FileText, Truck, CreditCard, Wallet } from 'lucide-react';
+import { User, Phone, Package, Weight, Calendar, ListChecks, Save, XCircle, MapPin, Hash, Box, IndianRupee, Clock, Building, Globe, Loader2, FileText, Truck, CreditCard, Wallet, Move3d } from 'lucide-react';
 import { Textarea } from './ui/textarea';
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useCallback } from 'react';
 import { useWaybillInventory } from '@/hooks/useWaybillInventory';
 import { useAuth } from '@/hooks/useAuth';
 import { useCompanies } from '@/hooks/useCompanies';
@@ -43,6 +43,9 @@ const getInitialValues = (initialData?: Waybill): WaybillFormData => {
         chargeableWeight: 0,
         numberOfBoxes: 1,
         shipmentValue: 0,
+        length: 0,
+        breadth: 0,
+        height: 0,
         shippingDate: new Date().toISOString().split('T')[0],
         shippingTime: new Date().toTimeString().split(' ')[0].substring(0, 5),
         status: 'Pending' as 'Pending',
@@ -68,7 +71,6 @@ interface WaybillFormProps {
 
 export function WaybillForm({ initialData, onSave, onCancel }: WaybillFormProps) {
   const { toast } = useToast();
-  const { getAvailableInventoryForCompany, isInventoryLoaded } = useWaybillInventory();
   const { user } = useAuth();
   const { companies, getCompanyByCode, isLoaded: companiesLoaded } = useCompanies();
 
@@ -78,15 +80,11 @@ export function WaybillForm({ initialData, onSave, onCancel }: WaybillFormProps)
     mode: 'onChange'
   });
   
-  const shipmentValue = useWatch({
+  const watchedFields = useWatch({
       control: form.control,
-      name: 'shipmentValue'
+      name: ['shipmentValue', 'companyCode', 'length', 'breadth', 'height', 'numberOfBoxes']
   });
-  
-  const selectedCompanyCode = useWatch({
-      control: form.control,
-      name: 'companyCode'
-  });
+  const [shipmentValue, selectedCompanyCode, length, breadth, height, numberOfBoxes] = watchedFields;
 
   const selectedCompany = useMemo(() => {
     if (!selectedCompanyCode) return null;
@@ -137,6 +135,17 @@ export function WaybillForm({ initialData, onSave, onCancel }: WaybillFormProps)
     form.reset(values);
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [initialData, user, companiesLoaded]);
+  
+  const calculateChargeableWeight = useCallback(() => {
+    if (length > 0 && breadth > 0 && height > 0 && numberOfBoxes > 0) {
+        const volume = (length * breadth * height * numberOfBoxes) / 27000;
+        form.setValue('chargeableWeight', parseFloat(volume.toFixed(2)));
+    }
+  }, [length, breadth, height, numberOfBoxes, form]);
+  
+  useEffect(() => {
+    calculateChargeableWeight();
+  }, [calculateChargeableWeight]);
   
 
   const onSubmit = (data: WaybillFormData) => {
@@ -256,7 +265,7 @@ export function WaybillForm({ initialData, onSave, onCancel }: WaybillFormProps)
             <CardDescription>Provide information about the package being shipped.</CardDescription>
           </CardHeader>
           <CardContent className="space-y-6">
-             <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
+             <div className="grid md:grid-cols-3 gap-4">
                 <FormField
                     control={form.control}
                     name="numberOfBoxes"
@@ -289,23 +298,35 @@ export function WaybillForm({ initialData, onSave, onCancel }: WaybillFormProps)
                     </FormItem>
                     )}
                 />
-                <FormField
-                    control={form.control}
-                    name="chargeableWeight"
-                    render={({ field }) => (
-                    <FormItem>
-                        <FormLabel>Chargeable Weight (kg)</FormLabel>
-                        <div className="relative">
-                        <FormControl>
-                            <Input type="number" step="0.1" placeholder="e.g., 3.0" {...field} onChange={e => field.onChange(+e.target.value)} className="pl-10" />
-                        </FormControl>
-                        <IconWrapper><Weight /></IconWrapper>
-                        </div>
-                        <FormMessage />
-                    </FormItem>
-                    )}
-                />
-            </div>
+             </div>
+             
+             <div className="p-4 border rounded-md space-y-4">
+                <div className="flex items-center gap-2">
+                    <Move3d className="h-5 w-5 text-primary" />
+                    <h4 className="font-semibold">Volumetric Weight Details</h4>
+                </div>
+                <div className="grid md:grid-cols-4 gap-4">
+                     <FormField control={form.control} name="length" render={({ field }) => (<FormItem><FormLabel>Length (cm)</FormLabel><FormControl><Input type="number" step="0.1" placeholder="L" {...field} onChange={e => field.onChange(+e.target.value)} /></FormControl><FormMessage /></FormItem>)} />
+                    <FormField control={form.control} name="breadth" render={({ field }) => (<FormItem><FormLabel>Breadth (cm)</FormLabel><FormControl><Input type="number" step="0.1" placeholder="B" {...field} onChange={e => field.onChange(+e.target.value)} /></FormControl><FormMessage /></FormItem>)} />
+                    <FormField control={form.control} name="height" render={({ field }) => (<FormItem><FormLabel>Height (cm)</FormLabel><FormControl><Input type="number" step="0.1" placeholder="H" {...field} onChange={e => field.onChange(+e.target.value)} /></FormControl><FormMessage /></FormItem>)} />
+                     <FormField
+                        control={form.control}
+                        name="chargeableWeight"
+                        render={({ field }) => (
+                        <FormItem>
+                            <FormLabel>Chargeable Wt. (kg)</FormLabel>
+                            <div className="relative">
+                            <FormControl>
+                                <Input type="number" step="0.1" placeholder="e.g., 3.0" {...field} onChange={e => field.onChange(+e.target.value)} className="pl-10" />
+                            </FormControl>
+                            <IconWrapper><Weight /></IconWrapper>
+                            </div>
+                            <FormMessage />
+                        </FormItem>
+                        )}
+                    />
+                </div>
+             </div>
             
             <FormField
                 control={form.control}

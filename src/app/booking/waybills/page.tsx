@@ -11,7 +11,7 @@ import { Card, CardContent, CardFooter, CardHeader } from '@/components/ui/card'
 import { PlusCircle, FileDown, Printer, ChevronLeft, ChevronRight, Search, FileUp, FileSpreadsheet, Copy, Calendar as CalendarIcon, Loader2, Truck } from 'lucide-react';
 import * as XLSX from 'xlsx';
 import { saveAs } from 'file-saver';
-import { Waybill, waybillSchema } from '@/types/waybill';
+import { Waybill, waybillFormSchema } from '@/types/waybill';
 import { useToast } from '@/hooks/use-toast';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Calendar } from '@/components/ui/calendar';
@@ -182,6 +182,17 @@ function WaybillsPageContent() {
                         shippingDate = format(new Date(), 'yyyy-MM-dd');
                     }
 
+                    const length = Number(row.length || 0);
+                    const breadth = Number(row.breadth || 0);
+                    const height = Number(row.height || 0);
+                    const numberOfBoxes = Number(row.numberOfBoxes || 1);
+                    let chargeableWeight = Number(row.chargeableWeight || 0);
+
+                    if (length > 0 && breadth > 0 && height > 0 && numberOfBoxes > 0) {
+                        chargeableWeight = (length * breadth * height * numberOfBoxes) / 27000;
+                    }
+
+
                     // Sanitize and coerce data types without strict validation
                     const newWaybillData: Waybill = {
                       id: crypto.randomUUID(),
@@ -204,10 +215,13 @@ function WaybillsPageContent() {
                       status: row.status || 'Pending',
                       shippingDate: shippingDate,
                       shippingTime: String(row.shippingTime || '10:00'),
-                      numberOfBoxes: Number(row.numberOfBoxes || 1),
+                      numberOfBoxes: numberOfBoxes,
                       packageWeight: Number(row.packageWeight || 0),
-                      chargeableWeight: Number(row.chargeableWeight || 0),
+                      chargeableWeight: parseFloat(chargeableWeight.toFixed(2)),
                       shipmentValue: Number(row.shipmentValue || 0),
+                      length,
+                      breadth,
+                      height,
                       partnerCode: user?.partnerCode,
                       companyCode: String(row.companyCode || ''),
                     };
@@ -406,7 +420,7 @@ function WaybillsPageContent() {
                     waybills={currentWaybills}
                     selectedWaybillIds={selectedWaybillIds}
                     onSelectionChange={handleSelectionChange}
-                    onSelectAllChange={handleSelectAllOnPage}
+                    onSelectAllOnPage={handleSelectAllOnPage}
                     onEdit={handleEdit}
                     onDelete={handleDelete}
                     onUpdateStatus={handleUpdateStatus}
