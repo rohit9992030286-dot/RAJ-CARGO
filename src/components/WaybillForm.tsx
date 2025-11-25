@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useForm, useWatch } from 'react-hook-form';
+import { useForm, useWatch, useFieldArray } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -10,7 +10,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
 import { Waybill, waybillFormSchema, WaybillFormData } from '@/types/waybill';
-import { User, Phone, Package, Weight, Calendar, ListChecks, Save, XCircle, MapPin, Hash, Box, IndianRupee, Clock, Building, Globe, Loader2, FileText, Truck, CreditCard, Wallet, Move3d } from 'lucide-react';
+import { User, Phone, Package, Weight, Calendar, ListChecks, Save, XCircle, MapPin, Hash, Box, IndianRupee, Clock, Building, Globe, Loader2, FileText, Truck, CreditCard, Wallet, Move3d, PlusCircle, Trash2 } from 'lucide-react';
 import { Textarea } from './ui/textarea';
 import { useState, useEffect, useMemo, useCallback } from 'react';
 import { useWaybillInventory } from '@/hooks/useWaybillInventory';
@@ -20,7 +20,7 @@ import { RadioGroup, RadioGroupItem } from './ui/radio-group';
 import { Label } from './ui/label';
 
 const getInitialValues = (initialData?: Waybill): WaybillFormData => {
-    const defaults = {
+    const defaults: WaybillFormData = {
         waybillNumber: '',
         invoiceNumber: '',
         tripNo: '',
@@ -42,10 +42,8 @@ const getInitialValues = (initialData?: Waybill): WaybillFormData => {
         packageWeight: 0,
         chargeableWeight: 0,
         numberOfBoxes: 1,
+        dimensions: [{ length: 0, breadth: 0, height: 0 }],
         shipmentValue: 0,
-        length: 0,
-        breadth: 0,
-        height: 0,
         shippingDate: new Date().toISOString().split('T')[0],
         shippingTime: new Date().toTimeString().split(' ')[0].substring(0, 5),
         status: 'Pending' as 'Pending',
@@ -56,7 +54,14 @@ const getInitialValues = (initialData?: Waybill): WaybillFormData => {
     
     if (initialData) {
         const { id, ...formData } = initialData;
-        return { ...defaults, ...formData };
+        return { 
+            ...defaults, 
+            ...formData,
+            // Ensure dimensions is always an array of objects
+            dimensions: Array.isArray(initialData.dimensions) && initialData.dimensions.length > 0
+                ? initialData.dimensions
+                : [{ length: 0, breadth: 0, height: 0 }]
+        };
     }
     
     return defaults;
@@ -80,17 +85,38 @@ export function WaybillForm({ initialData, onSave, onCancel }: WaybillFormProps)
     mode: 'onChange'
   });
   
+  const { fields, append, remove } = useFieldArray({
+    control: form.control,
+    name: "dimensions"
+  });
+
   const watchedFields = useWatch({
       control: form.control,
-      name: ['shipmentValue', 'companyCode', 'length', 'breadth', 'height']
+      name: ['shipmentValue', 'companyCode', 'dimensions', 'numberOfBoxes']
   });
-  const [shipmentValue, selectedCompanyCode, length, breadth, height] = watchedFields;
+  const [shipmentValue, selectedCompanyCode, dimensions, numberOfBoxes] = watchedFields;
 
   const selectedCompany = useMemo(() => {
     if (!selectedCompanyCode) return null;
     return getCompanyByCode(selectedCompanyCode);
   }, [selectedCompanyCode, getCompanyByCode]);
   
+  useEffect(() => {
+    const currentBoxCount = dimensions?.length || 0;
+    const targetBoxCount = numberOfBoxes || 1;
+
+    if (currentBoxCount < targetBoxCount) {
+        for (let i = currentBoxCount; i < targetBoxCount; i++) {
+            append({ length: 0, breadth: 0, height: 0 });
+        }
+    } else if (currentBoxCount > targetBoxCount) {
+        for (let i = currentBoxCount; i > targetBoxCount; i--) {
+            remove(i - 1);
+        }
+    }
+  }, [numberOfBoxes, dimensions, append, remove]);
+
+
   useEffect(() => {
     if (selectedCompany) {
         form.setValue('paymentType', selectedCompany.paymentType);
@@ -137,11 +163,23 @@ export function WaybillForm({ initialData, onSave, onCancel }: WaybillFormProps)
   }, [initialData, user, companiesLoaded]);
   
   const calculateChargeableWeight = useCallback(() => {
-    if (length > 0 && breadth > 0 && height > 0) {
-        const volume = (length * breadth * height * 6) / 27000;
-        form.setValue('chargeableWeight', parseFloat(volume.toFixed(2)));
+    if (!dimensions || dimensions.length === 0) {
+        form.setValue('chargeableWeight', 0);
+        return;
     }
-  }, [length, breadth, height, form]);
+    const totalVolume = dimensions.reduce((acc, dim) => {
+        const l = dim.length || 0;
+        const b = dim.breadth || 0;
+        const h = dim.height || 0;
+        if (l > 0 && b > 0 && h > 0) {
+            return acc + (l * b * h * 6);
+        }
+        return acc;
+    }, 0);
+
+    const chargeableWeight = Math.ceil(totalVolume / 27000);
+    form.setValue('chargeableWeight', chargeableWeight);
+  }, [dimensions, form]);
   
   useEffect(() => {
     calculateChargeableWeight();
@@ -298,6 +336,22 @@ export function WaybillForm({ initialData, onSave, onCancel }: WaybillFormProps)
                     </FormItem>
                     )}
                 />
+                 <FormField
+                    control={form.control}
+                    name="chargeableWeight"
+                    render={({ field }) => (
+                    <FormItem>
+                        <FormLabel>Chargeable Wt. (kg)</FormLabel>
+                        <div className="relative">
+                        <FormControl>
+                            <Input type="number" step="0.1" placeholder="Auto-calculated" {...field} onChange={e => field.onChange(+e.target.value)} className="pl-10" />
+                        </FormControl>
+                        <IconWrapper><Weight /></IconWrapper>
+                        </div>
+                        <FormMessage />
+                    </FormItem>
+                    )}
+                />
              </div>
              
              <div className="p-4 border rounded-md space-y-4">
@@ -305,26 +359,17 @@ export function WaybillForm({ initialData, onSave, onCancel }: WaybillFormProps)
                     <Move3d className="h-5 w-5 text-primary" />
                     <h4 className="font-semibold">Volumetric Weight Details</h4>
                 </div>
-                <div className="grid md:grid-cols-4 gap-4">
-                     <FormField control={form.control} name="length" render={({ field }) => (<FormItem><FormLabel>Length (cm)</FormLabel><FormControl><Input type="number" step="0.1" placeholder="L" {...field} onChange={e => field.onChange(+e.target.value)} /></FormControl><FormMessage /></FormItem>)} />
-                    <FormField control={form.control} name="breadth" render={({ field }) => (<FormItem><FormLabel>Breadth (cm)</FormLabel><FormControl><Input type="number" step="0.1" placeholder="B" {...field} onChange={e => field.onChange(+e.target.value)} /></FormControl><FormMessage /></FormItem>)} />
-                    <FormField control={form.control} name="height" render={({ field }) => (<FormItem><FormLabel>Height (cm)</FormLabel><FormControl><Input type="number" step="0.1" placeholder="H" {...field} onChange={e => field.onChange(+e.target.value)} /></FormControl><FormMessage /></FormItem>)} />
-                     <FormField
-                        control={form.control}
-                        name="chargeableWeight"
-                        render={({ field }) => (
-                        <FormItem>
-                            <FormLabel>Chargeable Wt. (kg)</FormLabel>
-                            <div className="relative">
-                            <FormControl>
-                                <Input type="number" step="0.1" placeholder="e.g., 3.0" {...field} onChange={e => field.onChange(+e.target.value)} className="pl-10" />
-                            </FormControl>
-                            <IconWrapper><Weight /></IconWrapper>
+                <div className="space-y-4 max-h-72 overflow-y-auto pr-2">
+                    {fields.map((item, index) => (
+                        <div key={item.id} className="grid grid-cols-12 gap-2 items-center">
+                            <div className="col-span-1 font-medium text-muted-foreground text-sm">Box {index + 1}</div>
+                            <div className="col-span-11 grid grid-cols-3 gap-2">
+                                <FormField control={form.control} name={`dimensions.${index}.length`} render={({ field }) => (<FormItem><FormControl><Input type="number" step="0.1" placeholder="L (cm)" {...field} onChange={e => field.onChange(+e.target.value)} /></FormControl><FormMessage /></FormItem>)} />
+                                <FormField control={form.control} name={`dimensions.${index}.breadth`} render={({ field }) => (<FormItem><FormControl><Input type="number" step="0.1" placeholder="B (cm)" {...field} onChange={e => field.onChange(+e.target.value)} /></FormControl><FormMessage /></FormItem>)} />
+                                <FormField control={form.control} name={`dimensions.${index}.height`} render={({ field }) => (<FormItem><FormControl><Input type="number" step="0.1" placeholder="H (cm)" {...field} onChange={e => field.onChange(+e.target.value)} /></FormControl><FormMessage /></FormItem>)} />
                             </div>
-                            <FormMessage />
-                        </FormItem>
-                        )}
-                    />
+                        </div>
+                    ))}
                 </div>
              </div>
             
@@ -488,5 +533,3 @@ export function WaybillForm({ initialData, onSave, onCancel }: WaybillFormProps)
     </Form>
   );
 }
-
-    

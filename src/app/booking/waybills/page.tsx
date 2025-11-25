@@ -119,7 +119,13 @@ function WaybillsPageContent() {
     if (waybills.length === 0) {
         return;
     }
-    const worksheet = XLSX.utils.json_to_sheet(waybills);
+     const dataToExport = waybills.map(wb => ({
+      ...wb,
+      dimensions: Array.isArray(wb.dimensions) 
+        ? wb.dimensions.map(d => `${d.length}x${d.breadth}x${d.height}`).join(',') 
+        : '',
+    }));
+    const worksheet = XLSX.utils.json_to_sheet(dataToExport);
     const workbook = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(workbook, worksheet, "Waybills");
     
@@ -131,7 +137,7 @@ function WaybillsPageContent() {
   };
 
   const handleDownloadTemplate = () => {
-    const headers = Object.keys(waybillSchema.shape).filter(key => !['id', 'partnerCode'].includes(key));
+    const headers = Object.keys(waybillFormSchema.shape).filter(key => !['id', 'partnerCode'].includes(key));
     const worksheet = XLSX.utils.json_to_sheet([{}], { header: headers });
     const workbook = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(workbook, worksheet, "Waybill Template");
@@ -181,19 +187,25 @@ function WaybillsPageContent() {
                     if (!shippingDate) {
                         shippingDate = format(new Date(), 'yyyy-MM-dd');
                     }
+                    
+                    const dimensionsStr = row.dimensions || '';
+                    const dimensions = dimensionsStr.split(',').map((dimStr: string) => {
+                      const [l, b, h] = dimStr.split('x').map(Number);
+                      return { length: l || 0, breadth: b || 0, height: h || 0 };
+                    });
 
-                    const length = Number(row.length || 0);
-                    const breadth = Number(row.breadth || 0);
-                    const height = Number(row.height || 0);
-                    const numberOfBoxes = Number(row.numberOfBoxes || 1);
-                    let chargeableWeight = Number(row.chargeableWeight || 0);
-
-                    if (length > 0 && breadth > 0 && height > 0 && numberOfBoxes > 0) {
-                        chargeableWeight = (length * breadth * height * numberOfBoxes) / 27000;
+                    const numberOfBoxes = dimensions.length > 0 ? dimensions.length : (Number(row.numberOfBoxes) || 1);
+                    
+                    const totalVolume = dimensions.reduce((acc: number, dim: any) => {
+                        return acc + ((dim.length || 0) * (dim.breadth || 0) * (dim.height || 0) * 6);
+                    }, 0);
+                    
+                    let chargeableWeight = row.chargeableWeight ? Number(row.chargeableWeight) : 0;
+                    if (totalVolume > 0) {
+                        chargeableWeight = Math.ceil(totalVolume / 27000);
                     }
 
 
-                    // Sanitize and coerce data types without strict validation
                     const newWaybillData: Waybill = {
                       id: crypto.randomUUID(),
                       waybillNumber: String(row.waybillNumber || ''),
@@ -216,24 +228,21 @@ function WaybillsPageContent() {
                       shippingDate: shippingDate,
                       shippingTime: String(row.shippingTime || '10:00'),
                       numberOfBoxes: numberOfBoxes,
+                      dimensions: dimensions.length > 0 ? dimensions : [{length: 0, breadth: 0, height: 0}],
                       packageWeight: Number(row.packageWeight || 0),
-                      chargeableWeight: parseFloat(chargeableWeight.toFixed(2)),
+                      chargeableWeight: chargeableWeight,
                       shipmentValue: Number(row.shipmentValue || 0),
-                      length,
-                      breadth,
-                      height,
                       partnerCode: user?.partnerCode,
                       companyCode: String(row.companyCode || ''),
                     };
                     
-                    // Basic check to avoid blank waybill numbers
                     if (!newWaybillData.waybillNumber) {
                         console.error(`Error processing row ${index + 2}: Waybill number is missing.`);
                         skippedCount++;
-                        return; // continue to next row
+                        return;
                     }
 
-                    if (addWaybill(newWaybillData, true)) { // Pass true to suppress toast
+                    if (addWaybill(newWaybillData, true)) {
                         addedCount++;
                     } else {
                         skippedCount++;
@@ -258,7 +267,6 @@ function WaybillsPageContent() {
         }
     };
     reader.readAsBinaryString(file);
-    // Reset file input
     if(fileInputRef.current) {
         fileInputRef.current.value = '';
     }
