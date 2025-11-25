@@ -75,3 +75,5 @@ export const waybillSchema = baseWaybillSchema.extend({
 
 export type WaybillFormData = z.infer<typeof waybillFormSchema>;
 export type Waybill = z.infer<typeof waybillSchema>;
+
+    
