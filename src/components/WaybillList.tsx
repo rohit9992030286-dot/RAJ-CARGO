@@ -35,7 +35,7 @@ import {
     DropdownMenuSeparator,
     DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import { Pencil, Trash2, Truck, PlusCircle, Printer, MoreHorizontal, Lock, Check, X, AlertTriangle, Copy, Move3d } from 'lucide-react';
+import { Pencil, Trash2, Truck, PlusCircle, Printer, MoreHorizontal, Lock, Check, X, AlertTriangle, Copy, Move3d, FileImage } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { format, differenceInHours, isBefore } from 'date-fns';
 
@@ -79,6 +79,10 @@ export function WaybillList({
   
   const handlePrintSticker = (id: string) => {
     window.open(`/print/stickers?ids=${id}`, '_blank');
+  };
+
+  const handleViewPOD = (url: string) => {
+    window.open(url, '_blank');
   };
 
   const allOnPageSelected = waybills.length > 0 && waybills.every(w => selectedWaybillIds.includes(w.id));
@@ -132,7 +136,7 @@ export function WaybillList({
                     <TableHead>Sender</TableHead>
                     <TableHead>Receiver</TableHead>
                     <TableHead>Destination</TableHead>
-                    <TableHead>Dimensions</TableHead>
+                    <TableHead>POD</TableHead>
                     <TableHead>Status</TableHead>
                     <TableHead className="text-right">Actions</TableHead>
                 </TableRow>
@@ -168,17 +172,17 @@ export function WaybillList({
                             <TableCell>{waybill.receiverName}</TableCell>
                             <TableCell>{waybill.receiverCity}</TableCell>
                              <TableCell>
-                                {(waybill.length && waybill.breadth && waybill.height) ? (
+                                {waybill.podImageUrl ? (
                                     <Tooltip>
-                                        <TooltipTrigger>
-                                            <Move3d className="h-5 w-5 text-muted-foreground" />
+                                        <TooltipTrigger asChild>
+                                            <Button variant="ghost" size="icon" onClick={() => handleViewPOD(waybill.podImageUrl!)}>
+                                                <FileImage className="h-4 w-4 text-green-600" />
+                                            </Button>
                                         </TooltipTrigger>
-                                        <TooltipContent>
-                                            <p>{waybill.length} x {waybill.breadth} x {waybill.height} cm</p>
-                                        </TooltipContent>
+                                        <TooltipContent>View POD Image</TooltipContent>
                                     </Tooltip>
                                 ) : (
-                                    'N/A'
+                                    <span className="text-muted-foreground opacity-30">-</span>
                                 )}
                              </TableCell>
                             <TableCell>
@@ -204,6 +208,11 @@ export function WaybillList({
                                         <DropdownMenuItem onClick={() => handlePrintSticker(waybill.id)}>
                                             <Copy className="mr-2 h-4 w-4" /> Print Sticker
                                         </DropdownMenuItem>
+                                        {waybill.podImageUrl && (
+                                            <DropdownMenuItem onClick={() => handleViewPOD(waybill.podImageUrl!)}>
+                                                <FileImage className="mr-2 h-4 w-4" /> View POD Photo
+                                            </DropdownMenuItem>
+                                        )}
                                         <DropdownMenuSeparator />
                                         <AlertDialog>
                                             <AlertDialogTrigger asChild>

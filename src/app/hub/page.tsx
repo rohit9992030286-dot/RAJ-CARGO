@@ -1,10 +1,11 @@
+
 'use client';
 import { useState, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import { Card, CardHeader, CardTitle, CardContent, CardFooter, CardDescription } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { ScanLine, AlertTriangle, ArrowRight, Truck, History, Eye, Loader2, Search, Clock, CheckCircle, Package, AlertCircle } from 'lucide-react';
+import { ScanLine, AlertTriangle, ArrowRight, Truck, History, Eye, Loader2, Search, Clock, CheckCircle, Package, AlertCircle, FileImage } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useManifests } from '@/hooks/useManifests';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
@@ -88,11 +89,16 @@ export default function HubDashboardPage() {
                     return acc + (wb?.numberOfBoxes || 0);
                 }, 0);
                 const verifiedCount = manifest.verifiedBoxIds?.length || 0;
+                
+                // Get POD status for manifest
+                const podImages = manifest.waybillIds.map(id => getWaybillById(id)?.podImageUrl).filter(Boolean);
+
                 return {
                     ...manifest,
                     totalBoxes,
                     verifiedCount,
-                    shortageCount: totalBoxes - verifiedCount
+                    shortageCount: totalBoxes - verifiedCount,
+                    podCount: podImages.length
                 };
             });
         
@@ -232,7 +238,7 @@ export default function HubDashboardPage() {
                                 </div>
                                 <span>Recently Verified Manifests</span>
                             </CardTitle>
-                            <CardDescription>Track records of previously received shipments and reported shortages.</CardDescription>
+                            <CardDescription>Track records of previously received shipments, reported shortages, and POD status.</CardDescription>
                          </div>
                         <div className="relative w-full md:w-72">
                             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
@@ -254,7 +260,7 @@ export default function HubDashboardPage() {
                                 <TableHead className="font-bold">Received Date</TableHead>
                                 <TableHead className="font-bold">Status</TableHead>
                                 <TableHead className="text-center font-bold">Boxes</TableHead>
-                                <TableHead className="text-center font-bold text-destructive">Shortage</TableHead>
+                                <TableHead className="text-center font-bold">POD Status</TableHead>
                                 <TableHead className="text-right font-bold">Action</TableHead>
                             </TableRow>
                         </TableHeader>
@@ -279,10 +285,12 @@ export default function HubDashboardPage() {
                                             </div>
                                         </TableCell>
                                         <TableCell className="text-center">
-                                            {manifest.shortageCount > 0 ? (
-                                                <Badge variant="destructive" className="font-bold">{manifest.shortageCount}</Badge>
+                                            {manifest.podCount > 0 ? (
+                                                <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200 gap-1">
+                                                    <FileImage className="h-3 w-3" /> {manifest.podCount} PODs
+                                                </Badge>
                                             ) : (
-                                                <span className="text-muted-foreground opacity-30">-</span>
+                                                <span className="text-muted-foreground opacity-30 text-xs">Pending</span>
                                             )}
                                         </TableCell>
                                         <TableCell className="text-right">

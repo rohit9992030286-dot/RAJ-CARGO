@@ -44,6 +44,7 @@ const baseWaybillSchema = z.object({
   companyCode: z.string().optional(),
   deliveryDate: z.string().optional(),
   receivedBy: z.string().optional(),
+  podImageUrl: z.string().optional(),
   paymentType: z.enum(['Credit', 'To Pay']).default('Credit'),
 });
 
@@ -75,5 +76,3 @@ export const waybillSchema = baseWaybillSchema.extend({
 
 export type WaybillFormData = z.infer<typeof waybillFormSchema>;
 export type Waybill = z.infer<typeof waybillSchema>;
-
-    
