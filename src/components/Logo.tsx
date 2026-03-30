@@ -1,4 +1,3 @@
-
 'use client';
 
 import { cn } from '@/lib/utils';
@@ -39,7 +38,7 @@ export function Logo({ className }: LogoProps) {
 
                 </svg>
             </div>
-            <span className="text-3xl font-extrabold tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-primary to-cyan-400">
+            <span className="text-3xl font-extrabold tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-primary to-yellow-600">
                 RAJ CARGO
             </span>
         </div>
