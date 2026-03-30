@@ -26,16 +26,19 @@ const PrintLogo = () => (
                 xmlns="http://www.w3.org/2000/svg"
                 className="absolute"
             >
-                {/* Trophy Silhouette */}
-                <path d="M 40,60 Q 100,180 160,60 L 145,50 Q 100,140 55,50 Z" fill="black" />
-                <path d="M 100,20 L 110,45 L 135,45 L 115,60 L 125,85 L 100,70 L 75,85 L 85,60 L 65,45 L 90,45 Z" fill="black" />
-                <path d="M 85,160 L 115,160 L 130,185 L 70,185 Z" fill="black" />
-                <rect x="95" y="140" width="10" height="25" fill="black" />
+                {/* Speed Lines */}
+                <path d="M 10,80 L 50,80 M 5,100 L 45,100" stroke="black" strokeWidth="10" strokeLinecap="round" />
+                {/* Trophy Cup */}
+                <path d="M 60,60 Q 110,180 160,60 L 145,50 Q 110,140 75,50 Z" fill="black" />
+                <path d="M 110,20 L 120,45 L 145,45 L 125,60 L 135,85 L 110,70 L 85,85 L 95,60 L 75,45 L 100,45 Z" fill="black" />
+                <path d="M 95,160 L 125,160 L 140,185 L 80,185 Z" fill="black" />
+                <rect x="105" y="140" width="10" height="25" fill="black" />
             </svg>
         </div>
-        <span className="text-[10px] font-extrabold tracking-tight text-black">
-            YU-WON LOGISTICS
-        </span>
+        <div className="flex flex-col leading-tight">
+            <span className="text-[10px] font-extrabold tracking-tight text-black">YU-WON</span>
+            <span className="text-[7px] font-bold text-black">EXPRESS</span>
+        </div>
     </div>
 );
 
@@ -81,8 +84,8 @@ export function WaybillSticker({ waybill, boxId, boxNumber, totalBoxes, storeCod
                             <PrintLogo />
                         </div>
                         <div className="p-1">
-                            <p className="text-xs font-bold">DATE: {new Date(waybill.shippingDate).toLocaleDateString()}</p>
-                            <p className="font-bold text-xs">{waybill.waybillNumber} ({finalBoxNumber}/{finalTotalBoxes})</p>
+                            <p className="text-[9px] font-bold">DATE: {new Date(waybill.shippingDate).toLocaleDateString()}</p>
+                            <p className="font-bold text-[10px]">{waybill.waybillNumber} ({finalBoxNumber}/{finalTotalBoxes})</p>
                         </div>
                     </div>
                     

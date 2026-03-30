@@ -53,15 +53,16 @@ function WaybillCopy({ waybill, copyType }: WaybillPrintProps) {
             <div className="flex items-center gap-3">
                 <div className="relative h-10 w-10">
                     <svg viewBox="0 0 200 200" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <path d="M 40,60 Q 100,180 160,60 L 145,50 Q 100,140 55,50 Z" fill="black" />
-                        <path d="M 100,20 L 110,45 L 135,45 L 115,60 L 125,85 L 100,70 L 75,85 L 85,60 L 65,45 L 90,45 Z" fill="black" />
-                        <path d="M 85,160 L 115,160 L 130,185 L 70,185 Z" fill="black" />
-                        <rect x="95" y="140" width="10" height="25" fill="black" />
+                        <path d="M 10,80 L 50,80 M 5,100 L 45,100" stroke="black" strokeWidth="10" strokeLinecap="round" />
+                        <path d="M 60,60 Q 110,180 160,60 L 145,50 Q 110,140 75,50 Z" fill="black" />
+                        <path d="M 110,20 L 120,45 L 145,45 L 125,60 L 135,85 L 110,70 L 85,85 L 95,60 L 75,45 L 100,45 Z" fill="black" />
+                        <path d="M 95,160 L 125,160 L 140,185 L 80,185 Z" fill="black" />
+                        <rect x="105" y="140" width="10" height="25" fill="black" />
                     </svg>
                 </div>
                 <div>
-                    <h1 className="text-xl font-bold text-black">YU-WON LOGISTICS</h1>
-                    <p className="text-black text-xs">DELHI NAJAFGARH. PINCODE 110048 | EMAIL: contact@yuwonlogistics.com</p>
+                    <h1 className="text-xl font-bold text-black uppercase">YU-WON LOGISTICS EXPRESS</h1>
+                    <p className="text-black text-[8px] tracking-tight">DELHI NAJAFGARH. PINCODE 110048 | EMAIL: contact@yuwonlogistics.com</p>
                 </div>
             </div>
             <div className="text-right flex flex-col items-end">
@@ -192,8 +193,8 @@ function WaybillCopy({ waybill, copyType }: WaybillPrintProps) {
               <section className="mt-1">
                 <div className="p-1 border-2 border-black text-[8px] space-y-0.5">
                   <p className="font-bold mb-0.5">Terms & Conditions:</p>
-                  <p>1. All shipments are carried at the sender's risk. YU-WON LOGISTICS is not liable for any loss or damage unless insurance is purchased.</p>
-                  <p>2. Liability of YU-WON LOGISTICS is limited to the declared value or ₹1,000, whichever is lower. Sender is responsible for shipping non-prohibited items.</p>
+                  <p>1. All shipments are carried at the sender's risk. YU-WON LOGISTICS EXPRESS is not liable for any loss or damage unless insurance is purchased.</p>
+                  <p>2. Liability of YU-WON LOGISTICS EXPRESS is limited to the declared value or ₹1,000, whichever is lower. Sender is responsible for shipping non-prohibited items.</p>
                 </div>
               </section>
 
@@ -225,14 +226,15 @@ export function ManifestPrint({ waybills, manifest }: { waybills: Waybill[], man
                 <div className="flex items-center gap-3">
                     <div className="relative h-12 w-12">
                         <svg viewBox="0 0 200 200" fill="none" xmlns="http://www.w3.org/2000/svg">
-                            <path d="M 40,60 Q 100,180 160,60 L 145,50 Q 100,140 55,50 Z" fill="black" />
-                            <path d="M 100,20 L 110,45 L 135,45 L 115,60 L 125,85 L 100,70 L 75,85 L 85,60 L 65,45 L 90,45 Z" fill="black" />
-                            <path d="M 85,160 L 115,160 L 130,185 L 70,185 Z" fill="black" />
-                            <rect x="95" y="140" width="10" height="25" fill="black" />
+                            <path d="M 10,80 L 50,80 M 5,100 L 45,100" stroke="black" strokeWidth="10" strokeLinecap="round" />
+                            <path d="M 60,60 Q 110,180 160,60 L 145,50 Q 110,140 75,50 Z" fill="black" />
+                            <path d="M 110,20 L 120,45 L 145,45 L 125,60 L 135,85 L 110,70 L 85,85 L 95,60 L 75,45 L 100,45 Z" fill="black" />
+                            <path d="M 95,160 L 125,160 L 140,185 L 80,185 Z" fill="black" />
+                            <rect x="105" y="140" width="10" height="25" fill="black" />
                         </svg>
                     </div>
                     <div>
-                        <h1 className="text-3xl font-bold text-black">YU-WON LOGISTICS</h1>
+                        <h1 className="text-3xl font-bold text-black uppercase">YU-WON LOGISTICS EXPRESS</h1>
                         <p className="text-black text-sm">DELHI NAJAFGARH. PINCODE 110048</p>
                         <p className="text-black text-sm">EMAIL: contact@yuwonlogistics.com</p>
                     </div>

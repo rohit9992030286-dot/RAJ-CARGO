@@ -20,26 +20,33 @@ export function Logo({ className }: LogoProps) {
                 >
                     <defs>
                         <linearGradient id="logo-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
-                            <stop offset="0%" style={{stopColor: '#0056b3', stopOpacity: 1}} /> {/* Corporate Blue */}
-                            <stop offset="100%" style={{stopColor: '#E1AD01', stopOpacity: 1}} /> {/* Professional Gold */}
+                            <stop offset="0%" style={{stopColor: '#0056b3', stopOpacity: 1}} />
+                            <stop offset="100%" style={{stopColor: '#E1AD01', stopOpacity: 1}} />
                         </linearGradient>
                     </defs>
                     
-                    {/* Winning V / Trophy Cup */}
-                    <path d="M 40,60 Q 100,180 160,60 L 145,50 Q 100,140 55,50 Z" fill="url(#logo-gradient)" />
+                    {/* Speed Lines */}
+                    <path d="M 10,80 L 50,80 M 5,100 L 45,100 M 15,120 L 55,120" stroke="url(#logo-gradient)" strokeWidth="8" strokeLinecap="round" />
                     
-                    {/* Victory Star (Achievement) */}
-                    <path d="M 100,20 L 110,45 L 135,45 L 115,60 L 125,85 L 100,70 L 75,85 L 85,60 L 65,45 L 90,45 Z" fill="#E1AD01" />
+                    {/* Trophy Cup */}
+                    <path d="M 60,60 Q 110,180 160,60 L 145,50 Q 110,140 75,50 Z" fill="url(#logo-gradient)" />
                     
-                    {/* Trophy Stem/Base */}
-                    <path d="M 85,160 L 115,160 L 130,185 L 70,185 Z" fill="url(#logo-gradient)" opacity="0.8" />
-                    <rect x="95" y="140" width="10" height="25" fill="url(#logo-gradient)" opacity="0.8" />
-
+                    {/* Victory Star */}
+                    <path d="M 110,20 L 120,45 L 145,45 L 125,60 L 135,85 L 110,70 L 85,85 L 95,60 L 75,45 L 100,45 Z" fill="#E1AD01" />
+                    
+                    {/* Trophy Base */}
+                    <path d="M 95,160 L 125,160 L 140,185 L 80,185 Z" fill="url(#logo-gradient)" opacity="0.8" />
+                    <rect x="105" y="140" width="10" height="25" fill="url(#logo-gradient)" opacity="0.8" />
                 </svg>
             </div>
-            <span className="text-3xl font-extrabold tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-[#0056b3] via-[#0056b3] to-[#E1AD01]">
-                YU-WON LOGISTICS
-            </span>
+            <div className="flex flex-col leading-none">
+                <span className="text-2xl font-extrabold tracking-tighter text-transparent bg-clip-text bg-gradient-to-r from-[#0056b3] to-[#E1AD01]">
+                    YU-WON LOGISTICS
+                </span>
+                <span className="text-[10px] font-black tracking-[0.3em] text-[#E1AD01] uppercase italic">
+                    EXPRESS DELIVERY
+                </span>
+            </div>
         </div>
     )
 }

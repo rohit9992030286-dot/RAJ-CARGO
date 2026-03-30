@@ -34,9 +34,17 @@ function TripPrintLayout({ waybills, tripNo }: { waybills: Waybill[], tripNo: st
         <div key={pageIndex} className="print:page-break-after-always last:print:page-break-after-auto">
           <header className="flex justify-between items-start p-4 border-2 border-black">
             <div className="flex items-center gap-3">
-              <Truck className="h-10 w-10 text-black" />
+               <div className="relative h-12 w-12 flex items-center justify-center">
+                    <svg width="48" height="48" viewBox="0 0 200 200" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M 10,80 L 50,80 M 5,100 L 45,100" stroke="black" strokeWidth="10" strokeLinecap="round" />
+                        <path d="M 60,60 Q 110,180 160,60 L 145,50 Q 110,140 75,50 Z" fill="black" />
+                        <path d="M 110,20 L 120,45 L 145,45 L 125,60 L 135,85 L 110,70 L 85,85 L 95,60 L 75,45 L 100,45 Z" fill="black" />
+                        <path d="M 95,160 L 125,160 L 140,185 L 80,185 Z" fill="black" />
+                        <rect x="105" y="140" width="10" height="25" fill="black" />
+                    </svg>
+                </div>
               <div>
-                <h1 className="text-3xl font-bold text-black">YU-WON LOGISTICS</h1>
+                <h1 className="text-3xl font-bold text-black uppercase">YU-WON LOGISTICS EXPRESS</h1>
                 <p className="text-black text-sm">DELHI NAJAFGARH. PINCODE 110048</p>
                 <p className="text-black text-sm">EMAIL: contact@yuwonlogistics.com</p>
               </div>
