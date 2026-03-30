@@ -1,6 +1,6 @@
 import type {Metadata} from 'next';
 import Image from 'next/image';
-// Style Version: 2 - This comment helps ensure style changes are picked up.
+// Style Version: 3 - Updated theme colors
 import './globals.css';
 import { Toaster } from "@/components/ui/toaster"
 import { AuthProvider } from '@/hooks/useAuth.tsx';
@@ -23,7 +23,7 @@ export default function RootLayout({
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
         <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet"></link>
         <link rel="apple-touch-icon" href="/icons/icon-192x192.png" />
-        <meta name="theme-color" content="#E1AD01" />
+        <meta name="theme-color" content="#0056b3" />
         <script
           dangerouslySetInnerHTML={{
             __html: `

@@ -1,7 +1,6 @@
 'use client';
 
 import { cn } from '@/lib/utils';
-import { Truck } from 'lucide-react';
 
 interface LogoProps {
     className?: string;
@@ -20,25 +19,21 @@ export function Logo({ className }: LogoProps) {
                     className="absolute"
                 >
                     <defs>
-                        <linearGradient id="wing-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
-                            <stop offset="0%" style={{stopColor: 'hsl(var(--primary))', stopOpacity: 1}} />
-                            <stop offset="100%" style={{stopColor: 'hsl(var(--primary) / 0.5)', stopOpacity: 1}} />
-                        </linearGradient>
-                         <linearGradient id="body-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
-                            <stop offset="0%" style={{stopColor: 'hsl(var(--primary) / 0.8)', stopOpacity: 1}} />
-                            <stop offset="100%" style={{stopColor: 'hsl(var(--primary) / 0.3)', stopOpacity: 1}} />
+                        <linearGradient id="logo-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                            <stop offset="0%" style={{stopColor: '#0056b3', stopOpacity: 1}} /> {/* Corporate Blue */}
+                            <stop offset="100%" style={{stopColor: '#E1AD01', stopOpacity: 1}} /> {/* Professional Gold */}
                         </linearGradient>
                     </defs>
                     
                     {/* Bottom Wing */}
-                    <path d="M 50,150 Q 90,110 150,130 L 110,180 Q 80,170 50,150 Z" fill="url(#body-gradient)" />
+                    <path d="M 50,150 Q 90,110 150,130 L 110,180 Q 80,170 50,150 Z" fill="url(#logo-gradient)" fillOpacity="0.6" />
                     
                     {/* Top Wing */}
-                    <path d="M 30,100 Q 100,20 180,80 L 130,140 Q 80,110 30,100 Z" fill="url(#wing-gradient)" />
+                    <path d="M 30,100 Q 100,20 180,80 L 130,140 Q 80,110 30,100 Z" fill="url(#logo-gradient)" />
 
                 </svg>
             </div>
-            <span className="text-3xl font-extrabold tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-primary to-yellow-600">
+            <span className="text-3xl font-extrabold tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-[#0056b3] via-[#0056b3] to-[#E1AD01]">
                 RAJ CARGO
             </span>
         </div>

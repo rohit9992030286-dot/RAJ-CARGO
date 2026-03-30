@@ -8,56 +8,56 @@ body {
 
 @layer base {
   :root {
-    --background: 220 20% 95%; /* Lighter Gray */
-    --foreground: 224 71% 4%;
+    --background: 220 33% 98%; /* Very light blue-grey */
+    --foreground: 222 47% 11%; /* Deep Navy */
     --card: 0 0% 100%;
-    --card-foreground: 224 71% 4%;
+    --card-foreground: 222 47% 11%;
     --popover: 0 0% 100%;
-    --popover-foreground: 224 71% 4%;
+    --popover-foreground: 222 47% 11%;
     --primary: 45 93% 47%; /* Professional Gold */
-    --primary-foreground: 45 93% 5%;
-    --secondary: 45 20% 96.1%;
-    --secondary-foreground: 45 47.4% 11.2%;
-    --muted: 45 20% 96.1%;
-    --muted-foreground: 45 16.3% 46.9%;
-    --accent: 45 93% 47%; /* Gold */
-    --accent-foreground: 45 47.4% 11.2%;
+    --primary-foreground: 222 47% 11%; /* Navy on Gold */
+    --secondary: 221 83% 53%; /* Corporate Blue */
+    --secondary-foreground: 210 40% 98%;
+    --muted: 220 14% 96%;
+    --muted-foreground: 220 10% 46%;
+    --accent: 221 83% 53%; /* Blue Accent */
+    --accent-foreground: 210 40% 98%;
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 210 40% 98%;
-    --border: 45 13% 91%;
-    --input: 45 13% 91%;
-    --ring: 45 93% 47%;
-    --chart-1: 45 93% 47%; /* Gold */
-    --chart-2: 160 81% 45%; /* Green */
-    --chart-3: 30 96% 54%; /* Orange */
-    --chart-4: 291 64% 58%; /* Purple */
+    --border: 220 13% 91%;
+    --input: 220 13% 91%;
+    --ring: 221 83% 53%;
+    --chart-1: 221 83% 53%; /* Blue */
+    --chart-2: 45 93% 47%; /* Gold */
+    --chart-3: 160 81% 45%; /* Green */
+    --chart-4: 30 96% 54%; /* Orange */
     --chart-5: 342 91% 60%; /* Pink */
     --radius: 0.5rem;
   }
   .dark {
-    --background: 45 84% 5%;
-    --foreground: 45 20% 98%;
-    --card: 45 84% 6%;
-    --card-foreground: 45 20% 98%;
-    --popover: 45 84% 4%;
-    --popover-foreground: 45 20% 98%;
-    --primary: 45 93% 47%;
-    --primary-foreground: 45 20% 98%;
-    --secondary: 45 32.6% 17.5%;
-    --secondary-foreground: 45 40% 98%;
-    --muted: 45 32.6% 17.5%;
-    --muted-foreground: 45 16.3% 56.9%;
+    --background: 222 47% 11%; /* Deep Navy */
+    --foreground: 210 40% 98%;
+    --card: 222 47% 13%;
+    --card-foreground: 210 40% 98%;
+    --popover: 222 47% 10%;
+    --popover-foreground: 210 40% 98%;
+    --primary: 45 93% 47%; /* Gold */
+    --primary-foreground: 222 47% 11%;
+    --secondary: 221 83% 53%; /* Blue */
+    --secondary-foreground: 210 40% 98%;
+    --muted: 222 47% 18%;
+    --muted-foreground: 215 20% 65%;
     --accent: 45 93% 47%;
-    --accent-foreground: 45 40% 98%;
+    --accent-foreground: 222 47% 11%;
     --destructive: 0 62.8% 30.6%;
     --destructive-foreground: 210 40% 98%;
-    --border: 45 33% 17%;
-    --input: 45 33% 17%;
+    --border: 222 47% 18%;
+    --input: 222 47% 18%;
     --ring: 45 93% 47%;
-    --chart-1: 45 93% 47%;
-    --chart-2: 160 81% 45%;
-    --chart-3: 30 96% 54%;
-    --chart-4: 291 64% 58%;
+    --chart-1: 221 83% 53%;
+    --chart-2: 45 93% 47%;
+    --chart-3: 160 81% 45%;
+    --chart-4: 30 96% 54%;
     --chart-5: 342 91% 60%;
   }
 }
