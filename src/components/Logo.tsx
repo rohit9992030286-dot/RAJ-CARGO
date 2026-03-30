@@ -25,11 +25,15 @@ export function Logo({ className }: LogoProps) {
                         </linearGradient>
                     </defs>
                     
-                    {/* Bottom Wing */}
-                    <path d="M 50,150 Q 90,110 150,130 L 110,180 Q 80,170 50,150 Z" fill="url(#logo-gradient)" fillOpacity="0.6" />
+                    {/* Winning V / Trophy Cup */}
+                    <path d="M 40,60 Q 100,180 160,60 L 145,50 Q 100,140 55,50 Z" fill="url(#logo-gradient)" />
                     
-                    {/* Top Wing */}
-                    <path d="M 30,100 Q 100,20 180,80 L 130,140 Q 80,110 30,100 Z" fill="url(#logo-gradient)" />
+                    {/* Victory Star (Achievement) */}
+                    <path d="M 100,20 L 110,45 L 135,45 L 115,60 L 125,85 L 100,70 L 75,85 L 85,60 L 65,45 L 90,45 Z" fill="#E1AD01" />
+                    
+                    {/* Trophy Stem/Base */}
+                    <path d="M 85,160 L 115,160 L 130,185 L 70,185 Z" fill="url(#logo-gradient)" opacity="0.8" />
+                    <rect x="95" y="140" width="10" height="25" fill="url(#logo-gradient)" opacity="0.8" />
 
                 </svg>
             </div>

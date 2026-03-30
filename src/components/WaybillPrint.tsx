@@ -1,7 +1,7 @@
 'use client';
 
 import { Waybill } from '@/types/waybill';
-import { Truck, User, MapPin, Phone, Calendar, Hash, Box, Weight, IndianRupee, Package, FileText, Globe, Cpu, CheckCircle, Wallet, Briefcase } from 'lucide-react';
+import { Truck, User, MapPin, Phone, Calendar, Hash, Box, Weight, IndianRupee, Package, FileText, Globe, Cpu, CheckCircle, Wallet, Briefcase, Star } from 'lucide-react';
 import Barcode from 'react-barcode';
 import { usePartnerAssociations } from '@/hooks/usePartnerAssociations';
 import { useAuth } from '@/hooks/useAuth';
@@ -51,7 +51,14 @@ function WaybillCopy({ waybill, copyType }: WaybillPrintProps) {
           {/* Header */}
           <header className="flex justify-between items-center p-2 border-b-2 border-black">
             <div className="flex items-center gap-3">
-                <Truck className="h-8 w-8 text-black" />
+                <div className="relative h-10 w-10">
+                    <svg viewBox="0 0 200 200" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M 40,60 Q 100,180 160,60 L 145,50 Q 100,140 55,50 Z" fill="black" />
+                        <path d="M 100,20 L 110,45 L 135,45 L 115,60 L 125,85 L 100,70 L 75,85 L 85,60 L 65,45 L 90,45 Z" fill="black" />
+                        <path d="M 85,160 L 115,160 L 130,185 L 70,185 Z" fill="black" />
+                        <rect x="95" y="140" width="10" height="25" fill="black" />
+                    </svg>
+                </div>
                 <div>
                     <h1 className="text-xl font-bold text-black">YU-WON LOGISTICS</h1>
                     <p className="text-black text-xs">DELHI NAJAFGARH. PINCODE 110048 | EMAIL: contact@yuwonlogistics.com</p>
@@ -96,7 +103,6 @@ function WaybillCopy({ waybill, copyType }: WaybillPrintProps) {
               {/* Shipment Details */}
               <section className="mt-1">
                 <div className="space-y-1 text-xs">
-                    {/* Row 1, 2, 3 combined */}
                     <div className="grid grid-cols-5 gap-1">
                         <div className="p-1 border-2 border-black text-center">
                             <p className="font-semibold text-black text-[9px]">Ship Date</p>
@@ -131,7 +137,6 @@ function WaybillCopy({ waybill, copyType }: WaybillPrintProps) {
                             <p className="text-[9px] truncate">{waybill.eWayBillNo || 'N/A'}</p>
                         </div>
                     </div>
-                     {/* Row 4 - Partner Info */}
                     <div className="grid grid-cols-2 gap-1">
                         <div className="p-1 border-2 border-black text-center">
                             <p className="font-semibold text-black text-[9px] flex items-center justify-center gap-1"><Briefcase className="h-2 w-2"/> Booking Partner</p>
@@ -145,7 +150,6 @@ function WaybillCopy({ waybill, copyType }: WaybillPrintProps) {
                 </div>
               </section>
               
-              {/* Package Description */}
               <section className="mt-1 flex-grow">
                 <div className="p-2 border-2 border-black h-full flex items-start gap-2 text-xs">
                     <Package className="h-4 w-4 text-black shrink-0 mt-0.5" />
@@ -154,7 +158,6 @@ function WaybillCopy({ waybill, copyType }: WaybillPrintProps) {
                 </div>
               </section>
 
-              {/* POD Section */}
               <section className="mt-1">
                   <div className="p-2 border-2 border-black grid grid-cols-3 gap-4 text-xs">
                     {isDelivered ? (
@@ -186,7 +189,6 @@ function WaybillCopy({ waybill, copyType }: WaybillPrintProps) {
                   </div>
               </section>
 
-              {/* Terms & Conditions */}
               <section className="mt-1">
                 <div className="p-1 border-2 border-black text-[8px] space-y-0.5">
                   <p className="font-bold mb-0.5">Terms & Conditions:</p>
@@ -195,7 +197,6 @@ function WaybillCopy({ waybill, copyType }: WaybillPrintProps) {
                 </div>
               </section>
 
-              {/* Footer */}
               <footer className="mt-1 pt-1 border-t-2 border-dashed border-gray-400 text-center">
                 <p className="text-[9px] text-black">Generated on: {new Date().toLocaleString()}</p>
               </footer>
@@ -222,7 +223,14 @@ export function ManifestPrint({ waybills, manifest }: { waybills: Waybill[], man
         <div className="p-4 bg-white text-black font-sans mx-auto print:shadow-none print:p-0">
              <header className="flex justify-between items-start pb-4 border-b-2 border-black">
                 <div className="flex items-center gap-3">
-                    <Truck className="h-10 w-10 text-black" />
+                    <div className="relative h-12 w-12">
+                        <svg viewBox="0 0 200 200" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M 40,60 Q 100,180 160,60 L 145,50 Q 100,140 55,50 Z" fill="black" />
+                            <path d="M 100,20 L 110,45 L 135,45 L 115,60 L 125,85 L 100,70 L 75,85 L 85,60 L 65,45 L 90,45 Z" fill="black" />
+                            <path d="M 85,160 L 115,160 L 130,185 L 70,185 Z" fill="black" />
+                            <rect x="95" y="140" width="10" height="25" fill="black" />
+                        </svg>
+                    </div>
                     <div>
                         <h1 className="text-3xl font-bold text-black">YU-WON LOGISTICS</h1>
                         <p className="text-black text-sm">DELHI NAJAFGARH. PINCODE 110048</p>
