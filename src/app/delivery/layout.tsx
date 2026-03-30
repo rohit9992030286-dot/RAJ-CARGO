@@ -1,4 +1,3 @@
-
 'use client';
 import { useState, useEffect, ReactNode } from 'react';
 import Link from 'next/link';
@@ -20,15 +19,15 @@ function NavLinks({ onLinkClick, onLogout, pathname }: { onLinkClick?: () => voi
     ];
     
     return (
-        <nav className="p-4 flex flex-col h-full">
-            <ul className="space-y-2 flex-grow">
+        <nav className="p-4 flex flex-col h-full bg-slate-950 text-slate-300">
+            <ul className="space-y-1 flex-grow">
                 <li>
-                    <Link href="/dashboard" onClick={onLinkClick} className="flex items-center gap-3 p-3 rounded-lg hover:bg-primary/10 hover:text-primary transition-colors">
+                    <Link href="/dashboard" onClick={onLinkClick} className="flex items-center gap-3 p-3 rounded-lg hover:bg-white/10 hover:text-white transition-colors">
                         <LayoutDashboard className="h-5 w-5" />
                         <span>Main Dashboard</span>
                     </Link>
                 </li>
-                <li className="px-3 py-2 text-xs font-semibold text-muted-foreground uppercase">Delivery</li>
+                <li className="px-3 py-4 text-[10px] font-bold text-slate-500 uppercase tracking-widest">Delivery Ops</li>
                 {navItems.map((item) => (
                      <li key={item.href}>
                         <Link 
@@ -36,7 +35,7 @@ function NavLinks({ onLinkClick, onLogout, pathname }: { onLinkClick?: () => voi
                             onClick={onLinkClick} 
                             className={cn(
                                 "flex items-center gap-3 p-3 rounded-lg transition-colors",
-                                pathname === item.href ? "bg-primary/10 text-primary font-semibold" : "hover:bg-primary/10 hover:text-primary"
+                                pathname === item.href ? "bg-primary text-primary-foreground font-semibold" : "hover:bg-white/10 hover:text-white"
                             )}
                         >
                             <item.icon className="h-5 w-5" />
@@ -45,12 +44,12 @@ function NavLinks({ onLinkClick, onLogout, pathname }: { onLinkClick?: () => voi
                     </li>
                 ))}
             </ul>
-            <div className="space-y-2 border-t pt-4">
-                <Link href="/booking/settings" onClick={onLinkClick} className="flex items-center gap-3 p-3 rounded-lg hover:bg-primary/10 hover:text-primary transition-colors">
+            <div className="space-y-2 border-t border-white/10 pt-4">
+                <Link href="/booking/settings" onClick={onLinkClick} className="flex items-center gap-3 p-3 rounded-lg hover:bg-white/10 hover:text-white transition-colors">
                     <Settings className="h-5 w-5" />
                     <span>Settings</span>
                 </Link>
-                <Button variant="ghost" onClick={onLogout} className="w-full justify-start flex items-center gap-3 p-3 rounded-lg hover:bg-destructive/10 hover:text-destructive transition-colors text-base">
+                <Button variant="ghost" onClick={onLogout} className="w-full justify-start flex items-center gap-3 p-3 rounded-lg hover:bg-destructive/20 hover:text-red-400 transition-colors text-base text-slate-400">
                     <LogOut className="h-5 w-5" />
                     <span>Logout</span>
                 </Button>
@@ -102,33 +101,33 @@ function DeliveryLayoutContent({ children }: { children: React.ReactNode }) {
     return (
         <DataProvider>
             <div className="flex min-h-screen bg-background">
-                <aside className="w-64 bg-card border-r hidden lg:flex lg:flex-col">
-                    <div className="flex items-center justify-center p-6 border-b">
+                <aside className="w-64 bg-slate-950 border-r border-white/10 hidden lg:flex lg:flex-col">
+                    <div className="flex items-center justify-center p-6 border-b border-white/10 bg-slate-950">
                         <Logo />
                     </div>
                     <NavLinks onLogout={handleLogout} pathname={pathname} />
                 </aside>
                 <div className="flex-1 flex flex-col">
-                    <header className="flex h-16 items-center gap-4 border-b bg-card px-6 lg:hidden">
+                    <header className="flex h-16 items-center gap-4 border-b bg-slate-950 px-6 lg:hidden text-white">
                         <Sheet open={isSheetOpen} onOpenChange={setIsSheetOpen}>
                             <SheetTrigger asChild>
-                                <Button variant="outline" size="icon">
+                                <Button variant="ghost" size="icon" className="text-white hover:bg-white/10">
                                     <Menu className="h-6 w-6" />
                                     <span className="sr-only">Toggle navigation menu</span>
                                 </Button>
                             </SheetTrigger>
-                            <SheetContent side="left" className="flex flex-col p-0 bg-card">
+                            <SheetContent side="left" className="flex flex-col p-0 bg-slate-950 border-white/10">
                                 <SheetHeader>
                                     <SheetTitle className="sr-only">Navigation Menu</SheetTitle>
                                 </SheetHeader>
-                                <div className="flex items-center justify-center p-4 border-b">
+                                <div className="flex items-center justify-center p-4 border-b border-white/10">
                                     <Logo />
                                 </div>
                                 <NavLinks onLinkClick={handleLinkClick} onLogout={handleLogout} pathname={pathname} />
                             </SheetContent>
                         </Sheet>
                         <div className="flex-1">
-                            <h1 className="font-semibold text-xl text-primary">RAJ CARGO - DELIVERY</h1>
+                            <h1 className="font-semibold text-xl text-primary uppercase tracking-tighter">Delivery Panel</h1>
                         </div>
                     </header>
                     <main className="flex-1 p-4 md:p-8 bg-background">
