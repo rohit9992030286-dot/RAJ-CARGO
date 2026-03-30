@@ -1,4 +1,3 @@
-
 'use client';
 import { useState, useEffect, ReactNode } from 'react';
 import { Button } from '@/components/ui/button';
@@ -48,7 +47,7 @@ function DashboardLayoutContent({
                 <Logo />
             </div>
             <div className="flex-1 text-center">
-                 <h1 className="font-semibold text-xl text-primary">RAJ CARGO</h1>
+                 <h1 className="font-semibold text-xl text-primary">YU-WON LOGISTICS</h1>
             </div>
             <Button variant="outline" onClick={handleLogout} className="text-base">
                 <LogOut className="mr-2 h-5 w-5" />
@@ -59,7 +58,7 @@ function DashboardLayoutContent({
             {children}
         </main>
         <footer className="text-center p-4 text-sm text-muted-foreground border-t bg-card">
-          {year && <p>&copy; {year} RAJ CARGO. All rights reserved.</p>}
+          {year && <p>&copy; {year} YU-WON LOGISTICS. All rights reserved.</p>}
         </footer>
       </div>
     </DataProvider>

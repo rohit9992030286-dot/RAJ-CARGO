@@ -1,4 +1,3 @@
-
 'use client';
 
 import { PublicPageLayout } from "@/components/PublicPageLayout";
@@ -13,19 +12,19 @@ export default function TermsAndConditionsPage() {
                 <section>
                     <h2 className="text-2xl font-semibold">1. Introduction</h2>
                     <p>
-                        Welcome to RAJ CARGO. These terms and conditions outline the rules and regulations for the use of RAJ CARGO's Website and services, located at www.rajcargo.com. By accessing this website and using our services, we assume you accept these terms and conditions. Do not continue to use RAJ CARGO if you do not agree to all of the terms and conditions stated on this page.
+                        Welcome to YU-WON LOGISTICS. These terms and conditions outline the rules and regulations for the use of YU-WON LOGISTICS's Website and services, located at www.yuwonlogistics.com. By accessing this website and using our services, we assume you accept these terms and conditions. Do not continue to use YU-WON LOGISTICS if you do not agree to all of the terms and conditions stated on this page.
                     </p>
                 </section>
                 <section>
                     <h2 className="text-2xl font-semibold">2. Services</h2>
                     <p>
-                        RAJ CARGO provides logistics, courier, and transportation services. All services are subject to availability and our acceptance of your order. We reserve the right to refuse service to anyone for any reason at any time.
+                        YU-WON LOGISTICS provides logistics, courier, and transportation services. All services are subject to availability and our acceptance of your order. We reserve the right to refuse service to anyone for any reason at any time.
                     </p>
                 </section>
                 <section>
                     <h2 className="text-2xl font-semibold">3. Liability and Insurance</h2>
                     <p>
-                        All shipments are carried at the sender's risk. RAJ CARGO's liability for any loss or damage to a shipment is limited to the lesser of its actual cash value or ₹1,000 (One Thousand Indian Rupees), unless the sender has declared a higher value for the shipment and purchased additional insurance coverage from us at the time of booking.
+                        All shipments are carried at the sender's risk. YU-WON LOGISTICS's liability for any loss or damage to a shipment is limited to the lesser of its actual cash value or ₹1,000 (One Thousand Indian Rupees), unless the sender has declared a higher value for the shipment and purchased additional insurance coverage from us at the time of booking.
                     </p>
                 </section>
                  <section>

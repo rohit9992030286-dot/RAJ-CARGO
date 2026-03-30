@@ -34,7 +34,7 @@ export function Logo({ className }: LogoProps) {
                 </svg>
             </div>
             <span className="text-3xl font-extrabold tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-[#0056b3] via-[#0056b3] to-[#E1AD01]">
-                RAJ CARGO
+                YU-WON LOGISTICS
             </span>
         </div>
     )

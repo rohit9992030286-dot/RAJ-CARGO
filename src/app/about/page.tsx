@@ -1,4 +1,3 @@
-
 'use client';
 
 import { PublicPageLayout } from "@/components/PublicPageLayout";
@@ -6,23 +5,23 @@ import { Building, Globe, Mail, Phone, Users } from "lucide-react";
 
 export default function AboutPage() {
     const companyDetails = [
-        { icon: Building, label: "Company Name", value: "RAJ CARGO" },
+        { icon: Building, label: "Company Name", value: "YU-WON LOGISTICS" },
         { icon: Users, label: "Business Type", value: "Logistics, Courier, and Transport Services" },
         { icon: Phone, label: "Contact Number", value: "+91 12345 67890" },
-        { icon: Mail, label: "Email", value: "contact@rajcargo.com" },
-        { icon: Globe, label: "Website", value: "www.rajcargo.com" },
+        { icon: Mail, label: "Email", value: "contact@yuwonlogistics.com" },
+        { icon: Globe, label: "Website", value: "www.yuwonlogistics.com" },
     ];
 
     return (
         <PublicPageLayout
-            title="About RAJ CARGO"
+            title="About YU-WON LOGISTICS"
             description="Your trusted partner in logistics and courier services."
         >
             <div className="space-y-8">
                 <div>
                     <h2 className="text-2xl font-semibold mb-3">Our Mission</h2>
                     <p className="text-muted-foreground leading-relaxed">
-                        At RAJ CARGO, our mission is to provide reliable, efficient, and secure logistics solutions that connect businesses and people. We are committed to leveraging technology to deliver excellence and build lasting relationships with our clients based on trust and mutual success.
+                        At YU-WON LOGISTICS, our mission is to provide reliable, efficient, and secure logistics solutions that connect businesses and people. We are committed to leveraging technology to deliver excellence and build lasting relationships with our clients based on trust and mutual success.
                     </p>
                 </div>
                 <div>
@@ -47,7 +46,7 @@ export default function AboutPage() {
                  <div>
                     <h2 className="text-2xl font-semibold mb-3">Why Choose Us?</h2>
                     <p className="text-muted-foreground leading-relaxed">
-                        With years of experience in the logistics industry, RAJ CARGO combines deep industry knowledge with a passion for innovation. Our network is extensive, our team is dedicated, and our focus is always on you, the customer. We handle every package with the utmost care, ensuring it reaches its destination safely and on time.
+                        With years of experience in the logistics industry, YU-WON LOGISTICS combines deep industry knowledge with a passion for innovation. Our network is extensive, our team is dedicated, and our focus is always on you, the customer. We handle every package with the utmost care, ensuring it reaches its destination safely and on time.
                     </p>
                 </div>
             </div>

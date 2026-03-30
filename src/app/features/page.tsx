@@ -1,4 +1,3 @@
-
 'use client';
 
 import { PublicPageLayout } from "@/components/PublicPageLayout";
@@ -48,7 +47,7 @@ export default function FeaturesPage() {
     return (
         <PublicPageLayout
             title="Application Features"
-            description="A comprehensive look at the powerful capabilities of the RAJ CARGO platform."
+            description="A comprehensive look at the powerful capabilities of the YU-WON LOGISTICS platform."
         >
             <div className="space-y-12">
                 {features.map((featureCategory, index) => {

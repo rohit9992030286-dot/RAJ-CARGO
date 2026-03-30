@@ -24,7 +24,7 @@ function EmployeeIdCard({ employee }: { employee: Employee }) {
             <div className="relative w-full h-full flex flex-col shadow-lg border-2 border-gray-200">
                 {/* Header */}
                 <div className="bg-primary text-white p-2 flex items-center justify-between">
-                    <h1 className="text-lg font-bold tracking-wider">RAJ CARGO</h1>
+                    <h1 className="text-lg font-bold tracking-wider">YU-WON LOGISTICS</h1>
                     <Star className="h-6 w-6 text-yellow-300" />
                 </div>
                 

@@ -134,7 +134,7 @@ function DeliveryLayoutContent({ children }: { children: React.ReactNode }) {
                         {children}
                     </main>
                     <footer className="text-center p-4 text-sm text-muted-foreground border-t bg-card">
-                        {year && <p>&copy; {year} RAJ CARGO. All rights reserved.</p>}
+                        {year && <p>&copy; {year} YU-WON LOGISTICS. All rights reserved.</p>}
                     </footer>
                 </div>
             </div>

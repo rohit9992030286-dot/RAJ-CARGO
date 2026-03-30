@@ -1,4 +1,3 @@
-
 'use client';
 
 import { Waybill } from '@/types/waybill';
@@ -35,7 +34,7 @@ const PrintLogo = () => (
             </svg>
         </div>
         <span className="text-[10px] font-extrabold tracking-tight text-black">
-            RAJ CARGO
+            YU-WON LOGISTICS
         </span>
     </div>
 );

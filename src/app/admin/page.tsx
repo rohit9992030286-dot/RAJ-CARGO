@@ -1,4 +1,3 @@
-
 'use client';
 import Link from 'next/link';
 import { Card, CardHeader, CardTitle, CardContent, CardDescription, CardFooter } from '@/components/ui/card';
@@ -86,7 +85,7 @@ export default function AdminDashboardPage() {
     <div className="space-y-8">
       <div className="p-6 rounded-xl bg-gradient-to-r from-slate-900 to-slate-800 text-white shadow-lg">
         <h1 className="text-3xl font-bold">Admin Dashboard</h1>
-        <p className="text-slate-300 mt-1">Welcome to the central control panel for RAJ CARGO.</p>
+        <p className="text-slate-300 mt-1">Welcome to the central control panel for YU-WON LOGISTICS.</p>
       </div>
 
       <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">

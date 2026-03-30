@@ -7,7 +7,7 @@ import { AuthProvider } from '@/hooks/useAuth.tsx';
 import { GlobalKeyboardShortcuts } from '@/components/GlobalKeyboardShortcuts';
 
 export const metadata: Metadata = {
-  title: 'RAJ CARGO',
+  title: 'YU-WON LOGISTICS',
   description: 'Transport and courier service',
 };
 

@@ -1,4 +1,3 @@
-
 'use client';
 
 import { Waybill } from '@/types/waybill';
@@ -24,7 +23,7 @@ function WaybillCopy({ waybill, copyType }: WaybillPrintProps) {
     }
 
     const bookingUser = users.find(u => u.partnerCode === waybill.partnerCode);
-    const bookingPartner = bookingUser?.username || waybill.partnerCode;
+    const bookingPartner = bookingUser?.partnerName || bookingUser?.username || waybill.partnerCode;
 
     let deliveryPartnerName = 'N/A';
     const destinationHubCode = associations.bookingToHub[waybill.partnerCode];
@@ -33,10 +32,10 @@ function WaybillCopy({ waybill, copyType }: WaybillPrintProps) {
       const deliveryPartnerCode = associations.hubToDelivery[destinationHubCode];
       if (deliveryPartnerCode) {
         const deliveryUser = users.find(u => u.partnerCode === deliveryPartnerCode);
-        deliveryPartnerName = deliveryUser?.username || deliveryPartnerCode;
+        deliveryPartnerName = deliveryUser?.partnerName || deliveryUser?.username || deliveryPartnerCode;
       } else {
         const hubUser = users.find(u => u.partnerCode === destinationHubCode);
-        deliveryPartnerName = hubUser?.username || destinationHubCode;
+        deliveryPartnerName = hubUser?.partnerName || hubUser?.username || destinationHubCode;
       }
     }
     
@@ -54,8 +53,8 @@ function WaybillCopy({ waybill, copyType }: WaybillPrintProps) {
             <div className="flex items-center gap-3">
                 <Truck className="h-8 w-8 text-black" />
                 <div>
-                    <h1 className="text-xl font-bold text-black">RAJ CARGO</h1>
-                    <p className="text-black text-xs">DELHI NAJAFGARH. PINCODE 110048 | EMAIL: RAJ89CARGO@GMAIL.COM</p>
+                    <h1 className="text-xl font-bold text-black">YU-WON LOGISTICS</h1>
+                    <p className="text-black text-xs">DELHI NAJAFGARH. PINCODE 110048 | EMAIL: contact@yuwonlogistics.com</p>
                 </div>
             </div>
             <div className="text-right flex flex-col items-end">
@@ -191,8 +190,8 @@ function WaybillCopy({ waybill, copyType }: WaybillPrintProps) {
               <section className="mt-1">
                 <div className="p-1 border-2 border-black text-[8px] space-y-0.5">
                   <p className="font-bold mb-0.5">Terms & Conditions:</p>
-                  <p>1. All shipments are carried at the sender's risk. RAJ CARGO is not liable for any loss or damage unless insurance is purchased.</p>
-                  <p>2. Liability of RAJ CARGO is limited to the declared value or ₹1,000, whichever is lower. Sender is responsible for shipping non-prohibited items.</p>
+                  <p>1. All shipments are carried at the sender's risk. YU-WON LOGISTICS is not liable for any loss or damage unless insurance is purchased.</p>
+                  <p>2. Liability of YU-WON LOGISTICS is limited to the declared value or ₹1,000, whichever is lower. Sender is responsible for shipping non-prohibited items.</p>
                 </div>
               </section>
 
@@ -225,9 +224,9 @@ export function ManifestPrint({ waybills, manifest }: { waybills: Waybill[], man
                 <div className="flex items-center gap-3">
                     <Truck className="h-10 w-10 text-black" />
                     <div>
-                        <h1 className="text-3xl font-bold text-black">RAJ CARGO</h1>
+                        <h1 className="text-3xl font-bold text-black">YU-WON LOGISTICS</h1>
                         <p className="text-black text-sm">DELHI NAJAFGARH. PINCODE 110048</p>
-                        <p className="text-black text-sm">EMAIL: RAJ89CARGO@GMAIL.COM</p>
+                        <p className="text-black text-sm">EMAIL: contact@yuwonlogistics.com</p>
                     </div>
                 </div>
                 <div className="text-right">

@@ -12,6 +12,7 @@ import { Search, Package, CheckCircle, Truck, XCircle, Loader2, ArrowRight, LogI
 import { DataProvider } from '@/components/DataContext';
 import { format } from 'date-fns';
 import { Logo } from '@/components/Logo';
+import { cn } from '@/lib/utils';
 
 function TrackingResult({ waybill }: { waybill: Waybill }) {
     const statusInfo = {
@@ -130,7 +131,7 @@ function TrackingPageContent() {
                         <Logo />
                     </div>
                     <CardTitle className="text-4xl font-black mt-4 tracking-tighter text-blue-900 uppercase italic">Track Shipment</CardTitle>
-                    <CardDescription className="text-blue-800/60 font-medium">Real-time status updates for your RAJ CARGO delivery.</CardDescription>
+                    <CardDescription className="text-blue-800/60 font-medium">Real-time status updates for your YU-WON LOGISTICS delivery.</CardDescription>
                 </CardHeader>
                 <CardContent className="pb-10">
                     <div className="flex flex-col sm:flex-row gap-3">
@@ -168,8 +169,6 @@ function TrackingPageContent() {
         </div>
     );
 }
-
-const cn = (...classes: any[]) => classes.filter(Boolean).join(' ');
 
 export default function Home() {
   return (
@@ -229,7 +228,7 @@ export default function Home() {
                     <Link href="/about" className="hover:text-primary transition-colors">Privacy</Link>
                     <Link href="/about" className="hover:text-primary transition-colors">Contact</Link>
                 </div>
-                <p className="text-[10px] font-bold uppercase tracking-[0.2em]">&copy; {new Date().getFullYear()} RAJ CARGO LOGISTICS</p>
+                <p className="text-[10px] font-bold uppercase tracking-[0.2em]">&copy; {new Date().getFullYear()} YU-WON LOGISTICS</p>
             </div>
         </footer>
     </div>

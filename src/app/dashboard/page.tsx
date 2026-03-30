@@ -39,27 +39,7 @@ export default function DashboardPage() {
   const hasAccountRole = user.roles?.includes('account') || isAdmin;
   
   return (
-    <div className="flex flex-col min-h-screen bg-slate-50 dark:bg-slate-950">
-        <header className="bg-slate-900 border-b border-white/10 pt-12 pb-20 shadow-2xl relative overflow-hidden">
-            <div className="absolute top-0 right-0 p-8 opacity-10">
-                <Truck size={200} className="text-white" />
-            </div>
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-                <div className="flex items-center gap-4 mb-4">
-                    <div className="p-3 bg-primary rounded-2xl shadow-xl shadow-primary/20">
-                        <UserCircle className="h-10 w-10 text-blue-950" />
-                    </div>
-                    <div>
-                        <h1 className="text-4xl font-black text-white uppercase tracking-tighter italic">
-                            Welcome, <span className="text-primary">{user?.username}</span>
-                        </h1>
-                        <p className="text-blue-200/60 font-bold uppercase tracking-widest text-xs mt-1">Authorized Access Point</p>
-                    </div>
-                </div>
-            </div>
-        </header>
-
-       <div className="flex-grow flex items-start justify-center -mt-12 pb-20">
+    <div className="flex-grow flex items-start justify-center -mt-12 pb-20">
         <div className="grid md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 max-w-7xl w-full p-4">
                 {hasBookingRole && (
                     <Card className="hover:shadow-2xl transition-all hover:-translate-y-1 border-none shadow-lg group overflow-hidden">
@@ -193,6 +173,5 @@ export default function DashboardPage() {
                 )}
         </div>
        </div>
-    </div>
   )
 }

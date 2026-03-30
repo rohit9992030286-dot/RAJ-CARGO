@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useEffect, useRef, useState, Suspense } from 'react';
@@ -37,9 +36,9 @@ function TripPrintLayout({ waybills, tripNo }: { waybills: Waybill[], tripNo: st
             <div className="flex items-center gap-3">
               <Truck className="h-10 w-10 text-black" />
               <div>
-                <h1 className="text-3xl font-bold text-black">RAJ CARGO</h1>
+                <h1 className="text-3xl font-bold text-black">YU-WON LOGISTICS</h1>
                 <p className="text-black text-sm">DELHI NAJAFGARH. PINCODE 110048</p>
-                <p className="text-black text-sm">EMAIL: RAJ89CARGO@GMAIL.COM</p>
+                <p className="text-black text-sm">EMAIL: contact@yuwonlogistics.com</p>
               </div>
             </div>
             <div className="text-right">
