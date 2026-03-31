@@ -17,6 +17,7 @@ import { Input } from '@/components/ui/input';
 import { cn } from '@/lib/utils';
 import { Progress } from '@/components/ui/progress';
 import { BarcodeScanner } from '@/components/BarcodeScanner';
+import { Badge } from '@/components/ui/badge';
 
 interface ExpectedBox {
     waybillId: string;
