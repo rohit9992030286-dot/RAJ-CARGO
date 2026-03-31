@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useForm } from 'react-hook-form';
@@ -97,7 +98,7 @@ function LoginPageContent() {
             <div className="hidden lg:block text-center lg:text-left text-white">
                 <Logo className="justify-center lg:justify-start" />
                 <h1 className="text-5xl font-black mt-8 tracking-tighter uppercase italic text-transparent bg-clip-text bg-gradient-to-r from-white to-primary">Staff Portal</h1>
-                <p className="text-blue-100/80 mt-4 text-lg font-medium max-w-sm leading-relaxed">Secure access to RAJ CARGO logistics and management systems.</p>
+                <p className="text-blue-100/80 mt-4 text-lg font-medium max-w-sm leading-relaxed">Secure access to YU-WON LOGISTICS and management systems.</p>
             </div>
             <Card className="w-full max-w-sm mx-auto bg-card/90 backdrop-blur-md shadow-2xl border-primary/20">
                 <Form {...form}>
@@ -158,3 +159,5 @@ export default function LoginPage() {
         </DataProvider>
     )
 }
+
+    

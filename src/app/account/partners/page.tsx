@@ -20,7 +20,7 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { Waybill } from '@/types/waybill';
 
 
-const RATE_STORAGE_KEY = 'rajcargo-state-rates';
+const RATE_STORAGE_KEY = 'yuwon-state-rates';
 
 interface Rate {
   fromState: string;
@@ -417,3 +417,5 @@ export default function PartnerPaymentsPage() {
     </div>
   );
 }
+
+    

@@ -16,7 +16,7 @@ import * as XLSX from 'xlsx';
 import { saveAs } from 'file-saver';
 import { useRef } from 'react';
 
-const STORAGE_KEY = 'rajcargo-state-rates';
+const STORAGE_KEY = 'yuwon-state-rates';
 
 const rateSchema = z.object({
   fromState: z.string().min(2, "Origin state is required."),
@@ -117,7 +117,7 @@ export default function RateManagementPage() {
     const ws = XLSX.utils.json_to_sheet(dataToExport);
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, "Rates");
-    XLSX.writeFile(wb, "rajcargo_rates.xlsx");
+    XLSX.writeFile(wb, "yuwon_logistics_rates.xlsx");
     toast({ title: "Rates Exported" });
   };
 
@@ -268,3 +268,5 @@ export default function RateManagementPage() {
     </div>
   );
 }
+
+    

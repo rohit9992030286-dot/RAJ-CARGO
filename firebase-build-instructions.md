@@ -1,11 +1,11 @@
 
-# Prompts to Build "RAJ CARGO" with Firebase
+# Prompts to Build "YU-WON LOGISTICS" with Firebase
 
 Here is a script of prompts you can use with an AI assistant to build this courier management application using Next.js and Firebase.
 
 ### 1. Initial Project Setup
 
-"Hello! Let's start building a courier management app called 'RAJ CARGO'. Please set up a Next.js project using TypeScript and Tailwind CSS. Also, add the Firebase SDK to the project. Create a Firebase configuration file (`src/lib/firebase.ts`) to initialize the Firebase app, but leave the config values as placeholders for now. Finally, create a basic home page that says 'Welcome to RAJ CARGO'."
+"Hello! Let's start building a courier management app called 'YU-WON LOGISTICS'. Please set up a Next.js project using TypeScript and Tailwind CSS. Also, add the Firebase SDK to the project. Create a Firebase configuration file (`src/lib/firebase.ts`) to initialize the Firebase app, but leave the config values as placeholders for now. Finally, create a basic home page that says 'Welcome to YU-WON LOGISTICS'."
 
 ### 2. Firebase Authentication
 
@@ -38,3 +38,5 @@ Here is a script of prompts you can use with an AI assistant to build this couri
 ### 9. Final Touches
 
 "Please add a global search bar to the waybill list page that filters the Firestore query in real-time. Also, implement toast notifications for actions like creating, updating, or deleting data."
+
+    

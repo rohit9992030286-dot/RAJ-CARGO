@@ -25,7 +25,7 @@ function ConfigurationPageContent() {
 
     useEffect(() => {
         try {
-            const sender = JSON.parse(localStorage.getItem('rajcargo-defaultSender') || '{}');
+            const sender = JSON.parse(localStorage.getItem('yuwon-defaultSender') || '{}');
             senderForm.reset(sender);
         } catch { /* ignore */ }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -33,7 +33,7 @@ function ConfigurationPageContent() {
 
     const onSenderSubmit = (data: any) => {
         try {
-            localStorage.setItem('rajcargo-defaultSender', JSON.stringify(data));
+            localStorage.setItem('yuwon-defaultSender', JSON.stringify(data));
             toast({ title: 'Default Sender Saved', description: 'This information will be pre-filled in new waybills.'});
         } catch (error) {
             toast({ title: 'Save Failed', description: 'Could not save default sender information.', variant: 'destructive'});
@@ -143,3 +143,5 @@ function ConfigurationPageContent() {
 export default function ConfigurationPage() {
     return <ConfigurationPageContent />;
 }
+
+    

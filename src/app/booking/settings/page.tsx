@@ -18,13 +18,13 @@ function SettingsPageContent() {
   const [theme, setTheme] = useState<Theme>('system');
 
   useEffect(() => {
-    const storedTheme = localStorage.getItem('rajcargo-theme') as Theme | null;
+    const storedTheme = localStorage.getItem('yuwon-theme') as Theme | null;
     if (storedTheme) setTheme(storedTheme);
   }, []);
 
   const handleThemeChange = (newTheme: Theme) => {
     setTheme(newTheme);
-    localStorage.setItem('rajcargo-theme', newTheme);
+    localStorage.setItem('yuwon-theme', newTheme);
     if (newTheme === 'system') {
         const systemTheme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
         document.documentElement.classList.toggle('dark', systemTheme === 'dark');
@@ -91,3 +91,5 @@ export default function SettingsPage() {
 
   return <SettingsPageContent />;
 }
+
+    

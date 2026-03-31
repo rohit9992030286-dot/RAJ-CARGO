@@ -18,7 +18,7 @@ import { DateRange } from 'react-day-picker';
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@/components/ui/select';
 import { Waybill } from '@/types/waybill';
 
-const RATE_STORAGE_KEY = 'rajcargo-state-rates';
+const RATE_STORAGE_KEY = 'yuwon-state-rates';
 
 interface Rate {
   fromState: string;
@@ -358,3 +358,5 @@ export default function CompanySalesReportPage() {
     </div>
   );
 }
+
+    
