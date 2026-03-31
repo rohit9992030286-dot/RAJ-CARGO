@@ -25,7 +25,6 @@ import {
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
 import { saveAs } from 'file-saver';
-import { put } from "@vercel/blob";
 
 
 function getBackupData() {
@@ -104,9 +103,18 @@ export default function AccountSettingsPage() {
         try {
           const allData = getBackupData();
           const filename = `rajcargo_backup_${new Date().toISOString()}.json`;
+          const dataBlob = new Blob([allData], { type: 'application/json' });
           
           // Upload to Vercel Blob
-          const { url } = await put(filename, allData, { access: 'public' });
+           const response = await fetch(`/api/upload?filename=${filename}`, {
+                method: 'POST',
+                body: dataBlob,
+            });
+
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.message || 'Failed to upload backup to cloud.');
+            }
           
           toast({
             title: 'Data Exported to Cloud',
@@ -114,13 +122,13 @@ export default function AccountSettingsPage() {
           });
           
           // Also allow local download
-          const blob = new Blob([allData], { type: 'application/json' });
-          saveAs(blob, filename);
+          saveAs(dataBlob, filename);
 
         } catch (error) {
+            const errorMessage = error instanceof Error ? error.message : 'Could not export your data.';
            toast({
             title: 'Error Exporting Data',
-            description: 'Could not export your data.',
+            description: errorMessage,
             variant: 'destructive',
           });
         }

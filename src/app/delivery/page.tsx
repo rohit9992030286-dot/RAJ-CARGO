@@ -25,7 +25,6 @@ import {
 } from '@/components/ui/alert-dialog';
 import { Label } from '@/components/ui/label';
 import { useAuth } from '@/hooks/useAuth';
-import { put } from "@vercel/blob";
 import { cn } from '@/lib/utils';
 
 export default function DeliverySheetPage() {
@@ -86,9 +85,19 @@ export default function DeliverySheetPage() {
             let podImageUrl = '';
             if (newStatus === 'Delivered' && podInputRef.current?.files?.[0]) {
                 const file = podInputRef.current.files[0];
-                // Folders: pod/[partnerCode]/[waybillNumber].jpg
                 const filename = `pod/${user?.partnerCode || 'unassigned'}/${currentWaybillForUpdate.waybillNumber}.jpg`;
-                const blob = await put(filename, file, { access: 'public' });
+                
+                const response = await fetch(`/api/upload?filename=${filename}`, {
+                    method: 'POST',
+                    body: file,
+                });
+
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(errorData.message || 'Failed to upload POD image.');
+                }
+                
+                const blob = await response.json();
                 podImageUrl = blob.url;
             }
 
@@ -103,9 +112,11 @@ export default function DeliverySheetPage() {
             toast({ title: `Waybill ${newStatus}`, description: `Waybill #${currentWaybillForUpdate.waybillNumber} updated.` });
             setCurrentWaybillForUpdate(null);
             setReceivedBy('');
+            if(podInputRef.current) podInputRef.current.value = "";
         } catch (error) {
             console.error(error);
-            toast({ title: 'Update Failed', description: "Could not upload POD image. Please try again.", variant: 'destructive' });
+            const errorMessage = error instanceof Error ? error.message : "Could not upload POD image. Please try again.";
+            toast({ title: 'Update Failed', description: errorMessage, variant: 'destructive' });
         } finally {
             setIsUploading(false);
         }
