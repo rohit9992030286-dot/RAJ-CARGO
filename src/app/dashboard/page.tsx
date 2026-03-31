@@ -1,3 +1,4 @@
+
 'use client';
 
 import Link from 'next/link';
@@ -39,7 +40,7 @@ export default function DashboardPage() {
   const hasAccountRole = user.roles?.includes('account') || isAdmin;
   
   return (
-    <div className="flex-grow flex items-start justify-center -mt-12 pb-20">
+    <div className="flex-grow flex items-start justify-center pt-12 pb-20">
         <div className="grid md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 max-w-7xl w-full p-4">
                 {hasBookingRole && (
                     <Card className="hover:shadow-2xl transition-all hover:-translate-y-1 border-none shadow-lg group overflow-hidden">
