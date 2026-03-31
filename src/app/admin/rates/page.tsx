@@ -134,16 +134,34 @@ export default function RateManagementPage() {
             const worksheet = workbook.Sheets[sheetName];
             const json: any[] = XLSX.utils.sheet_to_json(worksheet);
 
-            const newRates: Rate[] = json.map((row, index) => {
+            const parsedRates: RateFormData[] = json.map((row, index) => {
                 const parsed = rateSchema.safeParse(row);
                 if (!parsed.success) {
-                    throw new Error(`Invalid data in row ${index + 2}: ${parsed.error.flatten().fieldErrors}`);
+                    console.error(`Invalid data in row ${index + 2}: ${JSON.stringify(parsed.error.flatten().fieldErrors)}`);
+                    toast({ title: `Skipped row ${index + 2}`, description: "Invalid data format.", variant: "destructive" });
+                    return null;
                 }
-                return { ...parsed.data, id: crypto.randomUUID() };
-            });
+                return parsed.data;
+            }).filter((r): r is RateFormData => r !== null);
             
-            saveRates(newRates);
-            toast({ title: "Import Successful", description: `${newRates.length} rates have been imported and replaced existing data.` });
+            const currentRates = [...rates];
+            const existingRateKeys = new Set(currentRates.map(r => `${r.fromState.trim().toLowerCase()}-${r.toState.trim().toLowerCase()}`));
+            let addedCount = 0;
+            let skippedCount = 0;
+
+            parsedRates.forEach(rate => {
+                const key = `${rate.fromState.trim().toLowerCase()}-${rate.toState.trim().toLowerCase()}`;
+                if (!existingRateKeys.has(key)) {
+                    currentRates.push({ ...rate, id: crypto.randomUUID() });
+                    existingRateKeys.add(key);
+                    addedCount++;
+                } else {
+                    skippedCount++;
+                }
+            });
+
+            saveRates(currentRates);
+            toast({ title: "Import Complete", description: `${addedCount} new rates added. ${skippedCount} rates skipped (duplicates).` });
 
         } catch (error: any) {
             toast({ title: "Import Failed", description: error.message, variant: "destructive" });
@@ -268,5 +286,3 @@ export default function RateManagementPage() {
     </div>
   );
 }
-
-    

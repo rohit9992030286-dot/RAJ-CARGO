@@ -9,9 +9,9 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter }
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
-import { KeyRound, Save, Download, Upload, UploadCloud } from 'lucide-react';
+import { KeyRound, Save, Upload, UploadCloud } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-import { useAuth } from '@/hooks/useAuth.tsx';
+import { useAuth, User } from '@/hooks/useAuth.tsx';
 import { Label } from '@/components/ui/label';
 import {
   AlertDialog,
@@ -25,6 +25,9 @@ import {
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
 import { saveAs } from 'file-saver';
+import { Waybill } from '@/types/waybill';
+import { Manifest } from '@/types/manifest';
+import { InventoryItem } from '@/types/inventory';
 
 
 function getBackupData() {
@@ -32,7 +35,7 @@ function getBackupData() {
     const manifests = localStorage.getItem('yuwon-manifests') || '[]';
     const inventory = localStorage.getItem('yuwon-waybill-inventory') || '[]';
     const users = localStorage.getItem('yuwon-users') || '[]';
-    const rates = localStorage.getItem('yuwon-pincode-rates') || '[]';
+    const rates = localStorage.getItem('yuwon-state-rates') || '[]';
     const partnerAssoc = localStorage.getItem('yuwon-hub-partner-associations') || '{}';
     
     const allData = {
@@ -148,16 +151,86 @@ export default function AccountSettingsPage() {
             const hasAllKeys = requiredKeys.every(key => key in data);
 
             if (hasAllKeys) {
-              localStorage.setItem('yuwon-waybills', JSON.stringify(data.waybills || []));
-              localStorage.setItem('yuwon-manifests', JSON.stringify(data.manifests || []));
-              localStorage.setItem('yuwon-waybill-inventory', JSON.stringify(data.waybillInventory || []));
-              localStorage.setItem('yuwon-users', JSON.stringify(data.users || []));
-              localStorage.setItem('yuwon-pincode-rates', JSON.stringify(data.rates || []));
-              localStorage.setItem('yuwon-hub-partner-associations', JSON.stringify(data.partnerAssociations || {}));
+              // Waybills
+              const existingWaybills: Waybill[] = JSON.parse(localStorage.getItem('yuwon-waybills') || '[]');
+              const newWaybills = data.waybills || [];
+              const existingWaybillNumbers = new Set(existingWaybills.map(w => w.waybillNumber));
+              newWaybills.forEach((wb: Waybill) => {
+                  if (!existingWaybillNumbers.has(wb.waybillNumber)) {
+                      existingWaybills.push(wb);
+                  }
+              });
+              localStorage.setItem('yuwon-waybills', JSON.stringify(existingWaybills));
+
+              // Manifests
+              const existingManifests: Manifest[] = JSON.parse(localStorage.getItem('yuwon-manifests') || '[]');
+              const newManifests = data.manifests || [];
+              const existingManifestNos = new Set(existingManifests.map(m => m.manifestNo));
+              newManifests.forEach((m: Manifest) => {
+                  if (!existingManifestNos.has(m.manifestNo)) {
+                      existingManifests.push(m);
+                  }
+              });
+              localStorage.setItem('yuwon-manifests', JSON.stringify(existingManifests));
               
+              // Inventory
+              const existingInventory: InventoryItem[] = JSON.parse(localStorage.getItem('yuwon-waybill-inventory') || '[]');
+              const newInventory = data.waybillInventory || [];
+              const existingInventoryNos = new Set(existingInventory.map(i => i.waybillNumber));
+              newInventory.forEach((item: InventoryItem) => {
+                  if (!existingInventoryNos.has(item.waybillNumber)) {
+                      existingInventory.push(item);
+                  }
+              });
+              localStorage.setItem('yuwon-waybill-inventory', JSON.stringify(existingInventory));
+              
+              // Users
+              const existingUsers: User[] = JSON.parse(localStorage.getItem('yuwon-users') || '[]');
+              const newUsers = data.users || [];
+              const existingUsernames = new Set(existingUsers.map(u => u.username));
+              newUsers.forEach((user: User) => {
+                  if (!existingUsernames.has(user.username)) {
+                      existingUsers.push(user);
+                  }
+              });
+              localStorage.setItem('yuwon-users', JSON.stringify(existingUsers));
+              
+              // Rates
+              const existingRates: any[] = JSON.parse(localStorage.getItem('yuwon-state-rates') || '[]');
+              const newRates = data.rates || [];
+              const existingRateKeys = new Set(existingRates.map(r => `${r.fromState}-${r.toState}`));
+              newRates.forEach((rate: any) => {
+                  const key = `${rate.fromState}-${rate.toState}`;
+                  if (!existingRateKeys.has(key)) {
+                      existingRates.push(rate);
+                  }
+              });
+              localStorage.setItem('yuwon-state-rates', JSON.stringify(existingRates));
+              
+              // Partner Associations
+              const existingAssoc = JSON.parse(localStorage.getItem('yuwon-hub-partner-associations') || '{"bookingToHub": {}, "hubToHub": {}, "hubToDelivery": {}}');
+              const newAssoc = data.partnerAssociations || { bookingToHub: {}, hubToHub: {}, hubToDelivery: {} };
+              
+              Object.keys(newAssoc.bookingToHub || {}).forEach(key => {
+                  if (!existingAssoc.bookingToHub[key]) {
+                      existingAssoc.bookingToHub[key] = newAssoc.bookingToHub[key];
+                  }
+              });
+              Object.keys(newAssoc.hubToHub || {}).forEach(key => {
+                  if (!existingAssoc.hubToHub[key]) {
+                      existingAssoc.hubToHub[key] = newAssoc.hubToHub[key];
+                  }
+              });
+              Object.keys(newAssoc.hubToDelivery || {}).forEach(key => {
+                  if (!existingAssoc.hubToDelivery[key]) {
+                      existingAssoc.hubToDelivery[key] = newAssoc.hubToDelivery[key];
+                  }
+              });
+              localStorage.setItem('yuwon-hub-partner-associations', JSON.stringify(existingAssoc));
+
               toast({
                 title: 'Import Successful',
-                description: 'All system data has been restored from the backup file.',
+                description: 'New data has been merged from the backup file.',
               });
               setTimeout(() => window.location.reload(), 1000);
             } else {
@@ -252,26 +325,26 @@ export default function AccountSettingsPage() {
                     <div className="flex items-center justify-between pt-4 border-t">
                         <div>
                             <Label className="font-medium">Import Data from Backup</Label>
-                            <p className="text-sm text-muted-foreground">Restore data from a backup file. This will overwrite ALL existing data.</p>
+                            <p className="text-sm text-muted-foreground">Add new data from a backup file. Existing data will be preserved.</p>
                         </div>
                         <AlertDialog>
                             <AlertDialogTrigger asChild>
-                                <Button variant="destructive">
+                                <Button variant="outline">
                                     <Upload className="mr-2 h-4 w-4" />
-                                    Import & Overwrite Data
+                                    Import Data
                                 </Button>
                             </AlertDialogTrigger>
                             <AlertDialogContent>
                                 <AlertDialogHeader>
                                     <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
                                     <AlertDialogDescription>
-                                        This will overwrite all current system data with the contents of the backup file. This action cannot be undone.
+                                        This will add new data from the backup file. Existing data with the same identifiers (e.g., waybill number, username) will not be changed. This action cannot be undone.
                                     </AlertDialogDescription>
                                 </AlertDialogHeader>
                                 <AlertDialogFooter>
                                     <AlertDialogCancel>Cancel</AlertDialogCancel>
                                     <AlertDialogAction onClick={() => importFileRef.current?.click()}>
-                                        Yes, Overwrite and Import
+                                        Yes, Import and Merge Data
                                     </AlertDialogAction>
                                 </AlertDialogFooter>
                             </AlertDialogContent>
@@ -290,5 +363,3 @@ export default function AccountSettingsPage() {
         </div>
     )
 }
-
-    
