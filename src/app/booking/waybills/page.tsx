@@ -7,7 +7,7 @@ import { useWaybills } from '@/hooks/useWaybills';
 import { WaybillList } from '@/components/WaybillList';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Card, CardContent, CardFooter, CardHeader } from '@/components/ui/card';
+import { Card, CardContent, CardFooter, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { PlusCircle, FileDown, Printer, ChevronLeft, ChevronRight, Search, FileUp, FileSpreadsheet, Copy, Calendar as CalendarIcon, Loader2, Truck } from 'lucide-react';
 import * as XLSX from 'xlsx';
 import { saveAs } from 'file-saver';
@@ -22,6 +22,9 @@ import { DateRange } from 'react-day-picker';
 import { useAuth } from '@/hooks/useAuth';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Label } from '@/components/ui/label';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+
 
 function useDebounce(value: string, delay: number): string {
   const [debouncedValue, setDebouncedValue] = useState(value);
@@ -47,10 +50,14 @@ function WaybillsPageContent() {
   const [searchTerm, setSearchTerm] = useState('');
   const [dateRange, setDateRange] = useState<DateRange | undefined>(undefined);
   const [itemsPerPage, setItemsPerPage] = useState(10);
+  const [dimensionUnit, setDimensionUnit] = useState<'cm' | 'in'>('cm');
+
   const router = useRouter();
   const { toast } = useToast();
   const { user } = useAuth();
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const dimensionFileInputRef = useRef<HTMLInputElement>(null);
+
 
   const debouncedSearchTerm = useDebounce(searchTerm, 300);
 
@@ -141,8 +148,7 @@ function WaybillsPageContent() {
         "waybillNumber", "invoiceNumber", "tripNo", "eWayBillNo", "eWayBillExpiryDate",
         "senderName", "senderAddress", "senderCity", "senderPincode", "senderPhone", "senderState",
         "receiverName", "receiverAddress", "receiverCity", "receiverPincode", "receiverPhone", "receiverState",
-        "packageDescription", "packageWeight", "chargeableWeight", "numberOfBoxes", "dimensions",
-        "length", "breadth", "height",
+        "packageDescription", "packageWeight", "numberOfBoxes",
         "shipmentValue", "shippingDate", "shippingTime", "status", "companyCode", "paymentType"
     ];
     const worksheet = XLSX.utils.json_to_sheet([{}], { header: headers });
@@ -152,6 +158,22 @@ function WaybillsPageContent() {
     const excelBuffer = XLSX.write(workbook, { bookType: 'xlsx', type: 'array' });
     const data = new Blob([excelBuffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;charset=UTF-8' });
     saveAs(data, 'waybill_template.xlsx');
+  };
+  
+  const handleDownloadDimensionTemplate = () => {
+    const headers = ["waybillNumber", "length", "breadth", "height"];
+    const exampleData = [
+        { waybillNumber: 'SW-101', length: 10, breadth: 10, height: 10 },
+        { waybillNumber: 'SW-101', length: 12, breadth: 12, height: 12 },
+        { waybillNumber: 'SW-102', length: 15, breadth: 15, height: 15 },
+    ];
+    const worksheet = XLSX.utils.json_to_sheet(exampleData, { header: headers });
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, "Dimension Template");
+
+    const excelBuffer = XLSX.write(workbook, { bookType: 'xlsx', type: 'array' });
+    const data = new Blob([excelBuffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;charset=UTF-8' });
+    saveAs(data, 'dimension_template.xlsx');
   };
 
   const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -183,7 +205,6 @@ function WaybillsPageContent() {
                            shippingDate = format(parsedDate, 'yyyy-MM-dd');
                          }
                     } else if (typeof row.shippingDate === 'number') {
-                         // Handle Excel's numeric date format
                          const excelEpoch = new Date(1899, 11, 30);
                          const parsedDate = addDays(excelEpoch, row.shippingDate);
                          if(!isNaN(parsedDate.getTime())) {
@@ -194,39 +215,9 @@ function WaybillsPageContent() {
                     if (!shippingDate) {
                         shippingDate = format(new Date(), 'yyyy-MM-dd');
                     }
-                    
-                    let dimensions: {length: number, breadth: number, height: number}[] = [];
-                    const dimensionsStr = row.dimensions || '';
 
-                    if (dimensionsStr) {
-                        dimensions = dimensionsStr.split(',').map((dimStr: string) => {
-                            const [l, b, h] = dimStr.split('x').map(Number);
-                            return { length: l || 0, breadth: b || 0, height: h || 0 };
-                        });
-                    } else if (row.length || row.breadth || row.height) {
-                        dimensions.push({
-                            length: Number(row.length) || 0,
-                            breadth: Number(row.breadth) || 0,
-                            height: Number(row.height) || 0,
-                        });
-                    }
+                    const numberOfBoxes = Number(row.numberOfBoxes) || 1;
                     
-                    const numberOfBoxes = dimensions.length > 0 ? dimensions.length : (Number(row.numberOfBoxes) || 1);
-                    
-                    if (dimensions.length === 0 && numberOfBoxes > 0) {
-                        dimensions = Array(numberOfBoxes).fill({ length: 0, breadth: 0, height: 0 });
-                    }
-
-                    const totalVolume = dimensions.reduce((acc: number, dim: any) => {
-                        return acc + ((dim.length || 0) * (dim.breadth || 0) * (dim.height || 0) * 6);
-                    }, 0);
-                    
-                    let chargeableWeight = row.chargeableWeight ? Number(row.chargeableWeight) : 0;
-                    if (totalVolume > 0) {
-                        chargeableWeight = Math.ceil(totalVolume / 27000);
-                    }
-
-
                     const newWaybillData: Waybill = {
                       id: crypto.randomUUID(),
                       waybillNumber: String(row.waybillNumber || ''),
@@ -250,9 +241,9 @@ function WaybillsPageContent() {
                       shippingDate: shippingDate,
                       shippingTime: String(row.shippingTime || '10:00'),
                       numberOfBoxes: numberOfBoxes,
-                      dimensions: dimensions.length > 0 ? dimensions : [{length: 0, breadth: 0, height: 0}],
+                      dimensions: Array(numberOfBoxes).fill({ length: 0, breadth: 0, height: 0 }),
                       packageWeight: Number(row.packageWeight || 0),
-                      chargeableWeight: chargeableWeight,
+                      chargeableWeight: Number(row.packageWeight || 0),
                       shipmentValue: Number(row.shipmentValue || 0),
                       partnerCode: user?.partnerCode,
                       companyCode: String(row.companyCode || ''),
@@ -294,6 +285,90 @@ function WaybillsPageContent() {
         fileInputRef.current.value = '';
     }
   }
+
+  const handleDimensionUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = (e) => {
+        const data = e.target?.result;
+        if (!data) return;
+
+        try {
+            const workbook = XLSX.read(data, { type: 'binary' });
+            const sheetName = workbook.SheetNames[0];
+            const worksheet = workbook.Sheets[sheetName];
+            const json: any[] = XLSX.utils.sheet_to_json(worksheet);
+            
+            const dimensionsByWaybill = json.reduce((acc, row) => {
+                const waybillNumber = String(row.waybillNumber || '');
+                if (!waybillNumber) return acc;
+                if (!acc[waybillNumber]) {
+                    acc[waybillNumber] = [];
+                }
+                acc[waybillNumber].push({
+                    length: Number(row.length || 0),
+                    breadth: Number(row.breadth || 0),
+                    height: Number(row.height || 0),
+                });
+                return acc;
+            }, {} as Record<string, {length: number, breadth: number, height: number}[]>);
+
+            let updatedCount = 0;
+            let notFoundCount = 0;
+            
+            Object.entries(dimensionsByWaybill).forEach(([waybillNumber, newDimensions]) => {
+                const waybillToUpdate = waybills.find(w => w.waybillNumber === waybillNumber);
+                if (waybillToUpdate) {
+                    let totalVolume = 0;
+                    const conversionFactor = dimensionUnit === 'in' ? 2.54 : 1;
+
+                    const finalDimensions = newDimensions.map(dim => {
+                        const l = (dim.length || 0) * conversionFactor;
+                        const b = (dim.breadth || 0) * conversionFactor;
+                        const h = (dim.height || 0) * conversionFactor;
+                        if (l > 0 && b > 0 && h > 0) {
+                           totalVolume += (l * b * h * 6);
+                        }
+                        return { length: l, breadth: b, height: h };
+                    });
+
+                    const chargeableWeight = Math.ceil(totalVolume / 27000);
+                    
+                    updateWaybill({
+                        ...waybillToUpdate,
+                        dimensions: finalDimensions,
+                        numberOfBoxes: finalDimensions.length,
+                        chargeableWeight: chargeableWeight
+                    });
+                    updatedCount++;
+                } else {
+                    notFoundCount++;
+                }
+            });
+
+            toast({
+                title: 'Dimensions Updated',
+                description: `${updatedCount} waybills updated. ${notFoundCount} waybills not found.`
+            });
+
+        } catch (error) {
+            console.error("Error parsing dimension file", error);
+            toast({
+                title: 'Upload Failed',
+                description: 'Could not parse the dimension file.',
+                variant: 'destructive'
+            });
+        } finally {
+            if (dimensionFileInputRef.current) {
+                dimensionFileInputRef.current.value = '';
+            }
+        }
+    };
+    reader.readAsBinaryString(file);
+  };
+
 
   const handlePrintSelected = () => {
     if (selectedWaybillIds.length > 0) {
@@ -361,21 +436,70 @@ function WaybillsPageContent() {
               <p className="text-muted-foreground">Manage all your shipments from one place.</p>
             </div>
              <div className="flex gap-2 flex-wrap justify-end">
-                <Button onClick={handleDownloadTemplate} variant="outline" size="sm">
-                    <FileSpreadsheet /> Download Template
-                </Button>
-                <Button onClick={() => fileInputRef.current?.click()} variant="outline" size="sm">
-                    <FileUp /> Upload Excel
-                </Button>
-                <input type="file" ref={fileInputRef} onChange={handleFileUpload} className="hidden" accept=".xlsx, .xls" />
                 <Button onClick={handleDownloadExcel} variant="outline" size="sm" disabled={waybills.length === 0}>
-                    <FileDown /> Download Excel
+                    <FileDown /> Download All Waybills
                 </Button>
                 <Button onClick={handleCreateNew} size="sm">
                     <PlusCircle /> Create Waybill
                 </Button>
             </div>
         </div>
+
+        <Card>
+            <CardHeader>
+                <CardTitle>Bulk Operations</CardTitle>
+                <CardDescription>Upload waybills or update dimensions in bulk using Excel files.</CardDescription>
+            </CardHeader>
+            <CardContent>
+                <Tabs defaultValue="waybills">
+                    <TabsList className="grid w-full grid-cols-2">
+                        <TabsTrigger value="waybills">Waybill Upload</TabsTrigger>
+                        <TabsTrigger value="dimensions">Dimension Upload</TabsTrigger>
+                    </TabsList>
+                    <TabsContent value="waybills" className="mt-4">
+                        <div className="flex flex-col sm:flex-row gap-2">
+                            <Button onClick={handleDownloadTemplate} variant="outline" className="w-full">
+                                <FileSpreadsheet className="mr-2 h-4 w-4" /> Download Waybill Template
+                            </Button>
+                            <Button onClick={() => fileInputRef.current?.click()} className="w-full">
+                                <FileUp className="mr-2 h-4 w-4" /> Upload Waybill File
+                            </Button>
+                            <input type="file" ref={fileInputRef} onChange={handleFileUpload} className="hidden" accept=".xlsx, .xls" />
+                        </div>
+                    </TabsContent>
+                    <TabsContent value="dimensions" className="mt-4">
+                        <div className="space-y-4">
+                            <div>
+                                <Label className="font-medium">Dimension Unit</Label>
+                                <RadioGroup defaultValue="cm" onValueChange={(value: 'cm' | 'in') => setDimensionUnit(value)} className="mt-2 grid grid-cols-2 gap-4">
+                                    <div>
+                                        <RadioGroupItem value="cm" id="cm" className="peer sr-only" />
+                                        <Label htmlFor="cm" className="flex flex-col items-center justify-between rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary cursor-pointer">
+                                            Centimeters (cm)
+                                        </Label>
+                                    </div>
+                                    <div>
+                                        <RadioGroupItem value="in" id="in" className="peer sr-only" />
+                                        <Label htmlFor="in" className="flex flex-col items-center justify-between rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary cursor-pointer">
+                                            Inches (in)
+                                        </Label>
+                                    </div>
+                                </RadioGroup>
+                            </div>
+                            <div className="flex flex-col sm:flex-row gap-2">
+                                <Button onClick={handleDownloadDimensionTemplate} variant="outline" className="w-full">
+                                    <FileSpreadsheet className="mr-2 h-4 w-4" /> Download Dimension Template
+                                </Button>
+                                <Button onClick={() => dimensionFileInputRef.current?.click()} className="w-full">
+                                    <FileUp className="mr-2 h-4 w-4" /> Upload Dimension File
+                                </Button>
+                                <input type="file" ref={dimensionFileInputRef} onChange={handleDimensionUpload} className="hidden" accept=".xlsx, .xls" />
+                            </div>
+                        </div>
+                    </TabsContent>
+                </Tabs>
+            </CardContent>
+        </Card>
 
         <Card>
             <CardHeader>
@@ -507,5 +631,3 @@ function WaybillsPageContent() {
 export default function WaybillsPage() {
     return <WaybillsPageContent />;
 }
-
-    
