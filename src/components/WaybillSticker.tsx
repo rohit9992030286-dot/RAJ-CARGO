@@ -36,8 +36,7 @@ const PrintLogo = () => (
             </svg>
         </div>
         <div className="flex flex-col leading-tight">
-            <span className="text-[10px] font-extrabold tracking-tight text-black">YU-WON</span>
-            <span className="text-[7px] font-bold text-black">EXPRESS</span>
+            <span className="text-[10px] font-extrabold tracking-tight text-black">YU-WON LOGISTICS</span>
         </div>
     </div>
 );

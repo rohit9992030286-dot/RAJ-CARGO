@@ -34,7 +34,7 @@ function EmployeeIdCard({ employee }: { employee: Employee }) {
                                 <rect x="105" y="140" width="10" height="25" fill="white" />
                             </svg>
                         </div>
-                        <h1 className="text-sm font-bold tracking-tight uppercase">YU-WON EXPRESS</h1>
+                        <h1 className="text-sm font-bold tracking-tight uppercase">YU-WON LOGISTICS</h1>
                     </div>
                     <Star className="h-4 w-4 text-yellow-300" />
                 </div>

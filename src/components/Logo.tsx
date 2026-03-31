@@ -10,11 +10,11 @@ export function Logo({ className }: LogoProps) {
     return (
         <div className={cn("flex items-center gap-3", className)}>
             <div className="relative h-12 w-12 flex items-center justify-center">
-                 <svg 
-                    width="48" 
-                    height="48" 
-                    viewBox="0 0 200 200" 
-                    fill="none" 
+                 <svg
+                    width="48"
+                    height="48"
+                    viewBox="0 0 200 200"
+                    fill="none"
                     xmlns="http://www.w3.org/2000/svg"
                     className="absolute"
                 >
@@ -42,9 +42,6 @@ export function Logo({ className }: LogoProps) {
             <div className="flex flex-col leading-none">
                 <span className="text-2xl font-extrabold tracking-tighter text-transparent bg-clip-text bg-gradient-to-r from-[#0056b3] to-[#E1AD01]">
                     YU-WON LOGISTICS
-                </span>
-                <span className="text-[10px] font-black tracking-[0.3em] text-[#E1AD01] uppercase italic">
-                    EXPRESS DELIVERY
                 </span>
             </div>
         </div>

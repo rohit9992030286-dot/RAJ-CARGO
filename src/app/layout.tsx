@@ -7,8 +7,8 @@ import { AuthProvider } from '@/hooks/useAuth.tsx';
 import { GlobalKeyboardShortcuts } from '@/components/GlobalKeyboardShortcuts';
 
 export const metadata: Metadata = {
-  title: 'YU-WON LOGISTICS EXPRESS',
-  description: 'Fast, secure, and reliable victory-driven transport and courier service',
+  title: 'YU-WON LOGISTICS',
+  description: 'Victory-driven transport and courier service',
 };
 
 export default function RootLayout({

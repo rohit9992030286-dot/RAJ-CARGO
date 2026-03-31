@@ -137,7 +137,14 @@ function WaybillsPageContent() {
   };
 
   const handleDownloadTemplate = () => {
-    const headers = Object.keys(waybillFormSchema._def.schema.shape).filter(key => !['id', 'partnerCode'].includes(key));
+    const headers = [
+        "waybillNumber", "invoiceNumber", "tripNo", "eWayBillNo", "eWayBillExpiryDate",
+        "senderName", "senderAddress", "senderCity", "senderPincode", "senderPhone", "senderState",
+        "receiverName", "receiverAddress", "receiverCity", "receiverPincode", "receiverPhone", "receiverState",
+        "packageDescription", "packageWeight", "chargeableWeight", "numberOfBoxes", "dimensions",
+        "length", "breadth", "height",
+        "shipmentValue", "shippingDate", "shippingTime", "status", "companyCode", "paymentType"
+    ];
     const worksheet = XLSX.utils.json_to_sheet([{}], { header: headers });
     const workbook = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(workbook, worksheet, "Waybill Template");
@@ -188,14 +195,28 @@ function WaybillsPageContent() {
                         shippingDate = format(new Date(), 'yyyy-MM-dd');
                     }
                     
+                    let dimensions: {length: number, breadth: number, height: number}[] = [];
                     const dimensionsStr = row.dimensions || '';
-                    const dimensions = dimensionsStr.split(',').map((dimStr: string) => {
-                      const [l, b, h] = dimStr.split('x').map(Number);
-                      return { length: l || 0, breadth: b || 0, height: h || 0 };
-                    });
 
+                    if (dimensionsStr) {
+                        dimensions = dimensionsStr.split(',').map((dimStr: string) => {
+                            const [l, b, h] = dimStr.split('x').map(Number);
+                            return { length: l || 0, breadth: b || 0, height: h || 0 };
+                        });
+                    } else if (row.length || row.breadth || row.height) {
+                        dimensions.push({
+                            length: Number(row.length) || 0,
+                            breadth: Number(row.breadth) || 0,
+                            height: Number(row.height) || 0,
+                        });
+                    }
+                    
                     const numberOfBoxes = dimensions.length > 0 ? dimensions.length : (Number(row.numberOfBoxes) || 1);
                     
+                    if (dimensions.length === 0 && numberOfBoxes > 0) {
+                        dimensions = Array(numberOfBoxes).fill({ length: 0, breadth: 0, height: 0 });
+                    }
+
                     const totalVolume = dimensions.reduce((acc: number, dim: any) => {
                         return acc + ((dim.length || 0) * (dim.breadth || 0) * (dim.height || 0) * 6);
                     }, 0);
@@ -484,5 +505,3 @@ function WaybillsPageContent() {
 export default function WaybillsPage() {
     return <WaybillsPageContent />;
 }
-
-    

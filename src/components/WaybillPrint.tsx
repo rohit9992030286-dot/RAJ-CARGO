@@ -61,7 +61,7 @@ function WaybillCopy({ waybill, copyType }: WaybillPrintProps) {
                     </svg>
                 </div>
                 <div>
-                    <h1 className="text-xl font-bold text-black uppercase">YU-WON LOGISTICS EXPRESS</h1>
+                    <h1 className="text-xl font-bold text-black uppercase">YU-WON LOGISTICS</h1>
                     <p className="text-black text-[8px] tracking-tight">DELHI NAJAFGARH. PINCODE 110048 | EMAIL: contact@yuwonlogistics.com</p>
                 </div>
             </div>
@@ -193,8 +193,8 @@ function WaybillCopy({ waybill, copyType }: WaybillPrintProps) {
               <section className="mt-1">
                 <div className="p-1 border-2 border-black text-[8px] space-y-0.5">
                   <p className="font-bold mb-0.5">Terms & Conditions:</p>
-                  <p>1. All shipments are carried at the sender's risk. YU-WON LOGISTICS EXPRESS is not liable for any loss or damage unless insurance is purchased.</p>
-                  <p>2. Liability of YU-WON LOGISTICS EXPRESS is limited to the declared value or ₹1,000, whichever is lower. Sender is responsible for shipping non-prohibited items.</p>
+                  <p>1. All shipments are carried at the sender's risk. YU-WON LOGISTICS is not liable for any loss or damage unless insurance is purchased.</p>
+                  <p>2. Liability of YU-WON LOGISTICS is limited to the declared value or ₹1,000, whichever is lower. Sender is responsible for shipping non-prohibited items.</p>
                 </div>
               </section>
 
@@ -234,7 +234,7 @@ export function ManifestPrint({ waybills, manifest }: { waybills: Waybill[], man
                         </svg>
                     </div>
                     <div>
-                        <h1 className="text-3xl font-bold text-black uppercase">YU-WON LOGISTICS EXPRESS</h1>
+                        <h1 className="text-3xl font-bold text-black uppercase">YU-WON LOGISTICS</h1>
                         <p className="text-black text-sm">DELHI NAJAFGARH. PINCODE 110048</p>
                         <p className="text-black text-sm">EMAIL: contact@yuwonlogistics.com</p>
                     </div>
