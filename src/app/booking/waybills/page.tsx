@@ -238,6 +238,7 @@ function WaybillsPageContent() {
                       senderCity: String(row.senderCity || ''),
                       senderPincode: String(row.senderPincode || ''),
                       senderPhone: String(row.senderPhone || ''),
+                      senderState: String(row.senderState || ''),
                       receiverName: String(row.receiverName || ''),
                       receiverAddress: String(row.receiverAddress || ''),
                       receiverCity: String(row.receiverCity || ''),
@@ -255,6 +256,7 @@ function WaybillsPageContent() {
                       shipmentValue: Number(row.shipmentValue || 0),
                       partnerCode: user?.partnerCode,
                       companyCode: String(row.companyCode || ''),
+                      paymentType: row.paymentType || 'To Pay',
                     };
                     
                     if (!newWaybillData.waybillNumber) {
@@ -505,3 +507,5 @@ function WaybillsPageContent() {
 export default function WaybillsPage() {
     return <WaybillsPageContent />;
 }
+
+    
