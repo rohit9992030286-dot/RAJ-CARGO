@@ -11,7 +11,7 @@ import { Card, CardContent, CardFooter, CardHeader, CardTitle, CardDescription }
 import { PlusCircle, FileDown, Printer, ChevronLeft, ChevronRight, Search, FileUp, FileSpreadsheet, Copy, Calendar as CalendarIcon, Loader2, Truck } from 'lucide-react';
 import * as XLSX from 'xlsx';
 import { saveAs } from 'file-saver';
-import { Waybill, waybillFormSchema } from '@/types/waybill';
+import { Waybill, waybillFormSchema, WaybillFormData } from '@/types/waybill';
 import { useToast } from '@/hooks/use-toast';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Calendar } from '@/components/ui/calendar';
@@ -55,6 +55,7 @@ function WaybillsPageContent() {
   const router = useRouter();
   const { toast } = useToast();
   const { user } = useAuth();
+  const { waybillInventory } = useWaybillInventory();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const dimensionFileInputRef = useRef<HTMLInputElement>(null);
 
@@ -193,9 +194,49 @@ function WaybillsPageContent() {
 
             let addedCount = 0;
             let skippedCount = 0;
+            const errorMessages: string[] = [];
 
             json.forEach((row, index) => {
+                const rowNum = index + 2;
                 try {
+                    const waybillNumber = String(row.waybillNumber || '').trim();
+                    if (!waybillNumber) {
+                        errorMessages.push(`Row ${rowNum}: Waybill number is missing.`);
+                        skippedCount++;
+                        return;
+                    }
+
+                    const inventoryItem = waybillInventory.find(item => item.waybillNumber === waybillNumber);
+                    if (!inventoryItem) {
+                        errorMessages.push(`Row ${rowNum}: Waybill #${waybillNumber} not found in inventory.`);
+                        skippedCount++;
+                        return;
+                    }
+                    if (inventoryItem.isUsed) {
+                        errorMessages.push(`Row ${rowNum}: Waybill #${waybillNumber} has already been used.`);
+                        skippedCount++;
+                        return;
+                    }
+                    if (inventoryItem.partnerCode !== user?.partnerCode) {
+                         errorMessages.push(`Row ${rowNum}: Waybill #${waybillNumber} is not assigned to you.`);
+                         skippedCount++;
+                         return;
+                    }
+                    
+                    const requiredFields: (keyof WaybillFormData)[] = [
+                        'invoiceNumber', 'senderName', 'senderAddress', 'senderCity', 'senderPincode', 'senderPhone', 'senderState',
+                        'receiverName', 'receiverAddress', 'receiverCity', 'receiverPincode', 'receiverPhone', 'receiverState',
+                        'packageDescription', 'packageWeight', 'numberOfBoxes', 'shipmentValue', 'paymentType'
+                    ];
+
+                    const missingFields = requiredFields.filter(field => !row[field] || String(row[field]).trim() === '');
+
+                    if (missingFields.length > 0) {
+                        errorMessages.push(`Row ${rowNum} (WB# ${waybillNumber}): Missing mandatory fields: ${missingFields.join(', ')}.`);
+                        skippedCount++;
+                        return;
+                    }
+                    
                     let shippingDate;
                     if (row.shippingDate instanceof Date && !isNaN(row.shippingDate.getTime())) {
                         shippingDate = format(row.shippingDate, 'yyyy-MM-dd');
@@ -220,7 +261,7 @@ function WaybillsPageContent() {
                     
                     const newWaybillData: Waybill = {
                       id: crypto.randomUUID(),
-                      waybillNumber: String(row.waybillNumber || ''),
+                      waybillNumber: waybillNumber,
                       invoiceNumber: String(row.invoiceNumber || ''),
                       tripNo: String(row.tripNo || ''),
                       eWayBillNo: String(row.eWayBillNo || ''),
@@ -237,9 +278,9 @@ function WaybillsPageContent() {
                       receiverState: String(row.receiverState || ''),
                       receiverPhone: String(row.receiverPhone || ''),
                       packageDescription: String(row.packageDescription || ''),
-                      status: row.status || 'Pending',
+                      status: 'Pending',
                       shippingDate: shippingDate,
-                      shippingTime: String(row.shippingTime || '10:00'),
+                      shippingTime: String(row.shippingTime || new Date().toTimeString().split(' ')[0].substring(0, 5)),
                       numberOfBoxes: numberOfBoxes,
                       dimensions: Array(numberOfBoxes).fill({ length: 0, breadth: 0, height: 0 }),
                       packageWeight: Number(row.packageWeight || 0),
@@ -249,28 +290,47 @@ function WaybillsPageContent() {
                       companyCode: String(row.companyCode || ''),
                       paymentType: row.paymentType || 'To Pay',
                     };
-                    
-                    if (!newWaybillData.waybillNumber) {
-                        console.error(`Error processing row ${index + 2}: Waybill number is missing.`);
-                        skippedCount++;
-                        return;
-                    }
 
                     if (addWaybill(newWaybillData, true)) {
                         addedCount++;
                     } else {
+                        errorMessages.push(`Row ${rowNum}: Waybill #${waybillNumber} already exists in the system.`);
                         skippedCount++;
                     }
                 } catch(error) {
-                    console.error(`Error processing row ${index + 2}:`, error);
+                    const message = error instanceof Error ? error.message : "An unknown error occurred.";
+                    errorMessages.push(`Row ${rowNum}: ${message}`);
                     skippedCount++;
                 }
             });
+            
+            if (errorMessages.length > 0) {
+                 toast({
+                    title: `Upload Process Finished with Errors (${skippedCount} skipped)`,
+                    description: (
+                        <div className="max-h-40 overflow-y-auto text-xs">
+                            <ul className="list-disc pl-5">
+                                {errorMessages.slice(0, 5).map((msg, i) => <li key={i}>{msg}</li>)}
+                                {errorMessages.length > 5 && <li>And {errorMessages.length - 5} more errors...</li>}
+                            </ul>
+                        </div>
+                    ),
+                    variant: "destructive",
+                    duration: 10000,
+                });
+            }
 
-            toast({
-                title: 'Upload Complete',
-                description: `${addedCount} waybills added. ${skippedCount} waybills skipped (duplicates or errors).`,
-            });
+            if(addedCount > 0) {
+                toast({
+                    title: 'Upload Complete',
+                    description: `${addedCount} waybills successfully added.`,
+                });
+            } else if (errorMessages.length === 0) {
+                toast({
+                    title: 'No Waybills Added',
+                    description: 'The file might be empty or all waybills were duplicates/invalid.',
+                });
+            }
         } catch (error) {
             console.error("Error parsing Excel file", error);
             toast({
@@ -278,12 +338,13 @@ function WaybillsPageContent() {
                 description: 'There was an error parsing the Excel file. Please check the format.',
                 variant: 'destructive'
             });
+        } finally {
+            if(fileInputRef.current) {
+                fileInputRef.current.value = '';
+            }
         }
     };
     reader.readAsBinaryString(file);
-    if(fileInputRef.current) {
-        fileInputRef.current.value = '';
-    }
   }
 
   const handleDimensionUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -631,3 +692,5 @@ function WaybillsPageContent() {
 export default function WaybillsPage() {
     return <WaybillsPageContent />;
 }
+
+    
