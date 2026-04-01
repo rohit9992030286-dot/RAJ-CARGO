@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useMemo, useState, useRef, useEffect } from 'react';
@@ -99,35 +98,38 @@ export default function HubDispatchPage() {
             .flatMap(m => m.waybillIds)
             .forEach(id => dispatchedFromHubWbIds.add(id));
 
-        const expectedBoxes: ExpectedBox[] = [];
-        
-        allManifests.forEach(manifest => {
-            if (['Received', 'Short Received'].includes(manifest.status) && manifest.verifiedBoxIds) {
-                manifest.verifiedBoxIds.forEach(boxId => {
-                    const waybillNumber = boxId.substring(0, boxId.lastIndexOf('-'));
-                    const waybill = allWaybills.find(wb => wb.waybillNumber === waybillNumber);
-                    
-                    if (waybill && !dispatchedFromHubWbIds.has(waybill.id) && !expectedBoxes.some(b => b.boxId === boxId)) {
-                        const boxNumber = parseInt(boxId.substring(boxId.lastIndexOf('-') + 1), 10);
-                        const city = waybill.receiverCity.toUpperCase();
-                        
-                        expectedBoxes.push({
-                            waybillId: waybill.id,
-                            waybillNumber: waybill.waybillNumber,
-                            boxId: boxId,
-                            boxNumber: boxNumber,
-                            totalBoxes: waybill.numberOfBoxes,
-                            destination: city,
-                            receiverName: waybill.receiverName,
-                            pallet: manifest.palletAssignments?.[city],
-                            verifiedDate: manifest.verifiedDate
-                        });
+        const expectedBoxes: { boxId: string, waybill: import('@/types/waybill').Waybill }[] = [];
+        allManifests.forEach(m => {
+            if (['Received', 'Short Received'].includes(m.status)) {
+                m.verifiedBoxIds?.forEach(boxId => {
+                    if (!dispatchedFromHubWbIds.has(boxId.substring(0, boxId.lastIndexOf('-')))) {
+                         const waybillNumber = boxId.substring(0, boxId.lastIndexOf('-'));
+                        const waybill = allWaybills.find(wb => wb.waybillNumber === waybillNumber);
+                        if (waybill && !expectedBoxes.some(p => p.boxId === boxId)) {
+                            expectedBoxes.push({ boxId, waybill });
+                        }
                     }
                 });
             }
         });
 
-        return expectedBoxes;
+        return expectedBoxes.map(({boxId, waybill}) => {
+             const boxNumber = parseInt(boxId.substring(boxId.lastIndexOf('-') + 1), 10);
+             const city = waybill.receiverCity.toUpperCase();
+             const manifest = allManifests.find(m => m.verifiedBoxIds?.includes(boxId));
+
+             return {
+                waybillId: waybill.id,
+                waybillNumber: waybill.waybillNumber,
+                boxId: boxId,
+                boxNumber: boxNumber,
+                totalBoxes: waybill.numberOfBoxes,
+                destination: city,
+                receiverName: waybill.receiverName,
+                pallet: manifest?.palletAssignments?.[city],
+                verifiedDate: manifest?.verifiedDate
+            }
+        });
 
     }, [allManifests, allWaybills, manifestsLoaded, waybillsLoaded]);
 
@@ -179,6 +181,22 @@ export default function HubDispatchPage() {
         }
         if (!destinationPartnerCode) {
              toast({ title: 'Destination Required', description: `Please select a destination ${partnerTypeLabel.toLowerCase()}.`, variant: 'destructive'});
+            return;
+        }
+
+        const waybillsInManifest = loadedWaybillIds.map(id => allWaybills.find(wb => wb.id === id)).filter((wb): wb is Waybill => !!wb);
+        const waybillsWithoutDimensions = waybillsInManifest.filter(waybill => {
+            if (!waybill.dimensions || waybill.dimensions.length === 0) return true;
+            return waybill.dimensions.some(dim => !dim.length || !dim.breadth || !dim.height);
+        });
+
+        if (waybillsWithoutDimensions.length > 0) {
+            toast({
+                title: 'Dimensions Missing',
+                description: `Cannot dispatch. The following waybills are missing dimensions: ${waybillsWithoutDimensions.map(wb => wb.waybillNumber).join(', ')}`,
+                variant: 'destructive',
+                duration: 10000,
+            });
             return;
         }
         

@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState, useEffect, useMemo } from 'react';
@@ -142,6 +141,21 @@ export default function EditManifestPage() {
     }
     if (!manifest.vehicleNo || manifest.vehicleNo.trim() === '') {
         toast({ title: "Vehicle Number Required", description: "Please enter a vehicle number before dispatching.", variant: "destructive"});
+        return;
+    }
+
+    const waybillsWithoutDimensions = manifestWaybills.filter(waybill => {
+        if (!waybill.dimensions || waybill.dimensions.length === 0) return true;
+        return waybill.dimensions.some(dim => !dim.length || !dim.breadth || !dim.height);
+    });
+
+    if (waybillsWithoutDimensions.length > 0) {
+        toast({
+            title: 'Dimensions Missing',
+            description: `Cannot dispatch. The following waybills are missing dimensions: ${waybillsWithoutDimensions.map(wb => wb.waybillNumber).join(', ')}`,
+            variant: 'destructive',
+            duration: 10000,
+        });
         return;
     }
     
