@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useEffect, useRef, useState, Suspense } from 'react';
@@ -25,7 +26,7 @@ function TripPrintLayout({ waybills, tripNo }: { waybills: Waybill[], tripNo: st
   const formattedDate = new Date().toLocaleDateString();
   const borderedCell = "border-r border-black last:border-r-0";
   const partnerCode = waybills.length > 0 ? waybills[0].partnerCode : 'N/A';
-  const waybillChunks = chunkArray(waybills, 25);
+  const waybillChunks = chunkArray(waybills, 50);
 
 
   return (
@@ -44,7 +45,7 @@ function TripPrintLayout({ waybills, tripNo }: { waybills: Waybill[], tripNo: st
                     </svg>
                 </div>
               <div>
-                <h1 className="text-3xl font-bold text-black uppercase">YU-WON LOGISTICS EXPRESS</h1>
+                <h1 className="text-3xl font-bold text-black uppercase">YU-WON LOGISTICS</h1>
                 <p className="text-black text-sm">DELHI NAJAFGARH. PINCODE 110048</p>
                 <p className="text-black text-sm">EMAIL: contact@yuwonlogistics.com</p>
               </div>
@@ -81,7 +82,7 @@ function TripPrintLayout({ waybills, tripNo }: { waybills: Waybill[], tripNo: st
               <TableBody>
                 {chunk.map((waybill, index) => (
                   <TableRow key={waybill.id}>
-                    <TableCell className={`font-medium ${borderedCell}`}>{pageIndex * 25 + index + 1}</TableCell>
+                    <TableCell className={`font-medium ${borderedCell}`}>{pageIndex * 50 + index + 1}</TableCell>
                     <TableCell className={`font-medium ${borderedCell}`}>{waybill.waybillNumber}</TableCell>
                     <TableCell className={borderedCell}>{waybill.receiverName}</TableCell>
                     <TableCell className={borderedCell}>{waybill.receiverCity}, {waybill.receiverPincode}</TableCell>
