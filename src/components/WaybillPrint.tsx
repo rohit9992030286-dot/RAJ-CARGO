@@ -1,4 +1,3 @@
-
 'use client';
 
 import { Waybill } from '@/types/waybill';
@@ -133,7 +132,7 @@ function WaybillCopy({ waybill, copyType }: WaybillPrintProps) {
     const counts = new Map<string, { l: number, b: number, h: number, count: number }>();
     
     waybill.dimensions.forEach(dim => {
-        const key = `${dim.length}x${dim.breadth}x${dim.height}`;
+        const key = `${'\'\'\''}${dim.length}x${dim.breadth}x${dim.height}${'\'\'\''}`;
         if (counts.has(key)) {
             counts.get(key)!.count++;
         } else {
@@ -184,7 +183,7 @@ function WaybillCopy({ waybill, copyType }: WaybillPrintProps) {
           <div className="p-1 flex-grow flex flex-col">
               {/* Sender & Receiver Info */}
               <section className="grid grid-cols-12 gap-px bg-black border-b-2 border-black">
-                <div className="col-span-4 p-2 bg-white">
+                <div className="col-span-6 p-2 bg-white">
                   <h3 className="font-bold uppercase text-[11px] border-b border-black mb-1">From (Sender)</h3>
                   <div className="space-y-0.5 text-xs">
                     <p className="font-bold text-sm">{waybill.senderName}</p>
@@ -194,7 +193,7 @@ function WaybillCopy({ waybill, copyType }: WaybillPrintProps) {
                     <p>Ph: {waybill.senderPhone}</p>
                   </div>
                 </div>
-                <div className="col-span-4 p-2 bg-white">
+                <div className="col-span-6 p-2 bg-white">
                   <h3 className="font-bold uppercase text-[11px] border-b border-black mb-1">To (Receiver)</h3>
                   <div className="space-y-0.5 text-xs">
                     <p className="font-bold text-sm">{waybill.receiverName}</p>
@@ -204,17 +203,38 @@ function WaybillCopy({ waybill, copyType }: WaybillPrintProps) {
                     <p>Ph: {waybill.receiverPhone}</p>
                   </div>
                 </div>
-                 <div className="col-span-4 p-2 bg-white text-xs space-y-1">
-                    <div className="grid grid-cols-2 gap-x-2">
-                        <span className="font-semibold">Invoice #:</span><span className="font-mono">{waybill.invoiceNumber}</span>
-                        <span className="font-semibold">Trip #:</span><span className="font-mono">{waybill.tripNo || 'N/A'}</span>
-                    </div>
-                     <div className="grid grid-cols-1">
-                        <span className="font-semibold">E-Way Bill #:</span>
-                        <span className="font-mono">{waybill.eWayBillNo || 'N/A'}</span>
-                    </div>
-                 </div>
               </section>
+
+              {/* Partner & Logistics Info */}
+               <section className="grid grid-cols-12 gap-px bg-black border-b-2 border-black">
+                    <div className="col-span-3 p-1 bg-white text-xs">
+                        <p className="font-bold text-[9px] uppercase">Booking Partner:</p>
+                        <p className="font-semibold uppercase truncate">{bookingPartner}</p>
+                    </div>
+                    <div className="col-span-3 p-1 bg-white text-xs">
+                        <p className="font-bold text-[9px] uppercase">Delivery Partner:</p>
+                        <p className="font-semibold uppercase truncate">{deliveryPartner}</p>
+                    </div>
+                    <div className="col-span-3 p-1 bg-white text-xs">
+                        <p className="font-bold text-[9px] uppercase">Invoice #:</p>
+                        <p className="font-mono">{waybill.invoiceNumber}</p>
+                    </div>
+                    <div className="col-span-3 p-1 bg-white text-xs">
+                        <p className="font-bold text-[9px] uppercase">Trip #:</p>
+                        <p className="font-mono">{waybill.tripNo || 'N/A'}</p>
+                    </div>
+                </section>
+                <section className="grid grid-cols-12 gap-px bg-black border-b-2 border-black">
+                    <div className="col-span-6 p-1 bg-white text-xs">
+                        <p className="font-bold text-[9px] uppercase">E-Way Bill #:</p>
+                        <p className="font-mono">{waybill.eWayBillNo || 'N/A'}</p>
+                    </div>
+                    <div className="col-span-6 p-1 bg-white text-xs">
+                        <p className="font-bold text-[9px] uppercase">E-Way Bill Expiry:</p>
+                        <p className="font-mono">{waybill.eWayBillExpiryDate ? format(new Date(waybill.eWayBillExpiryDate), 'dd-MMM-yyyy') : 'N/A'}</p>
+                    </div>
+                </section>
+
 
               {/* Weight & Boxes Details */}
               <section className="grid grid-cols-12 gap-px bg-black border-b-2 border-black">
@@ -241,9 +261,9 @@ function WaybillCopy({ waybill, copyType }: WaybillPrintProps) {
                                 {dimensionRows.map((dim, index) => (
                                     <tr key={index}>
                                         <td className="border border-black p-0.5 h-4">{dim ? dim.count : ''}</td>
-                                        <td className="border border-black p-0.5">{dim ? `${dim.l} cm` : ''}</td>
-                                        <td className="border border-black p-0.5">{dim ? `${dim.b} cm` : ''}</td>
-                                        <td className="border border-black p-0.5">{dim ? `${dim.h} cm` : ''}</td>
+                                        <td className="border border-black p-0.5">{dim ? `${'\'\'\''}${dim.l} cm${'\'\'\''}` : ''}</td>
+                                        <td className="border border-black p-0.5">{dim ? `${'\'\'\''}${dim.b} cm${'\'\'\''}` : ''}</td>
+                                        <td className="border border-black p-0.5">{dim ? `${'\'\'\''}${dim.h} cm${'\'\'\''}` : ''}</td>
                                     </tr>
                                 ))}
                             </tbody>
@@ -284,15 +304,8 @@ function WaybillCopy({ waybill, copyType }: WaybillPrintProps) {
                       </div>
                     )
                 ) : (
-                     <div className="grid grid-cols-2 gap-px bg-black h-full">
-                        <div className="bg-white p-2 text-xs">
-                            <p className="font-bold uppercase text-[9px] flex items-center gap-1"><Briefcase className="h-3 w-3"/> Booking Partner:</p>
-                            <p className="font-semibold uppercase">{bookingPartner}</p>
-                        </div>
-                        <div className="bg-white p-2 text-xs">
-                            <p className="font-bold uppercase text-[9px] flex items-center gap-1"><Truck className="h-3 w-3"/> Delivery Partner:</p>
-                            <p className="font-semibold uppercase">{deliveryPartner}</p>
-                        </div>
+                    <div className="p-1 text-xs text-center font-semibold">
+                       This is a {copyType}. Thank you for choosing YU-WON LOGISTICS.
                     </div>
                 )}
               </section>
@@ -317,5 +330,3 @@ export function WaybillPrint({ waybill }: { waybill: Waybill }) {
     </div>
   );
 }
-
-    
