@@ -132,7 +132,7 @@ function WaybillCopy({ waybill, copyType }: WaybillPrintProps) {
     const counts = new Map<string, { l: number, b: number, h: number, count: number }>();
     
     waybill.dimensions.forEach(dim => {
-        const key = `${'\'\'\''}${dim.length}x${dim.breadth}x${dim.height}${'\'\'\''}`;
+        const key = `${dim.length}x${dim.breadth}x${dim.height}`;
         if (counts.has(key)) {
             counts.get(key)!.count++;
         } else {
@@ -261,9 +261,9 @@ function WaybillCopy({ waybill, copyType }: WaybillPrintProps) {
                                 {dimensionRows.map((dim, index) => (
                                     <tr key={index}>
                                         <td className="border border-black p-0.5 h-4">{dim ? dim.count : ''}</td>
-                                        <td className="border border-black p-0.5">{dim ? `${'\'\'\''}${dim.l} cm${'\'\'\''}` : ''}</td>
-                                        <td className="border border-black p-0.5">{dim ? `${'\'\'\''}${dim.b} cm${'\'\'\''}` : ''}</td>
-                                        <td className="border border-black p-0.5">{dim ? `${'\'\'\''}${dim.h} cm${'\'\'\''}` : ''}</td>
+                                        <td className="border border-black p-0.5">{dim ? `${dim.l} cm` : ''}</td>
+                                        <td className="border border-black p-0.5">{dim ? `${dim.b} cm` : ''}</td>
+                                        <td className="border border-black p-0.5">{dim ? `${dim.h} cm` : ''}</td>
                                     </tr>
                                 ))}
                             </tbody>
@@ -324,7 +324,7 @@ function WaybillCopy({ waybill, copyType }: WaybillPrintProps) {
 
 export function WaybillPrint({ waybill }: { waybill: Waybill }) {
   return (
-    <div className="flex flex-col" style={{ gap: '5mm' }}>
+    <div className="flex flex-col" style={{ gap: '20mm' }}>
       <WaybillCopy waybill={waybill} copyType="Receiver Copy" />
       <WaybillCopy waybill={waybill} copyType="POD Copy" />
     </div>
