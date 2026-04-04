@@ -3,9 +3,9 @@
 
 import { createContext, useContext, useState, useEffect, ReactNode, useCallback } from 'react';
 
-export const AUTH_STORAGE_KEY = 'rajcargo-auth';
-export const USERS_STORAGE_KEY = 'rajcargo-users';
-const ADMIN_PIN_VERIFIED_KEY = 'rajcargo-admin-pin-verified';
+export const AUTH_STORAGE_KEY = 'yuwon-auth';
+export const USERS_STORAGE_KEY = 'yuwon-users';
+const ADMIN_PIN_VERIFIED_KEY = 'yuwon-admin-pin-verified';
 const ADMIN_PIN = '1234'; // The secret PIN for admin access
 
 export interface User {

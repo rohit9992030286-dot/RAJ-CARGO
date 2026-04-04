@@ -17,7 +17,7 @@ import { saveAs } from 'file-saver';
 import { DateRange } from 'react-day-picker';
 import { Waybill } from '@/types/waybill';
 
-const RATE_STORAGE_KEY = 'rajcargo-state-rates';
+const RATE_STORAGE_KEY = 'yuwon-state-rates';
 
 interface Rate {
   fromState: string;

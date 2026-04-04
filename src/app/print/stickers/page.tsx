@@ -24,7 +24,7 @@ function PrintStickersContent() {
     const source = searchParams.get('source');
 
     if (source === 'excel') {
-        const stickerData = sessionStorage.getItem('rajcargo-excel-sticker');
+        const stickerData = sessionStorage.getItem('yuwon-excel-sticker');
         if (stickerData) {
             const parsedData = JSON.parse(stickerData);
             setWaybillsToPrint([parsedData as Waybill]);

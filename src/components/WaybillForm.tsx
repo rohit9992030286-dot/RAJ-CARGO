@@ -18,6 +18,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { useCompanies } from '@/hooks/useCompanies';
 import { RadioGroup, RadioGroupItem } from './ui/radio-group';
 import { Label } from './ui/label';
+import { InventoryItem } from '@/types/inventory';
 
 const getInitialValues = (initialData?: Waybill): WaybillFormData => {
     const defaults: WaybillFormData = {
@@ -78,6 +79,8 @@ export function WaybillForm({ initialData, onSave, onCancel }: WaybillFormProps)
   const { toast } = useToast();
   const { user } = useAuth();
   const { companies, getCompanyByCode, isLoaded: companiesLoaded } = useCompanies();
+  const { getAvailableInventoryForCompany } = useWaybillInventory();
+  const [availableWaybills, setAvailableWaybills] = useState<InventoryItem[]>([]);
 
   const form = useForm<WaybillFormData>({
     resolver: zodResolver(waybillFormSchema),
@@ -97,7 +100,7 @@ export function WaybillForm({ initialData, onSave, onCancel }: WaybillFormProps)
   const [shipmentValue, selectedCompanyCode, dimensions, numberOfBoxes] = watchedFields;
 
   const selectedCompany = useMemo(() => {
-    if (!selectedCompanyCode) return null;
+    if (!selectedCompanyCode || selectedCompanyCode === 'none') return null;
     return getCompanyByCode(selectedCompanyCode);
   }, [selectedCompanyCode, getCompanyByCode]);
   
@@ -116,15 +119,39 @@ export function WaybillForm({ initialData, onSave, onCancel }: WaybillFormProps)
     }
   }, [numberOfBoxes, dimensions, append, remove]);
 
+  useEffect(() => {
+    if (!initialData) { // Only on create mode
+        const marketOnly = !selectedCompanyCode || selectedCompanyCode === 'none';
+        const inventory = getAvailableInventoryForCompany(marketOnly ? undefined : selectedCompanyCode, marketOnly);
+        setAvailableWaybills(inventory);
+        form.setValue('waybillNumber', ''); // Reset on company change
+    }
+  }, [selectedCompanyCode, getAvailableInventoryForCompany, initialData, form]);
 
   useEffect(() => {
+    if (initialData) return; // Don't autofill on edit
+    
     if (selectedCompany) {
+        form.setValue('senderName', selectedCompany.senderName);
+        form.setValue('senderAddress', selectedCompany.senderAddress);
+        form.setValue('senderCity', selectedCompany.senderCity);
+        form.setValue('senderPincode', selectedCompany.senderPincode);
+        form.setValue('senderPhone', selectedCompany.senderPhone);
+        form.setValue('senderState', selectedCompany.senderState);
         form.setValue('paymentType', selectedCompany.paymentType);
     } else {
-        form.setValue('paymentType', 'To Pay');
+        // Reset to default sender if company is unselected
+         const storedSender = localStorage.getItem('yuwon-defaultSender') || '{}';
+         const defaultSender = JSON.parse(storedSender);
+         form.setValue('senderName', defaultSender.senderName || '');
+         form.setValue('senderAddress', defaultSender.senderAddress || '');
+         form.setValue('senderCity', defaultSender.senderCity || '');
+         form.setValue('senderPincode', defaultSender.senderPincode || '');
+         form.setValue('senderPhone', defaultSender.senderPhone || '');
+         form.setValue('senderState', defaultSender.senderState || '');
+         form.setValue('paymentType', 'To Pay');
     }
-  }, [selectedCompany, form]);
-
+  }, [selectedCompany, form, initialData]);
 
   useEffect(() => {
     const values = getInitialValues(initialData);
@@ -144,7 +171,7 @@ export function WaybillForm({ initialData, onSave, onCancel }: WaybillFormProps)
                 };
             }
         } else {
-            const storedSender = localStorage.getItem('rajcargo-defaultSender');
+            const storedSender = localStorage.getItem('yuwon-defaultSender');
             if (storedSender) {
               senderDetails = JSON.parse(storedSender);
             }
@@ -241,7 +268,7 @@ export function WaybillForm({ initialData, onSave, onCancel }: WaybillFormProps)
                                     </div>
                                 </FormControl>
                                 <SelectContent>
-                                    <SelectItem value="none">None</SelectItem>
+                                    <SelectItem value="none">None (Market Booking)</SelectItem>
                                     {companies.map(c => <SelectItem key={c.id} value={c.companyCode!}>{c.companyName} ({c.companyCode})</SelectItem>)}
                                 </SelectContent>
                             </Select>
@@ -249,22 +276,56 @@ export function WaybillForm({ initialData, onSave, onCancel }: WaybillFormProps)
                         </FormItem>
                     )}
                 />
-                <FormField
-                    control={form.control}
-                    name="waybillNumber"
-                    render={({ field }) => (
-                    <FormItem>
-                        <FormLabel>Waybill Number</FormLabel>
-                        <div className="relative">
-                            <FormControl>
-                                <Input placeholder="Enter waybill number" {...field} className="pl-10" disabled={!!initialData} />
-                            </FormControl>
-                            <IconWrapper><Hash /></IconWrapper>
-                        </div>
-                        <FormMessage />
-                    </FormItem>
-                    )}
-                />
+                 {initialData ? (
+                    <FormField
+                        control={form.control}
+                        name="waybillNumber"
+                        render={({ field }) => (
+                        <FormItem>
+                            <FormLabel>Waybill Number</FormLabel>
+                            <div className="relative">
+                                <FormControl>
+                                    <Input {...field} className="pl-10" disabled />
+                                </FormControl>
+                                <IconWrapper><Hash /></IconWrapper>
+                            </div>
+                            <FormMessage />
+                        </FormItem>
+                        )}
+                    />
+                ) : (
+                    <FormField
+                        control={form.control}
+                        name="waybillNumber"
+                        render={({ field }) => (
+                            <FormItem>
+                                <FormLabel>Waybill Number</FormLabel>
+                                <Select onValueChange={field.onChange} value={field.value} disabled={availableWaybills.length === 0}>
+                                    <FormControl>
+                                        <div className="relative">
+                                            <SelectTrigger className="pl-10">
+                                                <SelectValue placeholder="Select an available waybill number" />
+                                            </SelectTrigger>
+                                            <IconWrapper><Hash /></IconWrapper>
+                                        </div>
+                                    </FormControl>
+                                    <SelectContent>
+                                        {availableWaybills.length > 0 ? (
+                                            availableWaybills.map(item => (
+                                                <SelectItem key={item.waybillNumber} value={item.waybillNumber}>
+                                                    {item.waybillNumber}
+                                                </SelectItem>
+                                            ))
+                                        ) : (
+                                            <div className="p-2 text-center text-sm text-muted-foreground">No available waybills for this selection.</div>
+                                        )}
+                                    </SelectContent>
+                                </Select>
+                                <FormMessage />
+                            </FormItem>
+                        )}
+                    />
+                )}
             </CardContent>
         </Card>
 

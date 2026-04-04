@@ -19,11 +19,11 @@ function BulkPrintStickersPageContent() {
 
   useEffect(() => {
     try {
-      const storedStickers = sessionStorage.getItem('rajcargo-bulk-stickers');
+      const storedStickers = sessionStorage.getItem('yuwon-bulk-stickers');
       if (storedStickers) {
         setStickers(JSON.parse(storedStickers));
       }
-      const storedSize = localStorage.getItem('rajcargo-stickerSize');
+      const storedSize = localStorage.getItem('yuwon-stickerSize');
       if (storedSize) {
         setStickerSize(storedSize);
       }
@@ -40,7 +40,7 @@ function BulkPrintStickersPageContent() {
       const timer = setTimeout(() => {
         window.print();
         // Optional: Clean up session storage after printing
-        // sessionStorage.removeItem('rajcargo-bulk-stickers');
+        // sessionStorage.removeItem('yuwon-bulk-stickers');
       }, 500);
       return () => clearTimeout(timer);
     }

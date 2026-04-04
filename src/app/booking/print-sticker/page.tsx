@@ -72,7 +72,7 @@ export default function PrintStickerPage() {
                 packageWeight: 0,
             };
 
-            sessionStorage.setItem('rajcargo-excel-sticker', JSON.stringify(waybillForSticker));
+            sessionStorage.setItem('yuwon-excel-sticker', JSON.stringify(waybillForSticker));
             window.open(`/print/stickers?source=excel`, '_blank');
             setPrintedBoxIds(prev => new Set(prev).add(stickerInfo.firstBarcodeId));
 
