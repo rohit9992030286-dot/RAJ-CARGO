@@ -149,13 +149,13 @@ function WaybillCopy({ waybill, copyType }: WaybillPrintProps) {
   });
 
   return (
-    <div className="bg-white text-black font-sans mx-auto print:shadow-none" style={{ fontSize: '10px', height: '12.5cm', width: '100%', display: 'flex', flexDirection: 'column' }}>
-      <div className="border-2 border-black flex flex-col flex-grow">
+    <div className="bg-white text-black font-sans mx-auto print:shadow-none p-2" style={{ fontSize: '10px', height: '12.5cm', width: '20cm' }}>
+      <div className="border-2 border-black flex flex-col h-full">
           {/* Header */}
-          <header className="flex justify-between items-start p-2 border-b-2 border-black">
-            <div className="flex items-center gap-3">
-                <div className="relative h-10 w-10">
-                    <svg viewBox="0 0 200 200" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <header className="flex justify-between items-center p-2 border-b-2 border-black">
+             <div className="flex items-center gap-3">
+                <div className="relative h-12 w-12">
+                     <svg viewBox="0 0 200 200" fill="none" xmlns="http://www.w3.org/2000/svg">
                         <path d="M 10,80 L 50,80 M 5,100 L 45,100" stroke="black" strokeWidth="10" strokeLinecap="round" />
                         <path d="M 60,60 Q 110,180 160,60 L 145,50 Q 110,140 75,50 Z" fill="black" />
                         <path d="M 110,20 L 120,45 L 145,45 L 125,60 L 135,85 L 110,70 L 85,85 L 95,60 L 75,45 L 100,45 Z" fill="black" />
@@ -164,148 +164,143 @@ function WaybillCopy({ waybill, copyType }: WaybillPrintProps) {
                     </svg>
                 </div>
                 <div>
-                    <h1 className="text-xl font-bold text-black uppercase">YU-WON LOGISTICS</h1>
-                    <p className="text-black text-[8px] tracking-tight">DELHI NAJAFGARH. PINCODE 110048 | EMAIL: contact@yuwonlogistics.com</p>
+                    <h1 className="text-2xl font-black text-black uppercase tracking-tighter">YU-WON LOGISTICS</h1>
+                    <p className="text-black text-[9px] font-semibold">DELHI NAJAFGARH. PINCODE 110048 | contact@yuwonlogistics.com</p>
                 </div>
             </div>
-            <div className="text-right flex flex-col items-end">
-              <h2 className="text-md font-bold uppercase tracking-wider text-black">{copyType}</h2>
-              <div className="h-[35px]">
-                <Barcode 
-                    value={waybill.waybillNumber}
-                    height={30}
-                    width={1.2}
-                    fontSize={12}
-                />
-              </div>
-              {expDeliveryDate && <p className="text-xs text-black font-semibold">Exp. Delivery: {format(expDeliveryDate, 'dd-MMM-yyyy')}</p>}
-              {waybill.tripNo && <p className="text-xs text-black font-semibold">Trip #{waybill.tripNo}</p>}
+            <div className="text-right">
+              <h2 className="text-lg font-bold uppercase tracking-wider text-black">{copyType}</h2>
+              <p className="text-xs font-semibold">Date: {format(new Date(waybill.shippingDate), 'dd-MMM-yyyy')}</p>
+              {expDeliveryDate && <p className="text-xs font-bold text-blue-700">Exp. Delivery: {format(expDeliveryDate, 'dd-MMM-yyyy')}</p>}
             </div>
           </header>
+
+           {/* Barcode Section */}
+           <div className="text-center p-1 border-b-2 border-black">
+                <Barcode value={waybill.waybillNumber} height={35} width={2} fontSize={16} />
+            </div>
           
-          <div className="p-2 flex-grow flex flex-col">
+          <div className="p-1 flex-grow flex flex-col">
               {/* Sender & Receiver Info */}
-              <section className="grid grid-cols-2 gap-2">
-                <div className="p-2 border-2 border-black">
-                  <h3 className="text-xs font-bold uppercase tracking-wider text-black mb-1">From (Sender)</h3>
+              <section className="grid grid-cols-12 gap-px bg-black border-b-2 border-black">
+                <div className="col-span-4 p-2 bg-white">
+                  <h3 className="font-bold uppercase text-[11px] border-b border-black mb-1">From (Sender)</h3>
                   <div className="space-y-0.5 text-xs">
-                    <p className="flex items-center gap-2"><User className="h-3 w-3 text-black shrink-0" /> <span className="font-semibold">{waybill.senderName}</span></p>
-                    <p className="flex items-start gap-2"><MapPin className="h-3 w-3 text-black shrink-0 mt-0.5" /> {waybill.senderAddress}, {waybill.senderCity}, {waybill.senderPincode}</p>
-                    <p className="flex items-center gap-2"><Phone className="h-3 w-3 text-black shrink-0" /> {waybill.senderPhone}</p>
+                    <p className="font-bold text-sm">{waybill.senderName}</p>
+                    <p>{waybill.senderAddress}</p>
+                    <p>{waybill.senderCity} - {waybill.senderPincode}</p>
+                    <p>{waybill.senderState}</p>
+                    <p>Ph: {waybill.senderPhone}</p>
                   </div>
                 </div>
-                <div className="p-2 border-2 border-black">
-                  <h3 className="text-xs font-bold uppercase tracking-wider text-black mb-1">To (Receiver)</h3>
+                <div className="col-span-4 p-2 bg-white">
+                  <h3 className="font-bold uppercase text-[11px] border-b border-black mb-1">To (Receiver)</h3>
                   <div className="space-y-0.5 text-xs">
-                    <p className="flex items-center gap-2"><User className="h-3 w-3 text-black shrink-0" /> <span className="font-semibold">{waybill.receiverName}</span></p>
-                    <p className="flex items-start gap-2"><MapPin className="h-3 w-3 text-black shrink-0 mt-0.5" /> {waybill.receiverAddress}, {waybill.receiverCity}, {waybill.receiverPincode}</p>
-                    <p className="flex items-start gap-2"><Globe className="h-3 w-3 text-black shrink-0" /> {waybill.receiverState}</p>
-                    <p className="flex items-center gap-2"><Phone className="h-3 w-3 text-black shrink-0" /> {waybill.receiverPhone}</p>
+                    <p className="font-bold text-sm">{waybill.receiverName}</p>
+                    <p>{waybill.receiverAddress}</p>
+                    <p>{waybill.receiverCity} - {waybill.receiverPincode}</p>
+                    <p>{waybill.receiverState}</p>
+                    <p>Ph: {waybill.receiverPhone}</p>
                   </div>
                 </div>
+                 <div className="col-span-4 p-2 bg-white text-xs space-y-1">
+                    <div className="grid grid-cols-2 gap-x-2">
+                        <span className="font-semibold">Invoice #:</span><span className="font-mono">{waybill.invoiceNumber}</span>
+                        <span className="font-semibold">Trip #:</span><span className="font-mono">{waybill.tripNo || 'N/A'}</span>
+                    </div>
+                     <div className="grid grid-cols-1">
+                        <span className="font-semibold">E-Way Bill #:</span>
+                        <span className="font-mono">{waybill.eWayBillNo || 'N/A'}</span>
+                    </div>
+                 </div>
               </section>
 
-              {/* Shipment Details */}
-              <section className="mt-1">
-                <div className="space-y-1 text-xs">
-                    <div className="grid grid-cols-5 gap-1">
-                        <div className="p-1 border-2 border-black text-center">
-                            <p className="font-semibold text-black text-[9px]">Ship Date</p>
-                            <p className="text-sm font-bold">{new Date(waybill.shippingDate).toLocaleDateString()}</p>
-                        </div>
-                         <div className="p-1 border-2 border-black text-center">
-                            <p className="font-semibold text-black text-[9px]">Payment</p>
-                            <p className="text-sm font-bold">{waybill.paymentType}</p>
-                        </div>
-                        <div className="p-1 border-2 border-black text-center">
-                            <p className="font-semibold text-black text-[9px]">Boxes</p>
-                            <p className="text-sm font-bold">{waybill.numberOfBoxes}</p>
-                        </div>
-                        <div className="p-1 border-2 border-black text-center">
-                            <p className="font-semibold text-black text-[9px]">Act. Wt.</p>
-                            <p className="text-sm font-bold">{waybill.packageWeight} kg</p>
-                        </div>
-                        <div className="p-1 border-2 border-black text-center">
-                            <p className="font-semibold text-black text-[9px]">Chg. Wt.</p>
-                            <p className="text-sm font-bold">{waybill.chargeableWeight || waybill.packageWeight} kg</p>
-                        </div>
-                    </div>
-                     <table className="w-full text-[9px] border-collapse border-2 border-black">
-                        <thead>
-                            <tr className="bg-gray-200">
-                                <th className="border-2 border-black p-0.5">Sr</th>
-                                <th className="border-2 border-black p-0.5">L</th>
-                                <th className="border-2 border-black p-0.5">B</th>
-                                <th className="border-2 border-black p-0.5">H</th>
-                                <th className="border-2 border-black p-0.5">Article</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {dimensionRows.map((dim, index) => (
-                                <tr key={index}>
-                                    <td className="border-2 border-black p-0.5 text-center">{dim ? index + 1 : ''}</td>
-                                    <td className="border-2 border-black p-0.5 text-center">{dim ? dim.l : ''}</td>
-                                    <td className="border-2 border-black p-0.5 text-center">{dim ? dim.b : ''}</td>
-                                    <td className="border-2 border-black p-0.5 text-center">{dim ? dim.h : ''}</td>
-                                    <td className="border-2 border-black p-0.5 text-center">{dim ? dim.count : ''}</td>
+              {/* Weight & Boxes Details */}
+              <section className="grid grid-cols-12 gap-px bg-black border-b-2 border-black">
+                    <div className="col-span-2 p-1 text-center bg-white"><p className="text-[9px] font-semibold">Payment</p><p className="font-bold">{waybill.paymentType}</p></div>
+                    <div className="col-span-2 p-1 text-center bg-white"><p className="text-[9px] font-semibold">Boxes</p><p className="font-bold">{waybill.numberOfBoxes}</p></div>
+                    <div className="col-span-2 p-1 text-center bg-white"><p className="text-[9px] font-semibold">Actual Wt.</p><p className="font-bold">{waybill.packageWeight} kg</p></div>
+                    <div className="col-span-2 p-1 text-center bg-white"><p className="text-[9px] font-semibold">Chargeable Wt.</p><p className="font-bold">{waybill.chargeableWeight || waybill.packageWeight} kg</p></div>
+                    <div className="col-span-4 p-1 text-center bg-white"><p className="text-[9px] font-semibold">Shipment Value</p><p className="font-bold">₹ {waybill.shipmentValue.toLocaleString('en-IN')}</p></div>
+              </section>
+
+              {/* Dimensions & Description */}
+              <section className="grid grid-cols-12 gap-px bg-black border-b-2 border-black flex-grow min-h-0">
+                  <div className="col-span-7 bg-white p-1">
+                        <table className="w-full text-center text-[9px] border-collapse">
+                            <thead className="bg-gray-100">
+                                <tr>
+                                    <th className="border border-black p-0.5 w-[10%]">Count</th>
+                                    <th className="border border-black p-0.5">Length</th>
+                                    <th className="border border-black p-0.5">Breadth</th>
+                                    <th className="border border-black p-0.5">Height</th>
                                 </tr>
-                            ))}
-                        </tbody>
-                    </table>
-                    <div className="grid grid-cols-2 gap-1 mt-1">
-                        <div className="p-1 border-2 border-black text-center">
-                            <p className="font-semibold text-black text-[9px] flex items-center justify-center gap-1"><Briefcase className="h-2 w-2"/> Booking Partner</p>
-                            <p className="text-xs font-bold uppercase truncate">{bookingPartner}</p>
-                        </div>
-                        <div className="p-1 border-2 border-black text-center">
-                            <p className="font-semibold text-black text-[9px] flex items-center justify-center gap-1"><Truck className="h-2 w-2"/> Delivery Partner</p>
-                            <p className="text-xs font-bold uppercase truncate">{deliveryPartner}</p>
-                        </div>
-                    </div>
-                </div>
+                            </thead>
+                            <tbody>
+                                {dimensionRows.map((dim, index) => (
+                                    <tr key={index}>
+                                        <td className="border border-black p-0.5 h-4">{dim ? dim.count : ''}</td>
+                                        <td className="border border-black p-0.5">{dim ? `${dim.l} cm` : ''}</td>
+                                        <td className="border border-black p-0.5">{dim ? `${dim.b} cm` : ''}</td>
+                                        <td className="border border-black p-0.5">{dim ? `${dim.h} cm` : ''}</td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                  </div>
+                  <div className="col-span-5 bg-white p-2 text-xs">
+                        <p className="font-bold uppercase text-[9px]">Description:</p>
+                        <p>{waybill.packageDescription}</p>
+                  </div>
               </section>
 
-              <section className="mt-1">
-                  <div className="p-2 border-2 border-black grid grid-cols-3 gap-4 text-xs">
-                    {isDelivered ? (
-                      <>
-                        <div className="flex items-center gap-2 col-span-3">
-                            <CheckCircle className="h-4 w-4 text-green-600" />
+              <section className="border-b-2 border-black">
+                {copyType === 'POD Copy' ? (
+                     isDelivered ? (
+                      <div className="p-2 grid grid-cols-2 gap-4">
+                        <div className="flex items-center gap-2">
+                            <CheckCircle className="h-5 w-5 text-green-600" />
                             <div>
-                                <p className="font-semibold text-black">Delivered On:</p>
+                                <p className="font-bold">Delivered On:</p>
                                 <p>{waybill.deliveryDate ? format(new Date(waybill.deliveryDate), 'PPp') : 'N/A'}</p>
                             </div>
-                             <div className="ml-4 pl-4 border-l border-gray-400">
-                                <p className="font-semibold text-black">Received By:</p>
-                                <p>{waybill.receivedBy || 'N/A'}</p>
-                            </div>
                         </div>
-                      </>
+                        <div>
+                            <p className="font-bold">Received By:</p>
+                            <p>{waybill.receivedBy || 'N/A'}</p>
+                        </div>
+                      </div>
                     ) : (
-                      <>
+                      <div className="p-2 grid grid-cols-5 gap-2 text-xs">
+                        <div className="col-span-3">
+                          <p className="font-bold mb-1">Receiver's Signature:</p>
+                          <div className="h-12 border-b border-gray-400"></div>
+                        </div>
                         <div className="col-span-2">
-                          <p className="font-semibold text-black mb-1">Receiver's Name & Signature:</p>
+                          <p className="font-bold mb-1">Date & Remarks:</p>
                           <div className="h-12 border-b border-gray-400"></div>
                         </div>
-                        <div className="col-span-1">
-                          <p className="font-semibold text-black mb-1">Date & Remarks:</p>
-                          <div className="h-12 border-b border-gray-400"></div>
+                      </div>
+                    )
+                ) : (
+                     <div className="grid grid-cols-2 gap-px bg-black h-full">
+                        <div className="bg-white p-2 text-xs">
+                            <p className="font-bold uppercase text-[9px] flex items-center gap-1"><Briefcase className="h-3 w-3"/> Booking Partner:</p>
+                            <p className="font-semibold uppercase">{bookingPartner}</p>
                         </div>
-                      </>
-                    )}
-                  </div>
+                        <div className="bg-white p-2 text-xs">
+                            <p className="font-bold uppercase text-[9px] flex items-center gap-1"><Truck className="h-3 w-3"/> Delivery Partner:</p>
+                            <p className="font-semibold uppercase">{deliveryPartner}</p>
+                        </div>
+                    </div>
+                )}
               </section>
 
-              <section className="mt-1 flex-grow">
-                <div className="p-1 border-2 border-black text-[8px] space-y-0.5 h-full">
-                  <p className="font-bold mb-0.5">Terms & Conditions:</p>
+              {/* Footer */}
+              <footer className="p-1 text-[8px]">
+                  <p className="font-bold">Terms & Conditions:</p>
                   <p>1. All shipments are carried at the sender's risk. YU-WON LOGISTICS is not liable for any loss or damage unless insurance is purchased.</p>
                   <p>2. Liability of YU-WON LOGISTICS is limited to the declared value or ₹1,000, whichever is lower. Sender is responsible for shipping non-prohibited items.</p>
-                </div>
-              </section>
-
-              <footer className="mt-1 pt-1 border-t-2 border-dashed border-gray-400 text-center">
-                <p className="text-[9px] text-black">Generated on: {new Date().toLocaleString()}</p>
               </footer>
           </div>
       </div>
