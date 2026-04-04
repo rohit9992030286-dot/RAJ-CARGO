@@ -24,6 +24,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 
 
 function useDebounce(value: string, delay: number): string {
@@ -506,61 +507,65 @@ function WaybillsPageContent() {
             </div>
         </div>
 
-        <Card>
-            <CardHeader>
-                <CardTitle>Bulk Operations</CardTitle>
-                <CardDescription>Upload waybills or update dimensions in bulk using Excel files.</CardDescription>
-            </CardHeader>
-            <CardContent>
-                <Tabs defaultValue="waybills">
-                    <TabsList className="grid w-full grid-cols-2">
-                        <TabsTrigger value="waybills">Waybill Upload</TabsTrigger>
-                        <TabsTrigger value="dimensions">Dimension Upload</TabsTrigger>
-                    </TabsList>
-                    <TabsContent value="waybills" className="mt-4">
-                        <div className="flex flex-col sm:flex-row gap-2">
-                            <Button onClick={handleDownloadTemplate} variant="outline" className="w-full">
-                                <FileSpreadsheet className="mr-2 h-4 w-4" /> Download Waybill Template
-                            </Button>
-                            <Button onClick={() => fileInputRef.current?.click()} className="w-full">
-                                <FileUp className="mr-2 h-4 w-4" /> Upload Waybill File
-                            </Button>
-                            <input type="file" ref={fileInputRef} onChange={handleFileUpload} className="hidden" accept=".xlsx, .xls" />
-                        </div>
-                    </TabsContent>
-                    <TabsContent value="dimensions" className="mt-4">
-                        <div className="space-y-4">
-                            <div>
-                                <Label className="font-medium">Dimension Unit</Label>
-                                <RadioGroup defaultValue="cm" onValueChange={(value: 'cm' | 'in') => setDimensionUnit(value)} className="mt-2 grid grid-cols-2 gap-4">
-                                    <div>
-                                        <RadioGroupItem value="cm" id="cm" className="peer sr-only" />
-                                        <Label htmlFor="cm" className="flex flex-col items-center justify-between rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary cursor-pointer">
-                                            Centimeters (cm)
-                                        </Label>
-                                    </div>
-                                    <div>
-                                        <RadioGroupItem value="in" id="in" className="peer sr-only" />
-                                        <Label htmlFor="in" className="flex flex-col items-center justify-between rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary cursor-pointer">
-                                            Inches (in)
-                                        </Label>
-                                    </div>
-                                </RadioGroup>
-                            </div>
+        <Accordion type="single" collapsible className="w-full">
+            <AccordionItem value="bulk-operations" className="border-b-0">
+                <AccordionTrigger className="bg-card p-6 rounded-lg border shadow-sm hover:no-underline [&[data-state=open]]:rounded-b-none">
+                    <div className="text-left">
+                        <h2 className="text-lg font-semibold leading-none tracking-tight">Bulk Operations</h2>
+                        <p className="text-sm text-muted-foreground mt-1.5">Upload waybills or update dimensions in bulk using Excel files.</p>
+                    </div>
+                </AccordionTrigger>
+                <AccordionContent className="bg-card p-6 pt-0 border border-t-0 rounded-b-lg">
+                    <Tabs defaultValue="waybills" className="pt-6">
+                        <TabsList className="grid w-full grid-cols-2">
+                            <TabsTrigger value="waybills">Waybill Upload</TabsTrigger>
+                            <TabsTrigger value="dimensions">Dimension Upload</TabsTrigger>
+                        </TabsList>
+                        <TabsContent value="waybills" className="mt-4">
                             <div className="flex flex-col sm:flex-row gap-2">
-                                <Button onClick={handleDownloadDimensionTemplate} variant="outline" className="w-full">
-                                    <FileSpreadsheet className="mr-2 h-4 w-4" /> Download Dimension Template
+                                <Button onClick={handleDownloadTemplate} variant="outline" className="w-full">
+                                    <FileSpreadsheet className="mr-2 h-4 w-4" /> Download Waybill Template
                                 </Button>
-                                <Button onClick={() => dimensionFileInputRef.current?.click()} className="w-full">
-                                    <FileUp className="mr-2 h-4 w-4" /> Upload Dimension File
+                                <Button onClick={() => fileInputRef.current?.click()} className="w-full">
+                                    <FileUp className="mr-2 h-4 w-4" /> Upload Waybill File
                                 </Button>
-                                <input type="file" ref={dimensionFileInputRef} onChange={handleDimensionUpload} className="hidden" accept=".xlsx, .xls" />
+                                <input type="file" ref={fileInputRef} onChange={handleFileUpload} className="hidden" accept=".xlsx, .xls" />
                             </div>
-                        </div>
-                    </TabsContent>
-                </Tabs>
-            </CardContent>
-        </Card>
+                        </TabsContent>
+                        <TabsContent value="dimensions" className="mt-4">
+                            <div className="space-y-4">
+                                <div>
+                                    <Label className="font-medium">Dimension Unit</Label>
+                                    <RadioGroup defaultValue="cm" onValueChange={(value: 'cm' | 'in') => setDimensionUnit(value)} className="mt-2 grid grid-cols-2 gap-4">
+                                        <div>
+                                            <RadioGroupItem value="cm" id="cm" className="peer sr-only" />
+                                            <Label htmlFor="cm" className="flex flex-col items-center justify-between rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary cursor-pointer">
+                                                Centimeters (cm)
+                                            </Label>
+                                        </div>
+                                        <div>
+                                            <RadioGroupItem value="in" id="in" className="peer sr-only" />
+                                            <Label htmlFor="in" className="flex flex-col items-center justify-between rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary cursor-pointer">
+                                                Inches (in)
+                                            </Label>
+                                        </div>
+                                    </RadioGroup>
+                                </div>
+                                <div className="flex flex-col sm:flex-row gap-2">
+                                    <Button onClick={handleDownloadDimensionTemplate} variant="outline" className="w-full">
+                                        <FileSpreadsheet className="mr-2 h-4 w-4" /> Download Dimension Template
+                                    </Button>
+                                    <Button onClick={() => dimensionFileInputRef.current?.click()} className="w-full">
+                                        <FileUp className="mr-2 h-4 w-4" /> Upload Dimension File
+                                    </Button>
+                                    <input type="file" ref={dimensionFileInputRef} onChange={handleDimensionUpload} className="hidden" accept=".xlsx, .xls" />
+                                </div>
+                            </div>
+                        </TabsContent>
+                    </Tabs>
+                </AccordionContent>
+            </AccordionItem>
+        </Accordion>
 
         <Card>
             <CardHeader>
