@@ -1,3 +1,4 @@
+
 'use client';
 
 import { Waybill } from '@/types/waybill';
@@ -316,3 +317,5 @@ export function WaybillPrint({ waybill }: { waybill: Waybill }) {
     </div>
   );
 }
+
+    
