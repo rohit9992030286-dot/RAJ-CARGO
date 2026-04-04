@@ -5,8 +5,65 @@ import { Truck, User, MapPin, Phone, Calendar, Hash, Box, Weight, IndianRupee, P
 import Barcode from 'react-barcode';
 import { usePartnerAssociations } from '@/hooks/usePartnerAssociations';
 import { useAuth } from '@/hooks/useAuth';
-import { format } from 'date-fns';
+import { format, addDays } from 'date-fns';
 import { Manifest } from '@/types/manifest';
+import { useMemo, useState, useEffect } from 'react';
+
+interface Rate {
+  fromState: string;
+  toState: string;
+  docketCharge: number;
+  fuelSurcharge: number;
+  greenTaxCharge: number;
+  volumeWeightCharge: number;
+  expectedDeliveryDays: number;
+}
+
+// Function to calculate the Levenshtein distance between two strings
+function levenshtein(a: string, b: string): number {
+  if (a.length === 0) return b.length;
+  if (b.length === 0) return a.length;
+  const matrix = [];
+  for (let i = 0; i <= b.length; i++) {
+    matrix[i] = [i];
+  }
+  for (let j = 0; j <= a.length; j++) {
+    matrix[0][j] = j;
+  }
+  for (let i = 1; i <= b.length; i++) {
+    for (let j = 1; j <= a.length; j++) {
+      if (b.charAt(i - 1) === a.charAt(j - 1)) {
+        matrix[i][j] = matrix[i - 1][j - 1];
+      } else {
+        matrix[i][j] = Math.min(
+          matrix[i - 1][j - 1] + 1,
+          matrix[i][j - 1] + 1,
+          matrix[i - 1][j] + 1
+        );
+      }
+    }
+  }
+  return matrix[b.length][a.length];
+}
+
+function areStatesSimilar(s1: string, s2: string): boolean {
+    if (!s1 || !s2) return false;
+    const term1 = s1.trim().toLowerCase();
+    const term2 = s2.trim().toLowerCase();
+    if (term1 === term2) return true;
+
+    // Abbreviation check (e.g., MP for Madhya Pradesh)
+    const abbreviationMatch = term1.length < 4 && term2.split(' ').some(word => word.charAt(0) === term1.charAt(0));
+    if (abbreviationMatch) return true;
+
+    // Levenshtein distance for fuzzy matching
+    const distance = levenshtein(term1, term2);
+    const maxLength = Math.max(term1.length, term2.length);
+    const similarity = 1 - distance / maxLength;
+    
+    return similarity > 0.8; // 80% similarity threshold
+}
+
 
 interface WaybillPrintProps {
   waybill: Waybill;
@@ -16,6 +73,28 @@ interface WaybillPrintProps {
 function WaybillCopy({ waybill, copyType }: WaybillPrintProps) {
   const { associations, isLoaded: associationsLoaded } = usePartnerAssociations();
   const { users, isLoading: usersLoaded } = useAuth();
+  const [expDeliveryDate, setExpDeliveryDate] = useState<Date | null>(null);
+
+  useEffect(() => {
+    try {
+        const storedRates = localStorage.getItem('yuwon-state-rates');
+        if (storedRates) {
+            const rates: Rate[] = JSON.parse(storedRates);
+            const rate = rates.find(r => 
+                r && r.fromState && r.toState &&
+                areStatesSimilar(r.fromState, waybill.senderState) && 
+                areStatesSimilar(r.toState, waybill.receiverState)
+            );
+            if (rate && rate.expectedDeliveryDays > 0) {
+                const shippingDate = new Date(waybill.shippingDate);
+                const deliveryDate = addDays(shippingDate, rate.expectedDeliveryDays);
+                setExpDeliveryDate(deliveryDate);
+            }
+        }
+    } catch (e) {
+        console.error("Failed to calculate expected delivery date", e);
+    }
+  }, [waybill.senderState, waybill.receiverState, waybill.shippingDate]);
   
   const getPartnerInfo = () => {
     if (!associationsLoaded || !usersLoaded || !waybill.partnerCode) {
@@ -44,12 +123,36 @@ function WaybillCopy({ waybill, copyType }: WaybillPrintProps) {
 
   const isDelivered = waybill.status === 'Delivered';
   const { bookingPartner, deliveryPartner } = getPartnerInfo();
+  
+  const groupedDimensions = useMemo(() => {
+    if (!waybill.dimensions || waybill.dimensions.length === 0) {
+        return [];
+    }
+
+    const counts = new Map<string, { l: number, b: number, h: number, count: number }>();
+    
+    waybill.dimensions.forEach(dim => {
+        const key = `${dim.length}x${dim.breadth}x${dim.height}`;
+        if (counts.has(key)) {
+            counts.get(key)!.count++;
+        } else {
+            counts.set(key, { l: dim.length, b: dim.breadth, h: dim.height, count: 1 });
+        }
+    });
+
+    return Array.from(counts.values());
+  }, [waybill.dimensions]);
+
+  const dimensionRows = Array(5).fill(null);
+  groupedDimensions.slice(0, 5).forEach((dim, index) => {
+    dimensionRows[index] = dim;
+  });
 
   return (
     <div className="bg-white text-black font-sans mx-auto print:shadow-none" style={{ fontSize: '10px', height: '12.5cm', width: '100%', display: 'flex', flexDirection: 'column' }}>
       <div className="border-2 border-black flex flex-col flex-grow">
           {/* Header */}
-          <header className="flex justify-between items-center p-2 border-b-2 border-black">
+          <header className="flex justify-between items-start p-2 border-b-2 border-black">
             <div className="flex items-center gap-3">
                 <div className="relative h-10 w-10">
                     <svg viewBox="0 0 200 200" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -75,6 +178,7 @@ function WaybillCopy({ waybill, copyType }: WaybillPrintProps) {
                     fontSize={12}
                 />
               </div>
+              {expDeliveryDate && <p className="text-xs text-black font-semibold">Exp. Delivery: {format(expDeliveryDate, 'dd-MMM-yyyy')}</p>}
               {waybill.tripNo && <p className="text-xs text-black font-semibold">Trip #{waybill.tripNo}</p>}
             </div>
           </header>
@@ -125,20 +229,30 @@ function WaybillCopy({ waybill, copyType }: WaybillPrintProps) {
                             <p className="font-semibold text-black text-[9px]">Chg. Wt.</p>
                             <p className="text-sm font-bold">{waybill.chargeableWeight || waybill.packageWeight} kg</p>
                         </div>
-                        <div className="p-1 border-2 border-black text-center col-span-3">
-                            <p className="font-semibold text-black text-[9px]">Invoice #</p>
-                            <p className="text-[9px] truncate">{waybill.invoiceNumber}</p>
-                        </div>
-                        <div className="p-1 border-2 border-black text-center">
-                            <p className="font-semibold text-black text-[9px]">Value</p>
-                            <p className="text-sm font-bold">₹{waybill.shipmentValue.toFixed(2)}</p>
-                        </div>
-                        <div className="p-1 border-2 border-black text-center">
-                            <p className="font-semibold text-black text-[9px]">E-Way Bill #</p>
-                            <p className="text-[9px] truncate">{waybill.eWayBillNo || 'N/A'}</p>
-                        </div>
                     </div>
-                    <div className="grid grid-cols-2 gap-1">
+                     <table className="w-full text-[9px] border-collapse border-2 border-black">
+                        <thead>
+                            <tr className="bg-gray-200">
+                                <th className="border-2 border-black p-0.5">Sr</th>
+                                <th className="border-2 border-black p-0.5">L</th>
+                                <th className="border-2 border-black p-0.5">B</th>
+                                <th className="border-2 border-black p-0.5">H</th>
+                                <th className="border-2 border-black p-0.5">Article</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {dimensionRows.map((dim, index) => (
+                                <tr key={index}>
+                                    <td className="border-2 border-black p-0.5 text-center">{dim ? index + 1 : ''}</td>
+                                    <td className="border-2 border-black p-0.5 text-center">{dim ? dim.l : ''}</td>
+                                    <td className="border-2 border-black p-0.5 text-center">{dim ? dim.b : ''}</td>
+                                    <td className="border-2 border-black p-0.5 text-center">{dim ? dim.h : ''}</td>
+                                    <td className="border-2 border-black p-0.5 text-center">{dim ? dim.count : ''}</td>
+                                </tr>
+                            ))}
+                        </tbody>
+                    </table>
+                    <div className="grid grid-cols-2 gap-1 mt-1">
                         <div className="p-1 border-2 border-black text-center">
                             <p className="font-semibold text-black text-[9px] flex items-center justify-center gap-1"><Briefcase className="h-2 w-2"/> Booking Partner</p>
                             <p className="text-xs font-bold uppercase truncate">{bookingPartner}</p>
@@ -148,14 +262,6 @@ function WaybillCopy({ waybill, copyType }: WaybillPrintProps) {
                             <p className="text-xs font-bold uppercase truncate">{deliveryPartner}</p>
                         </div>
                     </div>
-                </div>
-              </section>
-              
-              <section className="mt-1 flex-grow">
-                <div className="p-2 border-2 border-black h-full flex items-start gap-2 text-xs">
-                    <Package className="h-4 w-4 text-black shrink-0 mt-0.5" />
-                    <span className="font-semibold mr-2">Desc:</span>
-                    <p>{waybill.packageDescription}</p>
                 </div>
               </section>
 
@@ -190,8 +296,8 @@ function WaybillCopy({ waybill, copyType }: WaybillPrintProps) {
                   </div>
               </section>
 
-              <section className="mt-1">
-                <div className="p-1 border-2 border-black text-[8px] space-y-0.5">
+              <section className="mt-1 flex-grow">
+                <div className="p-1 border-2 border-black text-[8px] space-y-0.5 h-full">
                   <p className="font-bold mb-0.5">Terms & Conditions:</p>
                   <p>1. All shipments are carried at the sender's risk. YU-WON LOGISTICS is not liable for any loss or damage unless insurance is purchased.</p>
                   <p>2. Liability of YU-WON LOGISTICS is limited to the declared value or ₹1,000, whichever is lower. Sender is responsible for shipping non-prohibited items.</p>
