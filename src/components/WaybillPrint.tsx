@@ -149,7 +149,7 @@ function WaybillCopy({ waybill, copyType }: WaybillPrintProps) {
   });
 
   return (
-    <div className="bg-white text-black font-sans mx-auto print:shadow-none p-2" style={{ fontSize: '10px', height: '12.5cm', width: '20cm' }}>
+    <div className="bg-white text-black font-sans mx-auto print:shadow-none p-2" style={{ fontSize: '10px', height: '12cm', width: '20cm' }}>
       <div className="border-2 border-black flex flex-col h-full">
           {/* Header */}
           <header className="flex justify-between items-center p-2 border-b-2 border-black">
@@ -247,7 +247,7 @@ function WaybillCopy({ waybill, copyType }: WaybillPrintProps) {
 
               {/* Dimensions & Description */}
               <section className="grid grid-cols-12 gap-px bg-black border-b-2 border-black flex-grow min-h-0">
-                  <div className="col-span-7 bg-white p-1">
+                  <div className="col-span-5 bg-white p-1">
                         <table className="w-full text-center text-[9px] border-collapse">
                             <thead className="bg-gray-100">
                                 <tr>
@@ -269,9 +269,16 @@ function WaybillCopy({ waybill, copyType }: WaybillPrintProps) {
                             </tbody>
                         </table>
                   </div>
-                  <div className="col-span-5 bg-white p-2 text-xs">
+                  <div className="col-span-3 bg-white p-2 text-xs">
                         <p className="font-bold uppercase text-[9px]">Description:</p>
                         <p>{waybill.packageDescription}</p>
+                  </div>
+                  <div className="col-span-4 bg-white p-1 text-[8px] leading-tight">
+                    <p className="font-bold uppercase text-[9px] mb-0.5">Terms & Conditions:</p>
+                    <ol className="list-decimal list-inside space-y-px">
+                        <li>All shipments are carried at sender's risk. YU-WON LOGISTICS is not liable for loss/damage unless insured.</li>
+                        <li>Liability is limited to declared value or ₹1,000, whichever is lower. Sender is responsible for shipping non-prohibited items.</li>
+                    </ol>
                   </div>
               </section>
 
@@ -310,12 +317,6 @@ function WaybillCopy({ waybill, copyType }: WaybillPrintProps) {
                 )}
               </section>
 
-              {/* Footer */}
-              <footer className="p-1 text-[8px]">
-                  <p className="font-bold">Terms & Conditions:</p>
-                  <p>1. All shipments are carried at the sender's risk. YU-WON LOGISTICS is not liable for any loss or damage unless insurance is purchased.</p>
-                  <p>2. Liability of YU-WON LOGISTICS is limited to the declared value or ₹1,000, whichever is lower. Sender is responsible for shipping non-prohibited items.</p>
-              </footer>
           </div>
       </div>
     </div>
