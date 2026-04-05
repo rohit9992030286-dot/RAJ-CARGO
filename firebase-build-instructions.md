@@ -1,42 +1,76 @@
+# Prompts to Build "YU-WON LOGISTICS"
 
-# Prompts to Build "YU-WON LOGISTICS" with Firebase
+Here is a script of prompts you can use with an AI assistant to build this courier management application using Next.js. This guide focuses on a local-first approach using local storage for data management.
 
-Here is a script of prompts you can use with an AI assistant to build this courier management application using Next.js and Firebase.
+### 1. Initial Project Setup & Core UI
 
-### 1. Initial Project Setup
+"Hello! Let's start building a courier management app called 'YU-WON LOGISTICS'.
 
-"Hello! Let's start building a courier management app called 'YU-WON LOGISTICS'. Please set up a Next.js project using TypeScript and Tailwind CSS. Also, add the Firebase SDK to the project. Create a Firebase configuration file (`src/lib/firebase.ts`) to initialize the Firebase app, but leave the config values as placeholders for now. Finally, create a basic home page that says 'Welcome to YU-WON LOGISTICS'."
+1.  **Tech Stack**: Set up a Next.js project using TypeScript and Tailwind CSS.
+2.  **UI Components**: Integrate ShadCN UI by creating `components.json` and adding the default `globals.css` theme. Install all necessary radix-ui dependencies, `lucide-react`, `class-variance-authority`, `clsx`, and `tailwind-merge`.
+3.  **Basic Layout**: Create a root `layout.tsx` that includes a `Toaster` component for notifications. Create a simple loading component (`loading.tsx`).
+4.  **Theme Toggle**: Add a settings page at `/booking/settings` that allows users to switch between light, dark, and system themes. This setting should be saved to local storage."
 
-### 2. Firebase Authentication
+### 2. Core Data Structure & Hooks
 
-"Now, let's set up Firebase Authentication. Create a login page where a user can sign in with an email and password. Also, create a `useAuth` hook that manages the user's authentication state using `onAuthStateChanged`. Protect all routes except the login page, so that unauthenticated users are redirected to `/login`."
+"Now, let's set up the data foundation using local storage.
 
-### 3. Firestore and Data Structure
+1.  **Define Types**: Create TypeScript files under a `src/types` directory for `waybill.ts`, `manifest.ts`, `inventory.ts`, `company.ts`, and `vehicle.ts`. Use Zod to define the schemas for each of these data structures.
+2.  **Create DataContext**: Build a `DataContext.tsx` component. This provider will be responsible for loading all data from local storage into state on startup and saving it back whenever it changes. It should expose functions to add, update, and delete all data types (waybills, manifests, etc.).
+3.  **Create Data Hooks**: Create custom hooks for each data type (e.g., `useWaybills`, `useManifests`, `useCompanies`, `useVehicles`, `useWaybillInventory`). These hooks should consume the `DataContext` to provide filtered data and action functions to the rest of the app."
 
-"Let's define our database structure. We will use Firestore. Create a `waybills` collection and a `manifests` collection. A waybill should contain fields like `waybillNumber`, `senderInfo`, `receiverInfo`, `status`, `shippingDate`, etc. A manifest should contain a `date`, `vehicleNo`, `status`, and an array of waybill IDs (`waybillIds`)."
+### 3. Authentication & User Management
 
-### 4. Booking System - Waybills
+"Set up a complete authentication system.
 
-"Let's build the waybill booking system. Create a new page at `/booking/waybills/create` with a form to add a new document to the `waybills` collection in Firestore. Create another page at `/booking/waybills` that lists all waybills from the collection in a table. This table should have options to edit or delete a waybill. When editing, it should re-populate the form with the existing data."
+1.  **`useAuth` Hook**: Create an `AuthContext` and a `useAuth` hook. This hook will manage a list of users and the current authenticated user, storing both in local storage. It should handle login, logout, and role-based access checks.
+2.  **Default Admin**: The `useAuth` hook should create a default 'admin' user with a password if no users exist in local storage.
+3.  **Login Page**: Design a professional login page at `/login`. Unauthenticated users should be redirected here.
+4.  **Admin PIN Verification**: Create a page at `/admin/verify` that requires the admin to enter a secret PIN after logging in to access the admin panel. This verification status should be stored in session storage.
+5.  **User Management UI**: On an admin-only page at `/admin/users`, build a UI to create new users, assign them roles (booking, hub, delivery, account), a partner code, and associate them with a company if they have the 'booking' role."
 
-### 5. Manifest System - Dispatching
+### 4. Admin Panel - Foundational Modules
 
-"Now, build the manifest system. Create a page at `/booking/manifests` to list all manifests. Add a 'Create Manifest' button that takes the user to a page where they can create a new manifest document in Firestore. On this page, the user should be able to search for 'Pending' waybills from Firestore and add their document IDs to the manifest's `waybillIds` array. Finally, add a 'Dispatch' button that updates the manifest's status to 'Dispatched' and, using a batched write, updates the status of all associated waybills to 'In Transit'."
+"Build the core configuration modules that the rest of the application will depend on.
 
-### 6. Hub Operations - Receiving
+1.  **Company Management**: Create a page at `/admin/companies` to add, edit, and delete company profiles. Each company should have a unique code and default sender information.
+2.  **Waybill Inventory**: Build a page at `/admin/inventory` to assign waybill number ranges to specific booking partners and/or companies.
+3.  **Partner Associations (Routing)**: At `/admin/partner-associations`, create a UI to define the logistics network. Allow the admin to map booking partners to hubs, hubs to other hubs, and hubs to final delivery partners.
+4.  **Rate Management**: At `/admin/rates`, create a system to manage state-to-state shipping rates, including docket charges, fuel surcharges, and expected delivery days. Include Excel import/export functionality."
 
-"Let's create the Hub Operations module at `/hub`. This page should list all manifests with the status 'Dispatched'. Add a 'Verify Shipment' button next to each one. This button should lead to a scanning page (`/hub/scan/[id]`) where staff can enter waybill numbers. The app should check if the entered number exists in the manifest's `waybillIds`. Once all waybills are verified, there should be a 'Confirm Arrival' button that changes the manifest's status in Firestore to 'Received'."
+### 5. Booking Module
 
-### 7. Delivery Operations
+"Create the interface for booking partners.
 
-"Next, create the Delivery module at `/delivery`. This page should display all waybills from manifests that have been marked as 'Received' at the hub. It should function as a 'Delivery Sheet', allowing staff to update the status of each waybill to 'Out for Delivery' or 'Delivered'. These status changes should update the individual waybill documents in Firestore."
+1.  **Waybill Creation**: Build a form at `/booking/waybills/create` for creating a new waybill. The 'Waybill Number' field must be a dropdown populated from the user's assigned, unused inventory. Sender details should auto-fill if a company is selected.
+2.  **Waybill Book**: At `/booking/waybills`, display a paginated list of all waybills created by the logged-in partner. Include search, filtering by date, and options to edit/delete/print waybills and stickers.
+3.  **Bulk Operations**: Add an accordion to the Waybill Book page for 'Bulk Operations', including Excel uploads for both waybill data and package dimensions, with strict validation.
+4.  **Manifests**: On the `/booking/manifest` page, allow users to create a manifest, add pending waybills to it, and dispatch it. Dispatching should update all included waybills' statuses to 'In Transit'."
 
-### 8. Admin & Role-Based Access
+### 6. Hub Module
 
-"Finally, let's add admin functionality. Use Firebase custom claims to create an 'admin' role. Modify the `useAuth` hook to check for this custom claim. Create an admin dashboard at `/admin` that is only accessible to users with the 'admin' role. On this dashboard, add a user management page that lists all Firebase Auth users and allows an admin to set or remove the 'admin' custom claim for any user."
+"Develop the tools for hub staff.
 
-### 9. Final Touches
+1.  **Incoming Manifests**: On the main `/hub` page, show a list of all manifests dispatched to the current user's hub.
+2.  **Verification & Scanning**: Create a page at `/hub/scan/[id]` for verifying incoming manifests. Staff should be able to scan box barcodes using their device camera or enter them manually. The system should assign pallet numbers for each destination city and highlight any shortages.
+3.  **Shortage Report**: At `/hub/shortages`, display a list of all manifests that were received with missing items.
+4.  **Outbound Dispatch**: Create a page at `/hub/dispatch` where staff can scan verified boxes to create new outbound manifests, either for another hub or for a final delivery partner."
 
-"Please add a global search bar to the waybill list page that filters the Firestore query in real-time. Also, implement toast notifications for actions like creating, updating, or deleting data."
+### 7. Delivery & Accounts Modules
 
-    
+"Build the final operational modules.
+
+1.  **Delivery Sheet**: At `/delivery`, display a list of all waybills 'Out for Delivery' assigned to the current user. Allow them to update the status to 'Delivered' or 'Returned' and upload a Proof of Delivery (POD) image for delivered items.
+2.  **Accounts Dashboard**: Create an `/account` module with pages for employee salary management (`/account/employees`), calculating partner commission payments (`/account/partners`), and viewing detailed sales reports for corporate clients (`/account/company-sales`)."
+
+### 8. Public Pages & Printing
+
+"Finalize the application with public-facing features and printing capabilities.
+
+1.  **Public Homepage**: Create a homepage (`/`) with a prominent tracking feature that allows customers to search for a waybill by number and see its current status.
+2.  **Printing**: Implement robust printing functionality for:
+    *   **Waybills**: A4 format with Receiver and POD copies.
+    *   **Stickers**: 75mm x 75mm format for individual boxes.
+    *   **Manifests & Trip Sheets**: Paginated to fit many waybills per page.
+    *   **Employee ID Cards**.
+3.  **Static Pages**: Add 'About Us', 'Features', and 'Terms & Conditions' pages."
