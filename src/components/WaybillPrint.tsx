@@ -150,11 +150,11 @@ function WaybillCopy({ waybill, copyType }: WaybillPrintProps) {
   });
 
   return (
-    <div className="bg-white text-black font-sans mx-auto print:shadow-none p-2" style={{ fontSize: '9px', height: '9.5cm', width: '20cm' }}>
+    <div className="bg-white text-black font-sans mx-auto print:shadow-none p-0" style={{ fontSize: '9px', height: '9.5cm', width: '20cm' }}>
       <div className="border-2 border-black flex flex-col h-full">
           {/* Header */}
-          <header className="grid grid-cols-12 gap-2 items-start p-1 border-b-2 border-black">
-             <div className="col-span-7 flex items-center gap-2">
+          <header className="grid grid-cols-12 gap-px bg-black items-start p-px border-b-2 border-black">
+             <div className="col-span-7 flex items-center gap-2 bg-white h-full p-1">
                 <div className="relative h-10 w-10">
                     <svg viewBox="0 0 200 200" fill="none" xmlns="http://www.w3.org/2000/svg">
                         <path d="M 10,80 L 50,80 M 5,100 L 45,100" stroke="black" strokeWidth="10" strokeLinecap="round" />
@@ -169,20 +169,20 @@ function WaybillCopy({ waybill, copyType }: WaybillPrintProps) {
                     <p className="text-black text-[8px] font-semibold">DELHI NAJAFGARH. PINCODE 110048 | contact@yuwonlogistics.com</p>
                 </div>
             </div>
-            <div className="col-span-5 text-right">
-              <Barcode value={waybill.waybillNumber} height={40} width={1.5} fontSize={12} />
+            <div className="col-span-5 text-right bg-white h-full p-1">
+              <Barcode value={waybill.waybillNumber} height={40} width={1.5} fontSize={12} margin={2}/>
             </div>
           </header>
 
-          <div className="flex justify-between items-center p-1 border-b-2 border-black">
-            <h2 className="text-base font-bold uppercase tracking-wider text-black">{copyType}</h2>
+          <div className="flex justify-between items-center px-1 py-0.5 border-b-2 border-black">
+            <h2 className="text-sm font-bold uppercase tracking-wider text-black">{copyType}</h2>
             <div className="text-right">
               <p className="text-[10px] font-semibold">Date: {format(new Date(waybill.shippingDate), 'dd-MMM-yyyy')}</p>
               {expDeliveryDate && <p className="text-[10px] font-bold text-blue-700">Exp. Delivery: {format(expDeliveryDate, 'dd-MMM-yyyy')}</p>}
             </div>
           </div>
           
-          <div className="p-0.5 flex-grow flex flex-col">
+          <div className="p-0 flex-grow flex flex-col">
               {/* Sender & Receiver Info */}
               <section className="grid grid-cols-12 gap-px bg-black border-b-2 border-black">
                 <div className="col-span-6 p-1 bg-white">
@@ -209,28 +209,28 @@ function WaybillCopy({ waybill, copyType }: WaybillPrintProps) {
 
               {/* Partner & Logistics Info */}
                <section className="grid grid-cols-12 gap-px bg-black border-b-2 border-black text-[8px]">
-                    <div className="col-span-3 p-0.5 bg-white"><p className="font-bold uppercase">Booking Partner:</p><p className="font-semibold uppercase truncate">{bookingPartner}</p></div>
-                    <div className="col-span-3 p-0.5 bg-white"><p className="font-bold uppercase">Delivery Partner:</p><p className="font-semibold uppercase truncate">{deliveryPartner}</p></div>
-                    <div className="col-span-3 p-0.5 bg-white"><p className="font-bold uppercase">Invoice #:</p><p className="font-mono">{waybill.invoiceNumber}</p></div>
-                    <div className="col-span-3 p-0.5 bg-white"><p className="font-bold uppercase">Trip #:</p><p className="font-mono">{waybill.tripNo || 'N/A'}</p></div>
+                    <div className="col-span-3 p-1 bg-white"><p className="font-bold uppercase">Booking Partner:</p><p className="font-semibold uppercase truncate">{bookingPartner}</p></div>
+                    <div className="col-span-3 p-1 bg-white"><p className="font-bold uppercase">Delivery Partner:</p><p className="font-semibold uppercase truncate">{deliveryPartner}</p></div>
+                    <div className="col-span-3 p-1 bg-white"><p className="font-bold uppercase">Invoice #:</p><p className="font-mono">{waybill.invoiceNumber}</p></div>
+                    <div className="col-span-3 p-1 bg-white"><p className="font-bold uppercase">Trip #:</p><p className="font-mono">{waybill.tripNo || 'N/A'}</p></div>
                 </section>
                 <section className="grid grid-cols-12 gap-px bg-black border-b-2 border-black text-[8px]">
-                    <div className="col-span-6 p-0.5 bg-white"><p className="font-bold uppercase">E-Way Bill #:</p><p className="font-mono">{waybill.eWayBillNo || 'N/A'}</p></div>
-                    <div className="col-span-6 p-0.5 bg-white"><p className="font-bold uppercase">E-Way Bill Expiry:</p><p className="font-mono">{waybill.eWayBillExpiryDate ? format(new Date(waybill.eWayBillExpiryDate), 'dd-MMM-yyyy') : 'N/A'}</p></div>
+                    <div className="col-span-6 p-1 bg-white"><p className="font-bold uppercase">E-Way Bill #:</p><p className="font-mono">{waybill.eWayBillNo || 'N/A'}</p></div>
+                    <div className="col-span-6 p-1 bg-white"><p className="font-bold uppercase">E-Way Bill Expiry:</p><p className="font-mono">{waybill.eWayBillExpiryDate ? format(new Date(waybill.eWayBillExpiryDate), 'dd-MMM-yyyy') : 'N/A'}</p></div>
                 </section>
 
               {/* Weight & Boxes Details */}
               <section className="grid grid-cols-12 gap-px bg-black border-b-2 border-black text-[8px]">
-                    <div className="col-span-2 p-0.5 text-center bg-white"><p className="font-semibold">Payment</p><p className="font-bold">{waybill.paymentType}</p></div>
-                    <div className="col-span-2 p-0.5 text-center bg-white"><p className="font-semibold">Boxes</p><p className="font-bold">{waybill.numberOfBoxes}</p></div>
-                    <div className="col-span-2 p-0.5 text-center bg-white"><p className="font-semibold">Actual Wt.</p><p className="font-bold">{waybill.packageWeight} kg</p></div>
-                    <div className="col-span-2 p-0.5 text-center bg-white"><p className="font-semibold">Chargeable Wt.</p><p className="font-bold">{waybill.chargeableWeight || waybill.packageWeight} kg</p></div>
-                    <div className="col-span-4 p-0.5 text-center bg-white"><p className="font-semibold">Shipment Value</p><p className="font-bold">₹ {waybill.shipmentValue.toLocaleString('en-IN')}</p></div>
+                    <div className="col-span-2 p-1 text-center bg-white"><p className="font-semibold">Payment</p><p className="font-bold">{waybill.paymentType}</p></div>
+                    <div className="col-span-2 p-1 text-center bg-white"><p className="font-semibold">Boxes</p><p className="font-bold">{waybill.numberOfBoxes}</p></div>
+                    <div className="col-span-2 p-1 text-center bg-white"><p className="font-semibold">Actual Wt.</p><p className="font-bold">{waybill.packageWeight} kg</p></div>
+                    <div className="col-span-2 p-1 text-center bg-white"><p className="font-semibold">Chargeable Wt.</p><p className="font-bold">{waybill.chargeableWeight || waybill.packageWeight} kg</p></div>
+                    <div className="col-span-4 p-1 text-center bg-white"><p className="font-semibold">Shipment Value</p><p className="font-bold">₹ {waybill.shipmentValue.toLocaleString('en-IN')}</p></div>
               </section>
 
-              {/* Dimensions & Description */}
+              {/* Dimensions & Description & T&C */}
               <section className="grid grid-cols-12 gap-px bg-black border-b-2 border-black flex-grow min-h-0">
-                  <div className="col-span-5 bg-white p-0.5">
+                  <div className="col-span-5 bg-white p-1">
                         <table className="w-full text-center text-[8px] border-collapse">
                             <thead className="bg-gray-100">
                                 <tr>
@@ -265,7 +265,7 @@ function WaybillCopy({ waybill, copyType }: WaybillPrintProps) {
                   </div>
               </section>
 
-              <section className="border-b-2 border-black">
+              <section>
                 {copyType === 'POD Copy' ? (
                      isDelivered ? (
                       <div className="p-1 grid grid-cols-2 gap-2 text-[9px]">

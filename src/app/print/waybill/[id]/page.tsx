@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useEffect, useRef, useState, Suspense } from 'react';
@@ -53,6 +54,7 @@ function PrintWaybillContent() {
       }
       body {
         -webkit-print-color-adjust: exact;
+        margin: 0.25in;
       }
     }
   `;

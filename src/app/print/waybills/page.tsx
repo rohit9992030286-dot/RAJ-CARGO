@@ -49,6 +49,7 @@ function PrintWaybillsContent() {
       }
       body {
         -webkit-print-color-adjust: exact;
+        margin: 0.25in;
       }
        .waybill-print-container {
         page-break-after: always;
