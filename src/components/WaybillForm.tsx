@@ -51,6 +51,9 @@ const getInitialValues = (initialData?: Waybill): WaybillFormData => {
         partnerCode: '',
         companyCode: '',
         paymentType: 'To Pay' as 'Credit' | 'To Pay',
+        deliveryDate: '',
+        receivedBy: '',
+        podImageUrl: '',
     };
     
     if (initialData) {

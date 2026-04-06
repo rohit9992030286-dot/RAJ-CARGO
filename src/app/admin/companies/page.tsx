@@ -37,6 +37,7 @@ export default function CompanyManagementPage() {
       senderCity: '',
       senderPincode: '',
       senderPhone: '',
+      senderState: '',
     },
   });
 
