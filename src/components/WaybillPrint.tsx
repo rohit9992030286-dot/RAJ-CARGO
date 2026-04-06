@@ -1,3 +1,4 @@
+
 'use client';
 
 import { Waybill } from '@/types/waybill';
@@ -152,10 +153,10 @@ function WaybillCopy({ waybill, copyType }: WaybillPrintProps) {
     <div className="bg-white text-black font-sans mx-auto print:shadow-none p-2" style={{ fontSize: '9px', height: '9.5cm', width: '20cm' }}>
       <div className="border-2 border-black flex flex-col h-full">
           {/* Header */}
-          <header className="flex justify-between items-center p-1 border-b-2 border-black">
-             <div className="flex items-center gap-2">
+          <header className="grid grid-cols-12 gap-2 items-start p-1 border-b-2 border-black">
+             <div className="col-span-7 flex items-center gap-2">
                 <div className="relative h-10 w-10">
-                     <svg viewBox="0 0 200 200" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <svg viewBox="0 0 200 200" fill="none" xmlns="http://www.w3.org/2000/svg">
                         <path d="M 10,80 L 50,80 M 5,100 L 45,100" stroke="black" strokeWidth="10" strokeLinecap="round" />
                         <path d="M 60,60 Q 110,180 160,60 L 145,50 Q 110,140 75,50 Z" fill="black" />
                         <path d="M 110,20 L 120,45 L 145,45 L 125,60 L 135,85 L 110,70 L 85,85 L 95,60 L 75,45 L 100,45 Z" fill="black" />
@@ -168,17 +169,18 @@ function WaybillCopy({ waybill, copyType }: WaybillPrintProps) {
                     <p className="text-black text-[8px] font-semibold">DELHI NAJAFGARH. PINCODE 110048 | contact@yuwonlogistics.com</p>
                 </div>
             </div>
-            <div className="text-right">
-              <h2 className="text-base font-bold uppercase tracking-wider text-black">{copyType}</h2>
-              <p className="text-[10px] font-semibold">Date: {format(new Date(waybill.shippingDate), 'dd-MMM-yyyy')}</p>
-              {expDeliveryDate && <p className="text-[10px] font-bold text-blue-700">Exp. Delivery: {format(expDeliveryDate, 'dd-MMM-yyyy')}</p>}
+            <div className="col-span-5 text-right">
+              <Barcode value={waybill.waybillNumber} height={40} width={1.5} fontSize={12} />
             </div>
           </header>
 
-           {/* Barcode Section */}
-           <div className="text-center py-0.5 border-b-2 border-black">
-                <Barcode value={waybill.waybillNumber} height={30} width={1.8} fontSize={14} />
+          <div className="flex justify-between items-center p-1 border-b-2 border-black">
+            <h2 className="text-base font-bold uppercase tracking-wider text-black">{copyType}</h2>
+            <div className="text-right">
+              <p className="text-[10px] font-semibold">Date: {format(new Date(waybill.shippingDate), 'dd-MMM-yyyy')}</p>
+              {expDeliveryDate && <p className="text-[10px] font-bold text-blue-700">Exp. Delivery: {format(expDeliveryDate, 'dd-MMM-yyyy')}</p>}
             </div>
+          </div>
           
           <div className="p-0.5 flex-grow flex flex-col">
               {/* Sender & Receiver Info */}
